@@ -1,0 +1,151 @@
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, CheckCircle } from "lucide-react";
+import { DatePicker } from "./DatePicker";
+import { TimeSlotSelector } from "./TimeSlotSelector";
+import { BookingForm } from "./BookingForm";
+
+interface BookingData {
+  date: Date | null;
+  time: string | null;
+  clientInfo: {
+    name: string;
+    email: string;
+    phone: string;
+    message: string;
+  } | null;
+}
+
+export const BookingTool = () => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [bookingData, setBookingData] = useState<BookingData>({
+    date: null,
+    time: null,
+    clientInfo: null,
+  });
+
+  const steps = [
+    { number: 1, title: "Choisir une date", icon: Calendar },
+    { number: 2, title: "Sélectionner l'heure", icon: Clock },
+    { number: 3, title: "Vos informations", icon: CheckCircle },
+  ];
+
+  const handleDateSelect = (date: Date) => {
+    setBookingData({ ...bookingData, date });
+    setCurrentStep(2);
+  };
+
+  const handleTimeSelect = (time: string) => {
+    setBookingData({ ...bookingData, time });
+    setCurrentStep(3);
+  };
+
+  const handleFormSubmit = (clientInfo: any) => {
+    setBookingData({ ...bookingData, clientInfo });
+    // Here you would typically send the data to your backend
+    console.log("Booking confirmed:", { ...bookingData, clientInfo });
+  };
+
+  const resetBooking = () => {
+    setBookingData({ date: null, time: null, clientInfo: null });
+    setCurrentStep(1);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-secondary p-4">
+      <div className="mx-auto max-w-4xl">
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <h1 className="mb-4 text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            Prenez Rendez-vous
+          </h1>
+          <p className="text-muted-foreground">
+            Réservez facilement votre créneau en quelques clics
+          </p>
+        </div>
+
+        {/* Progress Steps */}
+        <div className="mb-8 flex justify-center">
+          <div className="flex items-center space-x-4">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const isActive = currentStep === step.number;
+              const isCompleted = currentStep > step.number;
+              
+              return (
+                <div key={step.number} className="flex items-center">
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-full transition-all ${
+                      isCompleted
+                        ? "bg-success text-success-foreground"
+                        : isActive
+                        ? "bg-primary text-primary-foreground shadow-glow"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span
+                    className={`ml-2 hidden text-sm font-medium sm:block ${
+                      isActive ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    {step.title}
+                  </span>
+                  {index < steps.length - 1 && (
+                    <div className="mx-4 h-px w-8 bg-border"></div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <Card className="bg-gradient-card shadow-card border-border/50 backdrop-blur-sm">
+          <div className="p-6">
+            {currentStep === 1 && (
+              <DatePicker
+                selectedDate={bookingData.date}
+                onDateSelect={handleDateSelect}
+              />
+            )}
+
+            {currentStep === 2 && bookingData.date && (
+              <TimeSlotSelector
+                selectedDate={bookingData.date}
+                selectedTime={bookingData.time}
+                onTimeSelect={handleTimeSelect}
+                onBack={() => setCurrentStep(1)}
+              />
+            )}
+
+            {currentStep === 3 && bookingData.date && bookingData.time && (
+              <BookingForm
+                bookingData={bookingData}
+                onSubmit={handleFormSubmit}
+                onBack={() => setCurrentStep(2)}
+              />
+            )}
+
+            {bookingData.clientInfo && (
+              <div className="text-center">
+                <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-success/20">
+                  <CheckCircle className="h-8 w-8 text-success" />
+                </div>
+                <h2 className="mb-4 text-2xl font-bold">Rendez-vous confirmé !</h2>
+                <p className="mb-6 text-muted-foreground">
+                  Un email de confirmation vous a été envoyé.
+                </p>
+                <Button variant="outline" onClick={resetBooking}>
+                  Prendre un autre rendez-vous
+                </Button>
+              </div>
+            )}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+};
