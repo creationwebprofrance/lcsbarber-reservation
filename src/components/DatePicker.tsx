@@ -13,7 +13,11 @@ interface DatePickerProps {
 
 export const DatePicker = ({ selectedDate, onDateSelect }: DatePickerProps) => {
   const today = new Date();
-  const [currentWeek, setCurrentWeek] = useState(today);
+  // Initialiser avec la semaine actuelle
+  const [currentWeek, setCurrentWeek] = useState(() => {
+    // S'assurer que la semaine commence bien avec la semaine actuelle
+    return startOfWeek(today, { weekStartsOn: 1 });
+  });
   
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 }); // Lundi
   const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 1 }); // Dimanche
@@ -29,7 +33,7 @@ export const DatePicker = ({ selectedDate, onDateSelect }: DatePickerProps) => {
 
   const goToPreviousWeek = () => {
     const prevWeek = subWeeks(currentWeek, 1);
-    if (prevWeek >= today) {
+    if (prevWeek >= startOfWeek(today, { weekStartsOn: 1 })) {
       setCurrentWeek(prevWeek);
     }
   };
@@ -39,6 +43,11 @@ export const DatePicker = ({ selectedDate, onDateSelect }: DatePickerProps) => {
     if (nextWeek <= maxDate) {
       setCurrentWeek(nextWeek);
     }
+  };
+
+  const isCurrentWeek = () => {
+    const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
+    return weekStart.getTime() === currentWeekStart.getTime();
   };
 
   return (
@@ -55,15 +64,20 @@ export const DatePicker = ({ selectedDate, onDateSelect }: DatePickerProps) => {
               variant="ghost"
               size="sm"
               onClick={goToPreviousWeek}
-              disabled={subWeeks(currentWeek, 1) < today}
+              disabled={subWeeks(currentWeek, 1) < startOfWeek(today, { weekStartsOn: 1 })}
               className="h-8 w-8 p-0 hover:bg-accent hover:shadow-glow transition-all duration-300"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
-            <h3 className="text-lg font-semibold text-foreground">
-              Semaine du {weekStart.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
-            </h3>
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-foreground">
+                Semaine du {weekStart.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+              </h3>
+              {isCurrentWeek() && (
+                <p className="text-xs text-primary font-medium">Semaine en cours</p>
+              )}
+            </div>
             
             <Button
               variant="ghost"
