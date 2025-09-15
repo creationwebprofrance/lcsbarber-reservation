@@ -22,6 +22,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     name: "",
     email: "",
     phone: "",
+    address: "",
     message: "",
   });
 
@@ -141,6 +142,18 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
           {errors.phone && (
             <p className="mt-1 text-sm text-destructive">{errors.phone}</p>
           )}
+        </div>
+
+        <div>
+          <Label htmlFor="address">Adresse</Label>
+          <Input
+            id="address"
+            type="text"
+            value={formData.address}
+            onChange={(e) => handleInputChange("address", e.target.value)}
+            className="mt-1"
+            placeholder="Votre adresse complète"
+          />
         </div>
 
         <div>
