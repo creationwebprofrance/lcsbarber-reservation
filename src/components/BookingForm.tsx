@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Calendar, Clock, Scissors } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { calculatePricing } from "@/lib/pricing";
 
 interface Service {
   id: string;
@@ -35,6 +36,9 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Calculer le prix total avec supplément horaire si applicable
+  const pricing = calculatePricing(bookingData.service.price, bookingData.time);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -91,10 +95,22 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         <div className="p-4">
           <h3 className="mb-3 font-medium text-primary">Récapitulatif de votre rendez-vous</h3>
           <div className="flex flex-col space-y-2 text-sm">
-            <div className="flex items-center">
-              <Scissors className="mr-2 h-4 w-4 text-muted-foreground" />
-              <span>{bookingData.service.name} - {bookingData.service.price}€</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Scissors className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span>{bookingData.service.name}</span>
+              </div>
+              <span className="font-medium">{pricing.basePrice}€</span>
             </div>
+            {pricing.hasTimeupplement && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Clock className="mr-2 h-4 w-4 text-orange-600" />
+                  <span className="text-orange-600">Supplément horaire</span>
+                </div>
+                <span className="font-medium text-orange-600">+{pricing.supplement}€</span>
+              </div>
+            )}
             <div className="flex items-center">
               <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
               <span>{format(bookingData.date, "EEEE d MMMM yyyy", { locale: fr })}</span>
@@ -102,6 +118,12 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
             <div className="flex items-center">
               <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
               <span>{bookingData.time}</span>
+            </div>
+            <div className="border-t pt-2 mt-2">
+              <div className="flex items-center justify-between font-semibold">
+                <span>Total</span>
+                <span className="text-primary text-lg">{pricing.totalPrice}€</span>
+              </div>
             </div>
           </div>
         </div>

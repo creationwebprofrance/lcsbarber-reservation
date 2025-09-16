@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { getTimeSupplementText } from "@/lib/pricing";
 
 interface TimeSlotSelectorProps {
   selectedDate: Date;
@@ -17,10 +18,11 @@ export const TimeSlotSelector = ({
   onTimeSelect,
   onBack,
 }: TimeSlotSelectorProps) => {
-  // Créneaux horaires disponibles
+  // Créneaux horaires disponibles (ajout des créneaux tôt/tard avec supplément)
   const timeSlots = [
-    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"
+    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
+    "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
   ];
 
   // Simuler des créneaux indisponibles (déjà réservés)
@@ -56,6 +58,7 @@ export const TimeSlotSelector = ({
           {timeSlots.map((time) => {
             const isAvailable = isSlotAvailable(time);
             const isSelected = selectedTime === time;
+            const supplementText = getTimeSupplementText(time);
 
             return (
               <Card
@@ -69,7 +72,7 @@ export const TimeSlotSelector = ({
                 }`}
                 onClick={() => isAvailable && onTimeSelect(time)}
               >
-                <div className="p-4 text-center">
+                <div className="p-3 text-center">
                   <span
                     className={`font-medium ${
                       !isAvailable
@@ -81,6 +84,11 @@ export const TimeSlotSelector = ({
                   >
                     {time}
                   </span>
+                  {supplementText && isAvailable && (
+                    <div className="mt-1 text-xs text-orange-600 font-medium">
+                      +5€
+                    </div>
+                  )}
                   {!isAvailable && (
                     <div className="mt-1 text-xs text-muted-foreground">
                       Indisponible
