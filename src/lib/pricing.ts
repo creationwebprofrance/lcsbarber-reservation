@@ -1,9 +1,22 @@
 export const calculatePricing = (basePrice: number, time: string) => {
   const hour = parseInt(time.split(':')[0]);
-  const isEarlyMorning = hour < 10;
-  const isLateEvening = hour >= 20;
   
-  const supplement = (isEarlyMorning || isLateEvening) ? 5 : 0;
+  let supplement = 0;
+  
+  // Calcul du supplément pour les heures avant 10h
+  if (hour < 10) {
+    // Nombre d'heures avant 10h (8h = 2 heures, 9h = 1 heure)
+    const hoursBefore10 = 10 - hour;
+    supplement += hoursBefore10 * 5;
+  }
+  
+  // Calcul du supplément pour les heures après 20h
+  if (hour >= 20) {
+    // Nombre d'heures après 19h (20h = 1 heure, 21h = 2 heures, 22h = 3 heures)
+    const hoursAfter19 = hour - 19;
+    supplement += hoursAfter19 * 5;
+  }
+  
   const totalPrice = basePrice + supplement;
   
   return {
@@ -16,7 +29,16 @@ export const calculatePricing = (basePrice: number, time: string) => {
 
 export const getTimeSupplementText = (time: string) => {
   const hour = parseInt(time.split(':')[0]);
-  if (hour < 10) return "Tôt le matin (+5€)";
-  if (hour >= 20) return "Tard le soir (+5€)";
+  
+  if (hour < 10) {
+    const hoursBefore10 = 10 - hour;
+    return `Tôt le matin (+${hoursBefore10 * 5}€)`;
+  }
+  
+  if (hour >= 20) {
+    const hoursAfter19 = hour - 19;
+    return `Tard le soir (+${hoursAfter19 * 5}€)`;
+  }
+  
   return null;
 };
