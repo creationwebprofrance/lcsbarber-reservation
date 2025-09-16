@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Clock, Scissors } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Scissors, MapPin, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { calculatePricing } from "@/lib/pricing";
+import { calculateTravelFees, formatTravelTime, formatDistance, type TravelCalculation } from "@/lib/travel-calculator";
+import { useToast } from "@/hooks/use-toast";
 
 interface Service {
   id: string;
@@ -36,9 +38,55 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [mapboxToken, setMapboxToken] = useState(() => 
+    localStorage.getItem('mapbox-token') || ''
+  );
+  const [travelCalculation, setTravelCalculation] = useState<TravelCalculation>({
+    duration: 0,
+    fees: 0,
+    distance: 0
+  });
+  const [isCalculatingTravel, setIsCalculatingTravel] = useState(false);
+  const { toast } = useToast();
   
-  // Calculer le prix total avec supplément horaire si applicable
-  const pricing = calculatePricing(bookingData.service.price, bookingData.time);
+  // Effet pour sauvegarder le token Mapbox
+  useEffect(() => {
+    if (mapboxToken) {
+      localStorage.setItem('mapbox-token', mapboxToken);
+    }
+  }, [mapboxToken]);
+
+  // Effet pour calculer les frais de déplacement quand l'adresse change
+  useEffect(() => {
+    const calculateTravel = async () => {
+      if (formData.address.trim() && mapboxToken.trim()) {
+        setIsCalculatingTravel(true);
+        try {
+          const result = await calculateTravelFees(formData.address, mapboxToken);
+          setTravelCalculation(result);
+        } catch (error) {
+          console.error('Erreur calcul déplacement:', error);
+          setTravelCalculation({ duration: 0, fees: 0, distance: 0 });
+          toast({
+            title: "Erreur de calcul",
+            description: "Impossible de calculer les frais de déplacement. Vérifiez l'adresse et la clé API.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsCalculatingTravel(false);
+        }
+      } else {
+        setTravelCalculation({ duration: 0, fees: 0, distance: 0 });
+      }
+    };
+
+    // Délai pour éviter trop de requêtes
+    const timeoutId = setTimeout(calculateTravel, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [formData.address, mapboxToken, toast]);
+  
+  // Calculer le prix total avec supplément horaire et frais de déplacement
+  const pricing = calculatePricing(bookingData.service.price, bookingData.time, travelCalculation.fees);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -55,6 +103,10 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
 
     if (!formData.phone.trim()) {
       newErrors.phone = "Le téléphone est requis";
+    }
+
+    if (!formData.address.trim()) {
+      newErrors.address = "L'adresse est requise pour calculer les frais de déplacement";
     }
 
     setErrors(newErrors);
@@ -90,6 +142,33 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         <div></div>
       </div>
 
+      {/* Configuration Mapbox */}
+      {!mapboxToken && (
+        <Card className="mb-6 border-orange-200 bg-orange-50">
+          <div className="p-4">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-medium text-orange-800 mb-2">Configuration requise</h3>
+                <p className="text-sm text-orange-700 mb-3">
+                  Pour calculer automatiquement les frais de déplacement, veuillez entrer votre clé API Mapbox.
+                  <br />
+                  <a href="https://mapbox.com/" target="_blank" rel="noopener noreferrer" className="underline">
+                    Obtenez votre clé gratuite sur mapbox.com
+                  </a>
+                </p>
+                <Input
+                  placeholder="Entrez votre clé API Mapbox..."
+                  value={mapboxToken}
+                  onChange={(e) => setMapboxToken(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Récapitulatif */}
       <Card className="mb-6 border-border/50 bg-primary/5">
         <div className="p-4">
@@ -102,13 +181,18 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
               </div>
               <span className="font-medium">{pricing.basePrice}€</span>
             </div>
-            {pricing.hasTimeupplement && (
+            {pricing.hasTravelFees && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <Clock className="mr-2 h-4 w-4 text-orange-600" />
-                  <span className="text-orange-600">Supplément horaire</span>
+                  <MapPin className="mr-2 h-4 w-4 text-blue-600" />
+                  <div className="flex flex-col">
+                    <span className="text-blue-600">Frais de déplacement</span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatTravelTime(travelCalculation.duration)} • {formatDistance(travelCalculation.distance)}
+                    </span>
+                  </div>
                 </div>
-                <span className="font-medium text-orange-600">+{pricing.supplement}€</span>
+                <span className="font-medium text-blue-600">+{pricing.travelFees}€</span>
               </div>
             )}
             <div className="flex items-center">
@@ -179,15 +263,27 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         </div>
 
         <div>
-          <Label htmlFor="address">Adresse</Label>
+          <Label htmlFor="address">Adresse *</Label>
           <Input
             id="address"
             type="text"
             value={formData.address}
             onChange={(e) => handleInputChange("address", e.target.value)}
-            className="mt-1"
+            className={`mt-1 ${errors.address ? "border-destructive" : ""}`}
             placeholder="Votre adresse complète"
           />
+          {isCalculatingTravel && (
+            <p className="mt-1 text-sm text-blue-600">Calcul des frais de déplacement...</p>
+          )}
+          {travelCalculation.fees > 0 && !isCalculatingTravel && (
+            <p className="mt-1 text-sm text-blue-600">
+              Frais de déplacement: {travelCalculation.fees}€ 
+              ({formatTravelTime(travelCalculation.duration)}, {formatDistance(travelCalculation.distance)})
+            </p>
+          )}
+          {errors.address && (
+            <p className="mt-1 text-sm text-destructive">{errors.address}</p>
+          )}
         </div>
 
         <div>

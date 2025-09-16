@@ -1,4 +1,4 @@
-export const calculatePricing = (basePrice: number, time: string) => {
+export const calculatePricing = (basePrice: number, time: string, travelFees: number = 0) => {
   const hour = parseInt(time.split(':')[0]);
   
   let supplement = 0;
@@ -17,13 +17,15 @@ export const calculatePricing = (basePrice: number, time: string) => {
     supplement += hoursAfter19 * 5;
   }
   
-  const totalPrice = basePrice + supplement;
+  const totalPrice = basePrice + supplement + travelFees;
   
   return {
     basePrice,
     supplement,
+    travelFees,
     totalPrice,
-    hasTimeupplement: supplement > 0
+    hasTimeupplement: supplement > 0,
+    hasTravelFees: travelFees > 0
   };
 };
 
