@@ -1,18 +1,28 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, CheckCircle } from "lucide-react";
+import { Scissors, Calendar, Clock, CheckCircle } from "lucide-react";
+import { ServiceSelector } from "./ServiceSelector";
 import { DatePicker } from "./DatePicker";
 import { TimeSlotSelector } from "./TimeSlotSelector";
 import { BookingForm } from "./BookingForm";
 
+interface Service {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+}
+
 interface BookingData {
+  service: Service | null;
   date: Date | null;
   time: string | null;
   clientInfo: {
     name: string;
     email: string;
     phone: string;
+    address: string;
     message: string;
   } | null;
 }
@@ -20,25 +30,32 @@ interface BookingData {
 export const BookingTool = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [bookingData, setBookingData] = useState<BookingData>({
+    service: null,
     date: null,
     time: null,
     clientInfo: null,
   });
 
   const steps = [
-    { number: 1, title: "Choisir une date", icon: Calendar },
-    { number: 2, title: "Sélectionner l'heure", icon: Clock },
-    { number: 3, title: "Vos informations", icon: CheckCircle },
+    { number: 1, title: "Choisir la prestation", icon: Scissors },
+    { number: 2, title: "Choisir une date", icon: Calendar },
+    { number: 3, title: "Sélectionner l'heure", icon: Clock },
+    { number: 4, title: "Vos informations", icon: CheckCircle },
   ];
+
+  const handleServiceSelect = (service: Service) => {
+    setBookingData({ ...bookingData, service });
+    setCurrentStep(2);
+  };
 
   const handleDateSelect = (date: Date) => {
     setBookingData({ ...bookingData, date });
-    setCurrentStep(2);
+    setCurrentStep(3);
   };
 
   const handleTimeSelect = (time: string) => {
     setBookingData({ ...bookingData, time });
-    setCurrentStep(3);
+    setCurrentStep(4);
   };
 
   const handleFormSubmit = (clientInfo: any) => {
@@ -48,7 +65,7 @@ export const BookingTool = () => {
   };
 
   const resetBooking = () => {
-    setBookingData({ date: null, time: null, clientInfo: null });
+    setBookingData({ service: null, date: null, time: null, clientInfo: null });
     setCurrentStep(1);
   };
 
@@ -106,26 +123,33 @@ export const BookingTool = () => {
         <Card className="bg-gradient-card shadow-card border-border/50 backdrop-blur-sm">
           <div className="p-6">
             {currentStep === 1 && (
+              <ServiceSelector
+                selectedService={bookingData.service}
+                onServiceSelect={handleServiceSelect}
+              />
+            )}
+
+            {currentStep === 2 && bookingData.service && (
               <DatePicker
                 selectedDate={bookingData.date}
                 onDateSelect={handleDateSelect}
               />
             )}
 
-            {currentStep === 2 && bookingData.date && (
+            {currentStep === 3 && bookingData.date && (
               <TimeSlotSelector
                 selectedDate={bookingData.date}
                 selectedTime={bookingData.time}
                 onTimeSelect={handleTimeSelect}
-                onBack={() => setCurrentStep(1)}
+                onBack={() => setCurrentStep(2)}
               />
             )}
 
-            {currentStep === 3 && bookingData.date && bookingData.time && (
+            {currentStep === 4 && bookingData.date && bookingData.time && bookingData.service && (
               <BookingForm
                 bookingData={bookingData}
                 onSubmit={handleFormSubmit}
-                onBack={() => setCurrentStep(2)}
+                onBack={() => setCurrentStep(3)}
               />
             )}
 

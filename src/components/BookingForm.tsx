@@ -4,12 +4,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Scissors } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
+interface Service {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+}
+
 interface BookingFormProps {
   bookingData: {
+    service: Service;
     date: Date;
     time: string;
   };
@@ -83,6 +91,10 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         <div className="p-4">
           <h3 className="mb-3 font-medium text-primary">Récapitulatif de votre rendez-vous</h3>
           <div className="flex flex-col space-y-2 text-sm">
+            <div className="flex items-center">
+              <Scissors className="mr-2 h-4 w-4 text-muted-foreground" />
+              <span>{bookingData.service.name} - {bookingData.service.price}€</span>
+            </div>
             <div className="flex items-center">
               <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
               <span>{format(bookingData.date, "EEEE d MMMM yyyy", { locale: fr })}</span>
