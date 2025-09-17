@@ -87,6 +87,15 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   
   // Calculer le prix total avec supplément horaire et frais de déplacement
   const pricing = calculatePricing(bookingData.service.price, bookingData.time, travelCalculation.fees);
+  
+  // Calculer l'acompte (50% du total)
+  const depositAmount = Math.round(pricing.totalPrice * 0.5);
+  
+  // Générer le lien Revolut avec acompte
+  const generateRevolutLink = () => {
+    const description = `Acompte - ${bookingData.service.name} - ${format(bookingData.date, "dd/MM/yyyy", { locale: fr })} à ${bookingData.time}`;
+    return `https://revolut.me/lucasaz03/${depositAmount}/${encodeURIComponent(description)}`;
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -204,6 +213,10 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
               <span>{bookingData.time}</span>
             </div>
             <div className="border-t pt-2 mt-2">
+              <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
+                <span>Acompte (50%)</span>
+                <span>{depositAmount}€</span>
+              </div>
               <div className="flex items-center justify-between font-semibold">
                 <span>Total</span>
                 <span className="text-primary text-lg">{pricing.totalPrice}€</span>
@@ -298,16 +311,31 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
           />
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4">
-          <Button type="button" variant="outline" onClick={onBack}>
-            Retour
-          </Button>
-          <Button 
-            type="submit" 
-            className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
-          >
-            Confirmer le rendez-vous
-          </Button>
+        <div className="flex flex-col space-y-3 pt-4">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground mb-3">
+              Pour finaliser votre réservation, veuillez régler l'acompte de {depositAmount}€
+            </p>
+            <Button 
+              type="button"
+              onClick={() => window.open(generateRevolutLink(), '_blank')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white mb-3"
+            >
+              💳 Payer l'acompte ({depositAmount}€) - Revolut
+            </Button>
+          </div>
+          
+          <div className="flex justify-end space-x-3">
+            <Button type="button" variant="outline" onClick={onBack}>
+              Retour
+            </Button>
+            <Button 
+              type="submit" 
+              className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
+            >
+              Confirmer le rendez-vous
+            </Button>
+          </div>
         </div>
       </form>
     </div>
