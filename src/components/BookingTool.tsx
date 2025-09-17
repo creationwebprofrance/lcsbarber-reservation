@@ -133,6 +133,7 @@ export const BookingTool = () => {
               <DatePicker
                 selectedDate={bookingData.date}
                 onDateSelect={handleDateSelect}
+                onBack={() => setCurrentStep(1)}
               />
             )}
 

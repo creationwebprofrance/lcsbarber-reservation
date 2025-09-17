@@ -9,9 +9,10 @@ import { useState } from "react";
 interface DatePickerProps {
   selectedDate: Date | null;
   onDateSelect: (date: Date) => void;
+  onBack?: () => void;
 }
 
-export const DatePicker = ({ selectedDate, onDateSelect }: DatePickerProps) => {
+export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerProps) => {
   const today = new Date();
   // Initialiser avec la semaine actuelle
   const [currentWeek, setCurrentWeek] = useState(() => {
@@ -52,9 +53,23 @@ export const DatePicker = ({ selectedDate, onDateSelect }: DatePickerProps) => {
 
   return (
     <div>
-      <h2 className="mb-6 text-center text-2xl font-semibold">
-        Choisissez votre date
-      </h2>
+      <div className="mb-6 flex items-center justify-between">
+        {onBack && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onBack}
+            className="flex items-center gap-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Retour
+          </Button>
+        )}
+        <h2 className="text-center text-2xl font-semibold flex-1">
+          Choisissez votre date
+        </h2>
+        <div className="w-20"></div> {/* Spacer pour centrer le titre */}
+      </div>
       
       <div className="flex justify-center">
         <Card className="border-border/20 bg-gradient-card backdrop-blur-sm shadow-elegant p-6 hover:shadow-glow transition-all duration-300">
