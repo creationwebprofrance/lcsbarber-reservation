@@ -91,10 +91,9 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   // Calculer l'acompte (50% du total)
   const depositAmount = Math.round(pricing.totalPrice * 0.5);
   
-  // Générer le lien Revolut avec acompte
-  const generateRevolutLink = () => {
-    const description = `Acompte - ${bookingData.service.name} - ${format(bookingData.date, "dd/MM/yyyy", { locale: fr })} à ${bookingData.time}`;
-    return `https://revolut.me/lucasaz03/${depositAmount}/${encodeURIComponent(description)}`;
+  // Générer le lien PayPal avec acompte
+  const generatePayPalLink = () => {
+    return `https://www.paypal.me/lczzz/${depositAmount}EUR`;
   };
 
   const validateForm = () => {
@@ -318,10 +317,10 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
             </p>
             <Button 
               type="button"
-              onClick={() => window.open(generateRevolutLink(), '_blank')}
+              onClick={() => window.open(generatePayPalLink(), '_blank')}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white mb-3"
             >
-              💳 Payer l'acompte ({depositAmount}€) - Revolut
+              💳 Payer l'acompte ({depositAmount}€) - PayPal
             </Button>
           </div>
           
