@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Service {
   id: string;
@@ -13,32 +14,51 @@ interface Service {
 interface ServiceSelectorProps {
   selectedService: Service | null;
   onServiceSelect: (service: Service) => void;
+  onBack?: () => void;
 }
 
-const services: Service[] = [
-  {
-    id: "coupe",
-    name: "Coupe",
-    price: 20,
-    description: "Coupe classique"
-  },
-  {
-    id: "coupe-barbe",
-    name: "Coupe + Barbe",
-    price: 25,
-    description: "Coupe + taille de barbe"
-  },
-  {
-    id: "coupe-enfant",
-    name: "Coupe enfant et contours",
-    price: 12,
-    description: "Coupe spéciale enfant"
-  }
-];
+export const ServiceSelector = ({ selectedService, onServiceSelect, onBack }: ServiceSelectorProps) => {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export const ServiceSelector = ({ selectedService, onServiceSelect }: ServiceSelectorProps) => {
+  useEffect(() => {
+    loadServices();
+  }, []);
+
+  const loadServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error loading services:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <div>Chargement des services...</div>
+      </div>
+    );
+  }
   return (
     <div>
+      {onBack && (
+        <div className="mb-4">
+          <Button variant="outline" onClick={onBack}>
+            ← Retour
+          </Button>
+        </div>
+      )}
+      
       <div className="mb-6 text-center">
         <h2 className="text-2xl font-bold mb-2">Choisissez votre prestation</h2>
         <p className="text-muted-foreground">Sélectionnez le service que vous souhaitez</p>
