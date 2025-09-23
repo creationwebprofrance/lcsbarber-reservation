@@ -38,9 +38,10 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [mapboxToken, setMapboxToken] = useState(() => 
-    localStorage.getItem('mapbox-token') || ''
-  );
+  const [mapboxToken, setMapboxToken] = useState(() => {
+    const defaultToken = 'pk.eyJ1IjoibGNoaXBhbiIsImEiOiJjbWZtOHc1dG4wZDdzMmlzN3hmeDRldnhzIn0.lK1A8wh63mIkudWk8h7f6Q';
+    return localStorage.getItem('mapbox-token') || defaultToken;
+  });
   const [travelCalculation, setTravelCalculation] = useState<TravelCalculation>({
     duration: 0,
     fees: 0,
