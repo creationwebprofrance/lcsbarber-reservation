@@ -10,6 +10,7 @@ import { fr } from "date-fns/locale";
 import { calculatePricing } from "@/lib/pricing";
 import { calculateTravelFees, formatTravelTime, formatDistance, type TravelCalculation } from "@/lib/travel-calculator";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Service {
   id: string;
@@ -48,6 +49,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     distance: 0
   });
   const [isCalculatingTravel, setIsCalculatingTravel] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   
   // Effet pour sauvegarder le token Mapbox
@@ -122,10 +124,85 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
+    if (!validateForm()) return;
+
+    try {
+      setIsSubmitting(true);
+      
+      // Préparer les données de réservation
+      const reservationData = {
+        service_id: bookingData.service.id,
+        appointment_date: format(bookingData.date, 'yyyy-MM-dd'),
+        appointment_time: bookingData.time,
+        client_name: formData.name,
+        client_email: formData.email,
+        client_phone: formData.phone,
+        client_address: formData.address,
+        total_price: pricing.totalPrice,
+        travel_fee: travelCalculation.fees,
+        deposit_paid: true,
+        status: 'confirmed',
+        notes: formData.message || null
+      };
+
+      // Enregistrer la réservation dans la base de données
+      const { error: bookingError } = await supabase
+        .from('bookings')
+        .insert([reservationData]);
+
+      if (bookingError) {
+        throw new Error(`Erreur lors de l'enregistrement: ${bookingError.message}`);
+      }
+
+      // Envoyer les emails de confirmation
+      const emailData = {
+        clientName: formData.name,
+        clientEmail: formData.email,
+        clientPhone: formData.phone,
+        clientAddress: formData.address,
+        serviceName: bookingData.service.name,
+        servicePrice: bookingData.service.price,
+        appointmentDate: format(bookingData.date, "EEEE d MMMM yyyy", { locale: fr }),
+        appointmentTime: bookingData.time,
+        totalPrice: pricing.totalPrice,
+        travelFee: travelCalculation.fees,
+        depositAmount: depositAmount,
+        message: formData.message
+      };
+
+      const { error: emailError } = await supabase.functions.invoke('send-booking-emails', {
+        body: emailData
+      });
+
+      if (emailError) {
+        console.error('Erreur envoi emails:', emailError);
+        // On ne bloque pas la réservation si l'email échoue
+        toast({
+          title: "Réservation confirmée",
+          description: "Votre rendez-vous a été enregistré mais l'email de confirmation n'a pas pu être envoyé.",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Réservation confirmée !",
+          description: "Votre rendez-vous a été enregistré et vous allez recevoir un email de confirmation.",
+          variant: "default"
+        });
+      }
+
       onSubmit(formData);
+      
+    } catch (error: any) {
+      console.error('Erreur lors de la réservation:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors de la réservation.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -331,9 +408,10 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
             </Button>
             <Button 
               type="submit" 
+              disabled={isSubmitting}
               className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
             >
-              Confirmer le rendez-vous
+              {isSubmitting ? "Enregistrement..." : "Confirmer le rendez-vous"}
             </Button>
           </div>
         </div>
