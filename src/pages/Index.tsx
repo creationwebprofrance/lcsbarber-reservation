@@ -13,7 +13,7 @@ export default function Index() {
       <header className="border-b bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">BARBER_DOM</h1>
+            <h1 className="text-2xl font-bold">LCS Style ⭐</h1>
             <div className="flex items-center gap-2">
               {user ? (
                 <>
