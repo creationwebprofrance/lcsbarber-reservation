@@ -10,9 +10,12 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Settings, Calendar as CalendarIcon, Users, BarChart } from "lucide-react";
+import { LogOut, Settings, Calendar as CalendarIcon, Users, BarChart, Star } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClientStats } from "@/components/ClientStats";
+import { ReviewsList } from "@/components/ReviewsList";
 
 interface CalendarSetting {
   id: string;
@@ -254,175 +257,202 @@ export const Admin = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Horaires hebdomadaires */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Horaires hebdomadaires</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {calendarSettings.map((setting) => (
-                <div key={setting.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <span className="w-20 font-medium">
-                      {dayNames[setting.day_of_week]}
-                    </span>
-                    <Switch
-                      checked={setting.is_available}
-                      onCheckedChange={(checked) => 
-                        updateCalendarSetting({ ...setting, is_available: checked })
-                      }
+      <div className="container mx-auto px-4 py-8">
+        <Tabs defaultValue="calendar" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="calendar">
+              <CalendarIcon className="h-4 w-4 mr-2" />
+              Calendrier
+            </TabsTrigger>
+            <TabsTrigger value="clients">
+              <Users className="h-4 w-4 mr-2" />
+              Clients
+            </TabsTrigger>
+            <TabsTrigger value="reviews">
+              <Star className="h-4 w-4 mr-2" />
+              Avis
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="calendar" className="space-y-8">
+            {/* Horaires hebdomadaires */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Horaires hebdomadaires</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {calendarSettings.map((setting) => (
+                    <div key={setting.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <span className="w-20 font-medium">
+                          {dayNames[setting.day_of_week]}
+                        </span>
+                        <Switch
+                          checked={setting.is_available}
+                          onCheckedChange={(checked) => 
+                            updateCalendarSetting({ ...setting, is_available: checked })
+                          }
+                        />
+                      </div>
+                      {setting.is_available && (
+                        <div className="flex items-center space-x-2">
+                          <Input
+                            type="time"
+                            value={setting.start_time}
+                            onChange={(e) => 
+                              setCalendarSettings(prev => 
+                                prev.map(s => s.id === setting.id 
+                                  ? { ...s, start_time: e.target.value }
+                                  : s
+                                )
+                              )
+                            }
+                            onBlur={() => updateCalendarSetting(setting)}
+                            className="w-32"
+                          />
+                          <span>à</span>
+                          <Input
+                            type="time"
+                            value={setting.end_time}
+                            onChange={(e) => 
+                              setCalendarSettings(prev => 
+                                prev.map(s => s.id === setting.id 
+                                  ? { ...s, end_time: e.target.value }
+                                  : s
+                                )
+                              )
+                            }
+                            onBlur={() => updateCalendarSetting(setting)}
+                            className="w-32"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Exceptions de dates */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Ajouter une exception</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Sélectionner une date</Label>
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      locale={fr}
+                      className="rounded-md border"
                     />
                   </div>
-                  {setting.is_available && (
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="time"
-                        value={setting.start_time}
-                        onChange={(e) => 
-                          setCalendarSettings(prev => 
-                            prev.map(s => s.id === setting.id 
-                              ? { ...s, start_time: e.target.value }
-                              : s
-                            )
-                          )
-                        }
-                        onBlur={() => updateCalendarSetting(setting)}
-                        className="w-32"
-                      />
-                      <span>à</span>
-                      <Input
-                        type="time"
-                        value={setting.end_time}
-                        onChange={(e) => 
-                          setCalendarSettings(prev => 
-                            prev.map(s => s.id === setting.id 
-                              ? { ...s, end_time: e.target.value }
-                              : s
-                            )
-                          )
-                        }
-                        onBlur={() => updateCalendarSetting(setting)}
-                        className="w-32"
-                      />
+
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      checked={overrideForm.is_available}
+                      onCheckedChange={(checked) => 
+                        setOverrideForm(prev => ({ ...prev, is_available: checked }))
+                      }
+                    />
+                    <Label>Jour disponible</Label>
+                  </div>
+
+                  {overrideForm.is_available && (
+                    <div className="flex space-x-2">
+                      <div>
+                        <Label>Heure de début</Label>
+                        <Input
+                          type="time"
+                          value={overrideForm.start_time}
+                          onChange={(e) => 
+                            setOverrideForm(prev => ({ ...prev, start_time: e.target.value }))
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label>Heure de fin</Label>
+                        <Input
+                          type="time"
+                          value={overrideForm.end_time}
+                          onChange={(e) => 
+                            setOverrideForm(prev => ({ ...prev, end_time: e.target.value }))
+                          }
+                        />
+                      </div>
                     </div>
                   )}
-                </div>
-              ))}
+
+                  <div>
+                    <Label>Raison (optionnel)</Label>
+                    <Textarea
+                      value={overrideForm.reason}
+                      onChange={(e) => 
+                        setOverrideForm(prev => ({ ...prev, reason: e.target.value }))
+                      }
+                      placeholder="Ex: Congés, formation, etc."
+                    />
+                  </div>
+
+                  <Button onClick={addDateOverride} className="w-full">
+                    Ajouter l'exception
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Liste des exceptions existantes */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Exceptions existantes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {dateOverrides.map((override) => (
+                      <div key={override.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <div className="font-medium">
+                            {format(new Date(override.date), 'dd MMMM yyyy', { locale: fr })}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {override.is_available 
+                              ? `${override.start_time} - ${override.end_time}`
+                              : 'Fermé'
+                            }
+                            {override.reason && ` (${override.reason})`}
+                          </div>
+                        </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => deleteOverride(override.id)}
+                        >
+                          Supprimer
+                        </Button>
+                      </div>
+                    ))}
+                    {dateOverrides.length === 0 && (
+                      <div className="text-center text-muted-foreground py-8">
+                        Aucune exception définie
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Exceptions de dates */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Ajouter une exception</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Sélectionner une date</Label>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  locale={fr}
-                  className="rounded-md border"
-                />
-              </div>
+          <TabsContent value="clients">
+            <ClientStats />
+          </TabsContent>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={overrideForm.is_available}
-                  onCheckedChange={(checked) => 
-                    setOverrideForm(prev => ({ ...prev, is_available: checked }))
-                  }
-                />
-                <Label>Jour disponible</Label>
-              </div>
-
-              {overrideForm.is_available && (
-                <div className="flex space-x-2">
-                  <div>
-                    <Label>Heure de début</Label>
-                    <Input
-                      type="time"
-                      value={overrideForm.start_time}
-                      onChange={(e) => 
-                        setOverrideForm(prev => ({ ...prev, start_time: e.target.value }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label>Heure de fin</Label>
-                    <Input
-                      type="time"
-                      value={overrideForm.end_time}
-                      onChange={(e) => 
-                        setOverrideForm(prev => ({ ...prev, end_time: e.target.value }))
-                      }
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <Label>Raison (optionnel)</Label>
-                <Textarea
-                  value={overrideForm.reason}
-                  onChange={(e) => 
-                    setOverrideForm(prev => ({ ...prev, reason: e.target.value }))
-                  }
-                  placeholder="Ex: Congés, formation, etc."
-                />
-              </div>
-
-              <Button onClick={addDateOverride} className="w-full">
-                Ajouter l'exception
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Liste des exceptions existantes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Exceptions existantes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {dateOverrides.map((override) => (
-                  <div key={override.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <div className="font-medium">
-                        {format(new Date(override.date), 'dd MMMM yyyy', { locale: fr })}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {override.is_available 
-                          ? `${override.start_time} - ${override.end_time}`
-                          : 'Fermé'
-                        }
-                        {override.reason && ` (${override.reason})`}
-                      </div>
-                    </div>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deleteOverride(override.id)}
-                    >
-                      Supprimer
-                    </Button>
-                  </div>
-                ))}
-                {dateOverrides.length === 0 && (
-                  <div className="text-center text-muted-foreground py-8">
-                    Aucune exception définie
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="reviews">
+            <ReviewsList />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { Settings, BarChart, LogIn } from "lucide-react";
+import { ReviewsList } from "@/components/ReviewsList";
+import { ReviewForm } from "@/components/ReviewForm";
 
 export default function Index() {
   const { user, isAdmin } = useAuth();
@@ -47,8 +49,13 @@ export default function Index() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 space-y-12">
         <BookingTool />
+        
+        <div className="space-y-8">
+          <ReviewForm />
+          <ReviewsList />
+        </div>
       </div>
     </div>
   );
