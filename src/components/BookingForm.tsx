@@ -148,12 +148,14 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
       };
 
       // Enregistrer la réservation dans la base de données
-      const { error: bookingError } = await supabase
+      const { data: newBooking, error: bookingError } = await supabase
         .from('bookings')
-        .insert([reservationData]);
+        .insert([reservationData])
+        .select()
+        .single();
 
-      if (bookingError) {
-        throw new Error(`Erreur lors de l'enregistrement: ${bookingError.message}`);
+      if (bookingError || !newBooking) {
+        throw new Error(`Erreur lors de l'enregistrement: ${bookingError?.message}`);
       }
 
       // Envoyer les emails de confirmation
@@ -192,7 +194,8 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         });
       }
 
-      onSubmit(formData);
+      // Passer l'ID de la réservation pour les liens calendrier
+      onSubmit({ ...formData, bookingId: newBooking.id });
       
     } catch (error: any) {
       console.error('Erreur lors de la réservation:', error);

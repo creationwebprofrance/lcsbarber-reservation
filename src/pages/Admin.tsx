@@ -10,12 +10,13 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Settings, Calendar as CalendarIcon, Users, BarChart, Star } from "lucide-react";
+import { LogOut, Settings, Calendar as CalendarIcon, Users, BarChart, Star, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientStats } from "@/components/ClientStats";
 import { ReviewsList } from "@/components/ReviewsList";
+import { TimeSlotsManager } from "@/components/TimeSlotsManager";
 
 interface CalendarSetting {
   id: string;
@@ -258,11 +259,15 @@ export const Admin = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="calendar" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="timeslots" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="timeslots">
+              <Clock className="h-4 w-4 mr-2" />
+              Créneaux
+            </TabsTrigger>
             <TabsTrigger value="calendar">
               <CalendarIcon className="h-4 w-4 mr-2" />
-              Calendrier
+              Exceptions
             </TabsTrigger>
             <TabsTrigger value="clients">
               <Users className="h-4 w-4 mr-2" />
@@ -273,6 +278,10 @@ export const Admin = () => {
               Avis
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="timeslots">
+            <TimeSlotsManager />
+          </TabsContent>
 
           <TabsContent value="calendar" className="space-y-8">
             {/* Horaires hebdomadaires */}

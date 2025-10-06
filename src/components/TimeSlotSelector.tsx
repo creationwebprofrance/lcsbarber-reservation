@@ -1,9 +1,11 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTimeSupplementText } from "@/lib/pricing";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TimeSlotSelectorProps {
   selectedDate: Date;
@@ -12,24 +14,96 @@ interface TimeSlotSelectorProps {
   onBack: () => void;
 }
 
+interface TimeSlot {
+  id: string;
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+}
+
 export const TimeSlotSelector = ({
   selectedDate,
   selectedTime,
   onTimeSelect,
   onBack,
 }: TimeSlotSelectorProps) => {
-  // Créneaux horaires disponibles toutes les heures de 8h à 22h
-  const timeSlots = [
-    "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", 
-    "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"
-  ];
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Simuler des créneaux indisponibles (déjà réservés)
-  const unavailableSlots = ["10:30", "15:00", "16:30"];
+  useEffect(() => {
+    loadAvailableSlots();
+  }, [selectedDate]);
+
+  const loadAvailableSlots = async () => {
+    setLoading(true);
+    const dayOfWeek = selectedDate.getDay();
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+
+    try {
+      // Récupérer les créneaux configurés pour ce jour
+      const { data: timeSlots, error: slotsError } = await supabase
+        .from('time_slots')
+        .select('*')
+        .eq('day_of_week', dayOfWeek)
+        .eq('is_available', true);
+
+      if (slotsError) throw slotsError;
+
+      // Récupérer les réservations existantes pour cette date
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('appointment_time')
+        .eq('appointment_date', dateStr)
+        .in('status', ['pending', 'confirmed']);
+
+      if (bookingsError) throw bookingsError;
+
+      // Créer une liste de tous les créneaux disponibles (par heure)
+      const slots: string[] = [];
+      timeSlots?.forEach((slot: TimeSlot) => {
+        const start = slot.start_time.substring(0, 5); // Format HH:MM
+        const end = slot.end_time.substring(0, 5);
+        
+        const startHour = parseInt(start.split(':')[0]);
+        const endHour = parseInt(end.split(':')[0]);
+        
+        for (let hour = startHour; hour < endHour; hour++) {
+          slots.push(`${hour.toString().padStart(2, '0')}:00`);
+        }
+      });
+
+      // Marquer les créneaux déjà réservés
+      const booked = bookings?.map(b => b.appointment_time.substring(0, 5)) || [];
+
+      setAvailableSlots(slots.sort());
+      setBookedSlots(booked);
+    } catch (error) {
+      console.error('Error loading time slots:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const isSlotAvailable = (time: string) => {
-    return !unavailableSlots.includes(time);
+    return !bookedSlots.includes(time);
   };
+
+  if (loading) {
+    return <div className="text-center py-8">Chargement des créneaux disponibles...</div>;
+  }
+
+  if (availableSlots.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Button variant="ghost" onClick={onBack} className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Retour
+        </Button>
+        <p className="text-muted-foreground">Aucun créneau disponible pour ce jour</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -54,7 +128,7 @@ export const TimeSlotSelector = ({
         </h3>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {timeSlots.map((time) => {
+          {availableSlots.map((time) => {
             const isAvailable = isSlotAvailable(time);
             const isSelected = selectedTime === time;
             const supplementText = getTimeSupplementText(time);
@@ -90,7 +164,7 @@ export const TimeSlotSelector = ({
                   )}
                   {!isAvailable && (
                     <div className="mt-1 text-xs text-muted-foreground">
-                      Indisponible
+                      Réservé
                     </div>
                   )}
                 </div>
@@ -106,7 +180,7 @@ export const TimeSlotSelector = ({
           </div>
           <div className="flex items-center">
             <div className="mr-2 h-3 w-3 rounded-full bg-muted"></div>
-            <span className="text-muted-foreground">Indisponible</span>
+            <span className="text-muted-foreground">Réservé</span>
           </div>
           <div className="flex items-center">
             <div className="mr-2 h-3 w-3 rounded-full bg-primary"></div>
