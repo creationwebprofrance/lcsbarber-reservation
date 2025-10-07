@@ -139,6 +139,71 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_bookings: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          client_address: string | null
+          client_email: string
+          client_name: string
+          client_phone: string
+          created_at: string
+          expires_at: string
+          id: string
+          notes: string | null
+          service_id: string
+          total_price: number
+          travel_fee: number | null
+          updated_at: string
+          verification_token: string
+          verified: boolean
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          client_address?: string | null
+          client_email: string
+          client_name: string
+          client_phone: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          notes?: string | null
+          service_id: string
+          total_price: number
+          travel_fee?: number | null
+          updated_at?: string
+          verification_token: string
+          verified?: boolean
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          client_address?: string | null
+          client_email?: string
+          client_name?: string
+          client_phone?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          notes?: string | null
+          service_id?: string
+          total_price?: number
+          travel_fee?: number | null
+          updated_at?: string
+          verification_token?: string
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -278,6 +343,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_pending_bookings: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_booking_from_pending: {
+        Args: { p_verification_token: string }
+        Returns: Json
+      }
       is_admin: {
         Args: { user_uuid?: string }
         Returns: boolean
