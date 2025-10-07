@@ -11,6 +11,7 @@ import { calculatePricing } from "@/lib/pricing";
 import { calculateTravelFees, formatTravelTime, formatDistance, type TravelCalculation } from "@/lib/travel-calculator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
 
 interface Service {
   id: string;
@@ -28,6 +29,33 @@ interface BookingFormProps {
   onSubmit: (clientInfo: any) => void;
   onBack: () => void;
 }
+
+// Comprehensive validation schema to prevent malicious data injection
+const bookingFormSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(2, "Le nom doit contenir au moins 2 caractères")
+    .max(100, "Le nom ne peut pas dépasser 100 caractères")
+    .regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, "Le nom ne peut contenir que des lettres, espaces, apostrophes et tirets"),
+  email: z.string()
+    .trim()
+    .email("L'email n'est pas valide")
+    .max(255, "L'email ne peut pas dépasser 255 caractères")
+    .toLowerCase(),
+  phone: z.string()
+    .trim()
+    .min(10, "Le numéro de téléphone doit contenir au moins 10 chiffres")
+    .max(20, "Le numéro de téléphone ne peut pas dépasser 20 caractères")
+    .regex(/^[0-9\s+()-]+$/, "Le numéro de téléphone ne peut contenir que des chiffres, espaces, +, - et ()"),
+  address: z.string()
+    .trim()
+    .min(5, "L'adresse doit contenir au moins 5 caractères")
+    .max(500, "L'adresse ne peut pas dépasser 500 caractères"),
+  message: z.string()
+    .trim()
+    .max(1000, "Le message ne peut pas dépasser 1000 caractères")
+    .optional()
+});
 
 export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps) => {
   const [formData, setFormData] = useState({
@@ -100,28 +128,23 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Le nom est requis";
+    try {
+      // Validate using Zod schema
+      bookingFormSchema.parse(formData);
+      setErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            newErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(newErrors);
+      }
+      return false;
     }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "L'email est requis";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "L'email n'est pas valide";
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Le téléphone est requis";
-    }
-
-    if (!formData.address.trim()) {
-      newErrors.address = "L'adresse est requise pour calculer les frais de déplacement";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -131,20 +154,23 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     try {
       setIsSubmitting(true);
       
-      // Préparer les données de réservation
+      // Validate and sanitize form data before submission
+      const validatedData = bookingFormSchema.parse(formData);
+      
+      // Préparer les données de réservation avec données validées
       const reservationData = {
         service_id: bookingData.service.id,
         appointment_date: format(bookingData.date, 'yyyy-MM-dd'),
         appointment_time: bookingData.time,
-        client_name: formData.name,
-        client_email: formData.email,
-        client_phone: formData.phone,
-        client_address: formData.address,
+        client_name: validatedData.name,
+        client_email: validatedData.email,
+        client_phone: validatedData.phone,
+        client_address: validatedData.address,
         total_price: pricing.totalPrice,
         travel_fee: travelCalculation.fees,
         deposit_paid: true,
         status: 'confirmed',
-        notes: formData.message || null
+        notes: validatedData.message || null
       };
 
       // Enregistrer la réservation dans la base de données
