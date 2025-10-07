@@ -147,9 +147,21 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     }
   };
 
+  const requiresDeposit = bookingData.service.price > 50;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
+
+    // Vérifier si l'acompte est obligatoire
+    if (requiresDeposit) {
+      toast({
+        title: "Acompte requis",
+        description: "Pour les prestations de plus de 50€, le paiement de l'acompte est obligatoire avant de continuer.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -411,18 +423,39 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         </div>
 
         <div className="flex flex-col space-y-3 pt-4">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-3">
-              Pour finaliser votre réservation, veuillez régler l'acompte de {depositAmount}€
-            </p>
-            <Button 
-              type="button"
-              onClick={() => window.open(generatePayPalLink(), '_blank')}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white mb-3"
-            >
-              💳 Payer l'acompte ({depositAmount}€) - PayPal
-            </Button>
-          </div>
+          {requiresDeposit ? (
+            <>
+              <div className="text-center bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-3">
+                  ⚠️ Pour les prestations de plus de 50€, le paiement de l'acompte de {depositAmount}€ est obligatoire avant la réservation.
+                </p>
+                <Button 
+                  type="button"
+                  onClick={() => window.open(generatePayPalLink(), '_blank')}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white mb-3"
+                  size="lg"
+                >
+                  💳 Payer l'acompte obligatoire ({depositAmount}€)
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Après avoir effectué le paiement, vous pourrez finaliser votre réservation
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-3">
+                Pour finaliser votre réservation, veuillez régler l'acompte de {depositAmount}€
+              </p>
+              <Button 
+                type="button"
+                onClick={() => window.open(generatePayPalLink(), '_blank')}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white mb-3"
+              >
+                💳 Payer l'acompte ({depositAmount}€) - PayPal
+              </Button>
+            </div>
+          )}
           
           <div className="flex justify-end space-x-3">
             <Button type="button" variant="outline" onClick={onBack}>
@@ -430,8 +463,9 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting}
+              disabled={isSubmitting || requiresDeposit}
               className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
+              title={requiresDeposit ? "Vous devez d'abord payer l'acompte" : ""}
             >
               {isSubmitting ? "Enregistrement..." : "Confirmer le rendez-vous"}
             </Button>
