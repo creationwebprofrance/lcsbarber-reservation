@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -9,20 +10,23 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface BookingEmailRequest {
-  clientName: string;
-  clientEmail: string;
-  clientPhone: string;
-  clientAddress: string;
-  serviceName: string;
-  servicePrice: number;
-  appointmentDate: string;
-  appointmentTime: string;
-  totalPrice: number;
-  travelFee: number;
-  depositAmount: number;
-  message?: string;
-}
+// Input validation schema
+const bookingEmailSchema = z.object({
+  clientName: z.string().trim().min(1).max(100),
+  clientEmail: z.string().trim().email().max(255),
+  clientPhone: z.string().trim().min(1).max(20),
+  clientAddress: z.string().trim().min(1).max(500),
+  serviceName: z.string().trim().min(1).max(200),
+  servicePrice: z.number().positive().max(10000),
+  appointmentDate: z.string().trim().min(1).max(50),
+  appointmentTime: z.string().trim().min(1).max(20),
+  totalPrice: z.number().positive().max(10000),
+  travelFee: z.number().min(0).max(1000),
+  depositAmount: z.number().min(0).max(10000),
+  message: z.string().trim().max(2000).optional(),
+});
+
+type BookingEmailRequest = z.infer<typeof bookingEmailSchema>;
 
 // Template email pour le client
 const getClientEmailTemplate = (booking: BookingEmailRequest) => `
@@ -248,7 +252,19 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     console.log("Received booking email request");
     
-    const booking: BookingEmailRequest = await req.json();
+    const rawData = await req.json();
+    
+    // Validate and sanitize input
+    const validationResult = bookingEmailSchema.safeParse(rawData);
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error);
+      return new Response(
+        JSON.stringify({ error: "Invalid input data", details: validationResult.error.issues }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    
+    const booking = validationResult.data;
     console.log("Booking data:", booking);
 
     // Envoyer l'email au client

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -10,15 +11,18 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface VerificationEmailRequest {
-  clientName: string;
-  clientEmail: string;
-  serviceName: string;
-  appointmentDate: string;
-  appointmentTime: string;
-  verificationToken: string;
-  appUrl: string;
-}
+// Input validation schema
+const verificationEmailSchema = z.object({
+  clientName: z.string().trim().min(1).max(100),
+  clientEmail: z.string().trim().email().max(255),
+  serviceName: z.string().trim().min(1).max(200),
+  appointmentDate: z.string().trim().min(1).max(50),
+  appointmentTime: z.string().trim().min(1).max(20),
+  verificationToken: z.string().trim().min(1).max(500),
+  appUrl: z.string().trim().url().max(500),
+});
+
+type VerificationEmailRequest = z.infer<typeof verificationEmailSchema>;
 
 const getVerificationEmailTemplate = (data: VerificationEmailRequest) => `
 <!DOCTYPE html>
@@ -100,7 +104,19 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     console.log("Received verification email request");
     
-    const data: VerificationEmailRequest = await req.json();
+    const rawData = await req.json();
+    
+    // Validate and sanitize input
+    const validationResult = verificationEmailSchema.safeParse(rawData);
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error);
+      return new Response(
+        JSON.stringify({ error: "Invalid input data", details: validationResult.error.issues }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    
+    const data = validationResult.data;
     console.log("Verification data:", { ...data, verificationToken: "[REDACTED]" });
 
     // Rate limiting: Check how many pending bookings this email has created in the last hour
