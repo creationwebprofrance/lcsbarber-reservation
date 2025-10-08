@@ -261,10 +261,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Client email sent:", clientEmailResponse);
 
-    // Envoyer l'email au barbier (remplacez par votre email)
+    // Envoyer l'email au barbier
+    const barberEmail = Deno.env.get("BARBER_EMAIL");
+    if (!barberEmail) {
+      console.error("BARBER_EMAIL not configured");
+      throw new Error("BARBER_EMAIL secret is not configured");
+    }
+
     const barberEmailResponse = await resend.emails.send({
       from: "Barbier Pro <onboarding@resend.dev>",
-      to: ["lucas.chipan97@gmail.com"], // Remplacez par votre email
+      to: [barberEmail],
       subject: "🔔 Nouvelle réservation - Barbier Pro",
       html: getBarberEmailTemplate(booking),
     });

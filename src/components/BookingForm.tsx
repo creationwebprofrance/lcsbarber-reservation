@@ -78,6 +78,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   });
   const [isCalculatingTravel, setIsCalculatingTravel] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [depositPaidConfirmed, setDepositPaidConfirmed] = useState(false);
   const { toast } = useToast();
   
   // Effet pour sauvegarder le token Mapbox
@@ -153,11 +154,11 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     e.preventDefault();
     if (!validateForm()) return;
 
-    // Vérifier si l'acompte est obligatoire
-    if (requiresDeposit) {
+    // Vérifier si l'acompte est obligatoire et confirmé
+    if (requiresDeposit && !depositPaidConfirmed) {
       toast({
         title: "Acompte requis",
-        description: "Pour les prestations de plus de 50€, le paiement de l'acompte est obligatoire avant de continuer.",
+        description: "Veuillez confirmer que vous avez effectué le paiement de l'acompte avant de continuer.",
         variant: "destructive"
       });
       return;
@@ -437,8 +438,20 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
                 >
                   💳 Payer l'acompte obligatoire ({depositAmount}€)
                 </Button>
-                <p className="text-xs text-muted-foreground">
-                  Après avoir effectué le paiement, vous pourrez finaliser votre réservation
+                <div className="flex items-center justify-center space-x-2 mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg">
+                  <input
+                    type="checkbox"
+                    id="deposit-confirm"
+                    checked={depositPaidConfirmed}
+                    onChange={(e) => setDepositPaidConfirmed(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="deposit-confirm" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                    Je confirme avoir effectué le paiement de l'acompte
+                  </label>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Cochez cette case après avoir effectué le paiement pour finaliser votre réservation
                 </p>
               </div>
             </>
@@ -463,9 +476,9 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting || requiresDeposit}
+              disabled={isSubmitting || (requiresDeposit && !depositPaidConfirmed)}
               className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
-              title={requiresDeposit ? "Vous devez d'abord payer l'acompte" : ""}
+              title={(requiresDeposit && !depositPaidConfirmed) ? "Vous devez confirmer avoir payé l'acompte" : ""}
             >
               {isSubmitting ? "Enregistrement..." : "Confirmer le rendez-vous"}
             </Button>
