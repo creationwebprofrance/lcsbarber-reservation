@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientStats } from "@/components/ClientStats";
 import { ReviewsList } from "@/components/ReviewsList";
 import { TimeSlotsManager } from "@/components/TimeSlotsManager";
+import { UserManagement } from "@/components/UserManagement";
 
 interface CalendarSetting {
   id: string;
@@ -260,7 +261,7 @@ export const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="timeslots" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="timeslots">
               <Clock className="h-4 w-4 mr-2" />
               Créneaux
@@ -268,6 +269,10 @@ export const Admin = () => {
             <TabsTrigger value="calendar">
               <CalendarIcon className="h-4 w-4 mr-2" />
               Exceptions
+            </TabsTrigger>
+            <TabsTrigger value="users">
+              <Users className="h-4 w-4 mr-2" />
+              Utilisateurs
             </TabsTrigger>
             <TabsTrigger value="clients">
               <Users className="h-4 w-4 mr-2" />
@@ -281,6 +286,10 @@ export const Admin = () => {
 
           <TabsContent value="timeslots">
             <TimeSlotsManager />
+          </TabsContent>
+
+          <TabsContent value="users">
+            <UserManagement />
           </TabsContent>
 
           <TabsContent value="calendar" className="space-y-8">
