@@ -361,13 +361,47 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_reviews: {
+        Row: {
+          booking_id: string | null
+          client_name: string | null
+          comment: string | null
+          created_at: string | null
+          id: string | null
+          rating: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          client_name?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          rating?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          client_name?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          rating?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      cleanup_expired_pending_bookings: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_expired_pending_bookings: { Args: never; Returns: undefined }
       create_booking_from_pending: {
         Args: { p_verification_token: string }
         Returns: Json
@@ -379,14 +413,8 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: { user_uuid?: string }
-        Returns: boolean
-      }
-      make_user_admin: {
-        Args: { user_email: string }
-        Returns: undefined
-      }
+      is_admin: { Args: { user_uuid?: string }; Returns: boolean }
+      make_user_admin: { Args: { user_email: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "client"
