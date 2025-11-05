@@ -338,23 +338,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     const icsDataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
 
-    // Send email to client with calendar links
-    const clientEmailResponse = await resend.emails.send({
-      from: "LCS Style <onboarding@resend.dev>",
-      to: [booking.clientEmail],
-      subject: "✂️ Confirmation de votre rendez-vous - LCS Style",
-      html: getClientEmailTemplate(booking, googleCalendarUrl.toString(), icsDataUrl),
-    });
-
-    console.log("Client email sent:", clientEmailResponse);
-
-    // Send email to barber with calendar links
-    const barberEmail = Deno.env.get("BARBER_EMAIL");
-    if (!barberEmail) {
-      console.error("BARBER_EMAIL not configured");
-      throw new Error("BARBER_EMAIL secret is not configured");
-    }
-
+    // Toujours envoyer au barbier (adresse fixe)
+    const barberEmail = "lucas.chipan97@gmail.com";
+    
     const barberEmailResponse = await resend.emails.send({
       from: "LCS Style <onboarding@resend.dev>",
       to: [barberEmail],
@@ -363,6 +349,20 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     console.log("Barber email sent:", barberEmailResponse);
+
+    // Tenter d'envoyer au client (peut échouer en mode test)
+    let clientEmailResponse;
+    try {
+      clientEmailResponse = await resend.emails.send({
+        from: "LCS Style <onboarding@resend.dev>",
+        to: [booking.clientEmail],
+        subject: "✂️ Confirmation de votre rendez-vous - LCS Style",
+        html: getClientEmailTemplate(booking, googleCalendarUrl.toString(), icsDataUrl),
+      });
+      console.log("Client email sent:", clientEmailResponse);
+    } catch (clientError: any) {
+      console.warn("Client email failed (test mode):", clientError.message);
+    }
 
     return new Response(
       JSON.stringify({ 

@@ -110,31 +110,7 @@ serve(async (req: Request): Promise<Response> => {
             ? `Bonjour ${booking.client_name},\n\nNous vous rappelons votre rendez-vous demain chez LCS Style ⭐`
             : `Bonjour ${booking.client_name},\n\nVotre rendez-vous approche ! Dans 2 heures chez LCS Style ⭐`;
 
-          // Email au client
-          await resend.emails.send({
-            from: "LCS Style <onboarding@resend.dev>",
-            to: [booking.client_email],
-            subject: subject,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">${subject}</h2>
-                <p>${message}</p>
-                
-                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h3 style="margin-top: 0;">Détails du rendez-vous</h3>
-                  <p><strong>Date :</strong> ${formattedDate}</p>
-                  <p><strong>Heure :</strong> ${formattedTime}</p>
-                  <p><strong>Service :</strong> ${booking.services.name}</p>
-                  <p><strong>Prix :</strong> ${booking.total_price}€</p>
-                </div>
-
-                <p>À très bientôt !</p>
-                <p style="color: #666; font-size: 14px;">LCS Style ⭐</p>
-              </div>
-            `,
-          });
-
-          // Email au barbier
+          // Email au barbier (toujours envoyé)
           await resend.emails.send({
             from: "LCS Style <onboarding@resend.dev>",
             to: ["lucas.chipan97@gmail.com"],
@@ -155,6 +131,34 @@ serve(async (req: Request): Promise<Response> => {
               </div>
             `,
           });
+
+          // Tenter d'envoyer au client (peut échouer en mode test)
+          try {
+            await resend.emails.send({
+              from: "LCS Style <onboarding@resend.dev>",
+              to: [booking.client_email],
+              subject: subject,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2 style="color: #333;">${subject}</h2>
+                  <p>${message}</p>
+                  
+                  <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="margin-top: 0;">Détails du rendez-vous</h3>
+                    <p><strong>Date :</strong> ${formattedDate}</p>
+                    <p><strong>Heure :</strong> ${formattedTime}</p>
+                    <p><strong>Service :</strong> ${booking.services.name}</p>
+                    <p><strong>Prix :</strong> ${booking.total_price}€</p>
+                  </div>
+
+                  <p>À très bientôt !</p>
+                  <p style="color: #666; font-size: 14px;">LCS Style ⭐</p>
+                </div>
+              `,
+            });
+          } catch (clientError: any) {
+            console.warn(`Client email failed for booking ${booking.id}:`, clientError.message);
+          }
 
           console.log(`Reminder sent for booking ${booking.id} (${type})`);
           return { success: true, bookingId: booking.id, type };

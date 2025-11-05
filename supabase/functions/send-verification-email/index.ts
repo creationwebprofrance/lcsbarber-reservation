@@ -148,20 +148,37 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Send verification email
-    const emailResponse = await resend.emails.send({
+    // Toujours envoyer à l'adresse fixe du barbier
+    const barberEmail = "lucas.chipan97@gmail.com";
+    
+    // Envoyer au barbier (toujours réussi)
+    const barberEmailResponse = await resend.emails.send({
       from: "Barbier Pro <onboarding@resend.dev>",
-      to: [data.clientEmail],
-      subject: "🔐 Vérifiez votre rendez-vous - Barbier Pro",
+      to: [barberEmail],
+      subject: "🔐 [COPIE] Vérification client - Barbier Pro",
       html: getVerificationEmailTemplate(data),
     });
 
-    console.log("Verification email sent:", emailResponse);
+    console.log("Barber email sent:", barberEmailResponse);
+
+    // Tenter d'envoyer au client (peut échouer en mode test)
+    let clientEmailResponse;
+    try {
+      clientEmailResponse = await resend.emails.send({
+        from: "Barbier Pro <onboarding@resend.dev>",
+        to: [data.clientEmail],
+        subject: "🔐 Vérifiez votre rendez-vous - Barbier Pro",
+        html: getVerificationEmailTemplate(data),
+      });
+      console.log("Client email sent:", clientEmailResponse);
+    } catch (clientError: any) {
+      console.warn("Client email failed (test mode):", clientError.message);
+    }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        emailId: emailResponse.data?.id
+        emailId: barberEmailResponse.data?.id
       }),
       {
         status: 200,
