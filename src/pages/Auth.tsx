@@ -11,12 +11,8 @@ import { Scissors } from "lucide-react";
 export const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [usePhone, setUsePhone] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -50,34 +46,6 @@ export const Auth = () => {
           description: "Vérifiez votre email pour réinitialiser votre mot de passe.",
         });
         setIsForgotPassword(false);
-      } else if (usePhone) {
-        if (!otpSent) {
-          const { error } = await supabase.auth.signInWithOtp({
-            phone,
-          });
-
-          if (error) throw error;
-
-          setOtpSent(true);
-          toast({
-            title: "Code envoyé",
-            description: "Entrez le code reçu par SMS.",
-          });
-        } else {
-          const { error } = await supabase.auth.verifyOtp({
-            phone,
-            token: otp,
-            type: 'sms',
-          });
-
-          if (error) throw error;
-
-          toast({
-            title: "Connexion réussie",
-            description: "Bienvenue !",
-          });
-          navigate('/dashboard');
-        }
       } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -161,34 +129,6 @@ export const Auth = () => {
                   required
                 />
               </div>
-            ) : usePhone ? (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Numéro de téléphone</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+33612345678"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                  />
-                </div>
-                {otpSent && (
-                  <div className="space-y-2">
-                    <Label htmlFor="otp">Code de vérification</Label>
-                    <Input
-                      id="otp"
-                      type="text"
-                      placeholder="123456"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      required
-                      maxLength={6}
-                    />
-                  </div>
-                )}
-              </>
             ) : (
               <>
                 {!isLogin && (
@@ -250,33 +190,14 @@ export const Auth = () => {
                 ? "Chargement..." 
                 : isForgotPassword 
                   ? "Envoyer le lien de réinitialisation"
-                  : otpSent
-                    ? "Vérifier le code"
-                    : usePhone
-                      ? "Envoyer le code"
-                      : isLogin 
-                        ? "Se connecter" 
-                        : "S'inscrire"
+                  : isLogin 
+                    ? "Se connecter" 
+                    : "S'inscrire"
               }
             </Button>
           </form>
 
-          <div className="mt-6 space-y-3 text-center">
-            {!isForgotPassword && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setUsePhone(!usePhone);
-                  setOtpSent(false);
-                  setOtp("");
-                }}
-                type="button"
-                className="w-full"
-              >
-                {usePhone ? "Utiliser l'email" : "Utiliser le téléphone"}
-              </Button>
-            )}
-            
+          <div className="mt-6 text-center">
             <Button
               variant="ghost"
               onClick={() => {
@@ -285,9 +206,6 @@ export const Auth = () => {
                 } else {
                   setIsLogin(!isLogin);
                 }
-                setUsePhone(false);
-                setOtpSent(false);
-                setOtp("");
               }}
               type="button"
             >
