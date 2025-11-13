@@ -30,7 +30,7 @@ const bookingEmailSchema = z.object({
 type BookingEmailRequest = z.infer<typeof bookingEmailSchema>;
 
 // Template email pour le client
-const getClientEmailTemplate = (booking: BookingEmailRequest, googleCalendarUrl: string, icsDataUrl: string) => `
+const getClientEmailTemplate = (booking: BookingEmailRequest) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -113,15 +113,6 @@ const getClientEmailTemplate = (booking: BookingEmailRequest, googleCalendarUrl:
         ${booking.message}
       </div>
       ` : ''}
-
-      <div style="margin-top: 30px; padding: 20px; background: #e8f4fd; border-radius: 5px;">
-        <h3 style="text-align: center;">📅 Ajouter à votre calendrier</h3>
-        <p style="text-align: center; margin-bottom: 15px;">N'oubliez pas votre rendez-vous !</p>
-        <div class="calendar-buttons">
-          <a href="${googleCalendarUrl}" class="calendar-btn" target="_blank">📅 Google Calendar</a>
-          <a href="${icsDataUrl}" class="calendar-btn" download="rendez-vous-lcs-style.ics">📲 iPhone/Outlook</a>
-        </div>
-      </div>
       
       <div style="margin-top: 30px; padding: 20px; background: #d4edda; border-radius: 5px;">
         <h3>📝 Informations importantes :</h3>
@@ -176,59 +167,12 @@ const handler = async (req: Request): Promise<Response> => {
       day: 'numeric' 
     }).format(dateObj);
 
-    // Initialize Supabase client to fetch service details
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Fetch service details for calendar
-    const { data: service } = await supabase
-      .from('services')
-      .select('duration_minutes')
-      .eq('name', booking.serviceName)
-      .single();
-
-    const durationMinutes = service?.duration_minutes || 60;
-
-    // Generate calendar links
-    const startDateTime = new Date(`${booking.appointmentDate}T${booking.appointmentTime}`);
-    const endDateTime = new Date(startDateTime.getTime() + (durationMinutes * 60000));
-
-    const formatICalDate = (date: Date) => {
-      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    };
-
-    // Google Calendar URL
-    const googleCalendarUrl = new URL('https://calendar.google.com/calendar/render');
-    googleCalendarUrl.searchParams.set('action', 'TEMPLATE');
-    googleCalendarUrl.searchParams.set('text', `${booking.serviceName} - ${booking.clientName}`);
-    googleCalendarUrl.searchParams.set('dates', `${formatICalDate(startDateTime)}/${formatICalDate(endDateTime)}`);
-    googleCalendarUrl.searchParams.set('details', `Service: ${booking.serviceName}\nPrix: ${booking.totalPrice}€`);
-    googleCalendarUrl.searchParams.set('location', booking.clientAddress || 'À domicile');
-
-    // ICS content for download
-    const icsContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//LCS Style//Booking//FR',
-      'BEGIN:VEVENT',
-      `DTSTART:${formatICalDate(startDateTime)}`,
-      `DTEND:${formatICalDate(endDateTime)}`,
-      `SUMMARY:${booking.serviceName} - ${booking.clientName}`,
-      `DESCRIPTION:Service: ${booking.serviceName}\\nPrix: ${booking.totalPrice}€`,
-      `LOCATION:${booking.clientAddress || 'À domicile'}`,
-      'END:VEVENT',
-      'END:VCALENDAR'
-    ].join('\r\n');
-
-    const icsDataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
-
     // Envoyer uniquement au client qui réserve
     const clientEmailResponse = await resend.emails.send({
       from: "LCS Style <noreply@lookware.fr>",
       to: [booking.clientEmail],
       subject: "✂️ Confirmation de votre rendez-vous - LCS Style",
-      html: getClientEmailTemplate({ ...booking, appointmentDate: formattedDate }, googleCalendarUrl.toString(), icsDataUrl),
+      html: getClientEmailTemplate({ ...booking, appointmentDate: formattedDate }),
     });
 
     console.log("Client email sent:", clientEmailResponse);
