@@ -216,7 +216,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Envoyer uniquement au client qui réserve
     const clientEmailResponse = await resend.emails.send({
-      from: "LCS Style <onboarding@resend.dev>",
+      from: "LCS Style <noreply@lookware.fr>",
       to: [booking.clientEmail],
       subject: "✂️ Confirmation de votre rendez-vous - LCS Style",
       html: getClientEmailTemplate(booking, googleCalendarUrl.toString(), icsDataUrl),
