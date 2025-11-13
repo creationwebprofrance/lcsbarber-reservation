@@ -170,15 +170,8 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
       // Validate and sanitize form data before submission
       const validatedData = bookingFormSchema.parse(formData);
       
-      // Generate verification token
-      const verificationToken = crypto.randomUUID() + '-' + Date.now();
-      
-      // Create expiration date (24 hours from now)
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24);
-      
-      // Create pending booking
-      const pendingBookingData = {
+      // Créer directement la réservation confirmée
+      const bookingDataToInsert = {
         service_id: bookingData.service.id,
         appointment_date: format(bookingData.date, 'yyyy-MM-dd'),
         appointment_time: bookingData.time,
@@ -189,45 +182,54 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         total_price: pricing.totalPrice,
         travel_fee: travelCalculation.fees,
         notes: validatedData.message || null,
-        verification_token: verificationToken,
-        expires_at: expiresAt.toISOString()
+        deposit_paid: requiresDeposit,
+        status: 'confirmed'
       };
 
-      const { error: pendingError } = await supabase
-        .from('pending_bookings')
-        .insert([pendingBookingData]);
+      const { data: newBooking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert([bookingDataToInsert])
+        .select()
+        .single();
 
-      if (pendingError) {
-        throw new Error(`Erreur lors de la création de la réservation: ${pendingError.message}`);
+      if (bookingError) {
+        throw new Error(`Erreur lors de la création de la réservation: ${bookingError.message}`);
       }
 
-      // Send verification email
-      const verificationData = {
+      // Envoyer l'email de confirmation
+      const depositAmount = requiresDeposit ? 30 : 0;
+      
+      const emailData = {
         clientName: validatedData.name,
         clientEmail: validatedData.email,
+        clientPhone: validatedData.phone,
+        clientAddress: validatedData.address,
         serviceName: bookingData.service.name,
+        servicePrice: bookingData.service.price,
         appointmentDate: format(bookingData.date, "EEEE d MMMM yyyy", { locale: fr }),
         appointmentTime: bookingData.time,
-        verificationToken: verificationToken,
-        appUrl: window.location.origin
+        totalPrice: pricing.totalPrice,
+        travelFee: travelCalculation.fees,
+        depositAmount: depositAmount,
+        message: validatedData.message || ''
       };
 
-      const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
-        body: verificationData
+      const { error: emailError } = await supabase.functions.invoke('send-booking-emails', {
+        body: emailData
       });
 
       if (emailError) {
         console.error('Erreur envoi email:', emailError);
-        throw new Error("Impossible d'envoyer l'email de vérification. Veuillez réessayer.");
+        // Ne pas bloquer la réservation si l'email échoue
       }
 
       toast({
-        title: "Email de vérification envoyé !",
-        description: "Consultez votre boîte mail pour confirmer votre rendez-vous.",
+        title: "Réservation confirmée !",
+        description: "Vous allez recevoir un email de confirmation.",
       });
 
-      // Pass to success screen without booking ID (will show different message)
-      onSubmit({ ...formData, pendingVerification: true });
+      // Passer au screen de succès avec l'ID de réservation
+      onSubmit({ ...formData, bookingId: newBooking.id });
       
     } catch (error: any) {
       console.error('Erreur lors de la réservation:', error);
