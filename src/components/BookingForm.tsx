@@ -206,7 +206,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         clientAddress: validatedData.address,
         serviceName: bookingData.service.name,
         servicePrice: bookingData.service.price,
-        appointmentDate: format(bookingData.date, "EEEE d MMMM yyyy", { locale: fr }),
+        appointmentDate: format(bookingData.date, "yyyy-MM-dd"),
         appointmentTime: bookingData.time,
         totalPrice: pricing.totalPrice,
         travelFee: travelCalculation.fees,

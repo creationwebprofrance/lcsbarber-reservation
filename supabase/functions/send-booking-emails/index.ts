@@ -19,7 +19,7 @@ const bookingEmailSchema = z.object({
   clientAddress: z.string().trim().min(1).max(500),
   serviceName: z.string().trim().min(1).max(200),
   servicePrice: z.number().positive().max(10000),
-  appointmentDate: z.string().trim().min(1).max(50),
+  appointmentDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
   appointmentTime: z.string().trim().min(1).max(20),
   totalPrice: z.number().positive().max(10000),
   travelFee: z.number().min(0).max(1000),
@@ -167,6 +167,15 @@ const handler = async (req: Request): Promise<Response> => {
     const booking = validationResult.data;
     console.log("Booking data validated");
 
+    // Format the date for display in French
+    const dateObj = new Date(booking.appointmentDate + 'T00:00:00');
+    const formattedDate = new Intl.DateTimeFormat('fr-FR', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }).format(dateObj);
+
     // Initialize Supabase client to fetch service details
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -219,7 +228,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "LCS Style <noreply@lookware.fr>",
       to: [booking.clientEmail],
       subject: "✂️ Confirmation de votre rendez-vous - LCS Style",
-      html: getClientEmailTemplate(booking, googleCalendarUrl.toString(), icsDataUrl),
+      html: getClientEmailTemplate({ ...booking, appointmentDate: formattedDate }, googleCalendarUrl.toString(), icsDataUrl),
     });
 
     console.log("Client email sent:", clientEmailResponse);
