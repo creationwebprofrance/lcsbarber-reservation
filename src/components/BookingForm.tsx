@@ -189,14 +189,12 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         expires_at: expiresAt,
       };
 
-      const { data: pending, error: pendingError } = await supabase
-        .from('pending_bookings')
-        .insert([pendingToInsert])
-        .select()
-        .single();
+      const { data: pendingResult, error: pendingError } = await supabase.functions.invoke('create-pending-booking', {
+        body: pendingToInsert,
+      });
 
-      if (pendingError) {
-        throw new Error(`Erreur lors de la création de la réservation en attente: ${pendingError.message}`);
+      if (pendingError || !pendingResult?.success) {
+        throw new Error(`Erreur lors de la création de la réservation en attente: ${pendingError?.message || 'échec de la fonction'}`);
       }
 
       // Envoyer l'email de vérification

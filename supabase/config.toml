@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.generate-calendar-event]
 verify_jwt = false
+
+[functions.send-verification-email]
+verify_jwt = false
+
+[functions.create-pending-booking]
+verify_jwt = false
