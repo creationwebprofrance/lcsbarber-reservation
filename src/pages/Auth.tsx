@@ -9,11 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Scissors } from "lucide-react";
 
 export const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -34,50 +31,18 @@ export const Auth = () => {
     setLoading(true);
 
     try {
-      if (isForgotPassword) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/auth`,
-        });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        toast({
-          title: "Email envoyé",
-          description: "Vérifiez votre email pour réinitialiser votre mot de passe.",
-        });
-        setIsForgotPassword(false);
-      } else if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Connexion réussie",
-          description: "Bienvenue !",
-        });
-        navigate('/dashboard');
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              full_name: fullName,
-            },
-          },
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Inscription réussie",
-          description: "Vérifiez votre email pour confirmer votre compte.",
-        });
-      }
+      toast({
+        title: "Connexion réussie",
+        description: "Bienvenue !",
+      });
+      navigate('/dashboard');
     } catch (error: any) {
       toast({
         title: "Erreur",
@@ -99,124 +64,43 @@ export const Auth = () => {
             </div>
           </div>
           <CardTitle className="text-2xl">
-            {isForgotPassword 
-              ? "Mot de passe oublié" 
-              : isLogin 
-                ? "Connexion" 
-                : "Inscription"
-            }
+            Connexion Admin
           </CardTitle>
           <CardDescription>
-            {isForgotPassword
-              ? "Entrez votre email pour réinitialiser votre mot de passe"
-              : isLogin 
-                ? "Connectez-vous à votre espace barbier" 
-                : "Créez votre compte barbier"
-            }
+            Connectez-vous à votre espace d'administration
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">
-            {isForgotPassword ? (
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="votre@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-            ) : (
-              <>
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Nom complet</Label>
-                    <Input
-                      id="fullName"
-                      type="text"
-                      placeholder="Votre nom complet"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                    />
-                  </div>
-                )}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="votre@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="password">Mot de passe</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
-                </div>
-
-                {isLogin && (
-                  <div className="text-right">
-                    <Button
-                      variant="link"
-                      onClick={() => setIsForgotPassword(true)}
-                      type="button"
-                      className="text-sm px-0"
-                    >
-                      Mot de passe oublié ?
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="admin@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading 
-                ? "Chargement..." 
-                : isForgotPassword 
-                  ? "Envoyer le lien de réinitialisation"
-                  : isLogin 
-                    ? "Se connecter" 
-                    : "S'inscrire"
-              }
+              {loading ? "Connexion..." : "Se connecter"}
             </Button>
           </form>
-
-          <div className="mt-6 text-center">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                if (isForgotPassword) {
-                  setIsForgotPassword(false);
-                } else {
-                  setIsLogin(!isLogin);
-                }
-              }}
-              type="button"
-            >
-              {isForgotPassword
-                ? "Retour à la connexion"
-                : isLogin 
-                  ? "Pas de compte ? Inscrivez-vous" 
-                  : "Déjà un compte ? Connectez-vous"
-              }
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>
