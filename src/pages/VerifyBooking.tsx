@@ -50,14 +50,21 @@ export default function VerifyBooking() {
         setBookingData(result.booking_data);
         setStatus("success");
 
+        // Fetch service name
+        const { data: serviceData } = await supabase
+          .from('services')
+          .select('name, price')
+          .eq('id', result.booking_data.service_id)
+          .single();
+
         // Send confirmation emails
         const emailData = {
           clientName: result.booking_data.client_name,
           clientEmail: result.booking_data.client_email,
           clientPhone: result.booking_data.client_phone,
           clientAddress: result.booking_data.client_address,
-          serviceName: "Service", // You might want to fetch this from services table
-          servicePrice: result.booking_data.total_price - (result.booking_data.travel_fee || 0),
+          serviceName: serviceData?.name || "Service",
+          servicePrice: serviceData?.price || result.booking_data.total_price - (result.booking_data.travel_fee || 0),
           appointmentDate: result.booking_data.appointment_date,
           appointmentTime: result.booking_data.appointment_time,
           totalPrice: result.booking_data.total_price,
