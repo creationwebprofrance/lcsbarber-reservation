@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Settings, Calendar as CalendarIcon, Users, BarChart, Star, Clock, Euro } from "lucide-react";
+import { LogOut, Settings, Calendar as CalendarIcon, Users, BarChart, Star, Clock, Euro, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +20,7 @@ import { TimeSlotsManager } from "@/components/TimeSlotsManager";
 import { UserManagement } from "@/components/UserManagement";
 import { PricingSettings } from "@/components/PricingSettings";
 import { BookingsCalendar } from "@/components/BookingsCalendar";
+import { EmailTemplateEditor } from "@/components/EmailTemplateEditor";
 
 interface CalendarSetting {
   id: string;
@@ -263,7 +264,7 @@ export const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="bookings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="bookings">
               <CalendarIcon className="h-4 w-4 mr-2" />
               Réservations
@@ -291,6 +292,10 @@ export const Admin = () => {
             <TabsTrigger value="reviews">
               <Star className="h-4 w-4 mr-2" />
               Avis
+            </TabsTrigger>
+            <TabsTrigger value="emails">
+              <Mail className="h-4 w-4 mr-2" />
+              Emails
             </TabsTrigger>
           </TabsList>
 
@@ -487,6 +492,10 @@ export const Admin = () => {
 
           <TabsContent value="reviews">
             <ReviewsList />
+          </TabsContent>
+
+          <TabsContent value="emails">
+            <EmailTemplateEditor />
           </TabsContent>
         </Tabs>
       </div>

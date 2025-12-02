@@ -73,9 +73,16 @@ export default function VerifyBooking() {
           message: result.booking_data.notes
         };
 
-        await supabase.functions.invoke('send-booking-emails', {
+        const { error: emailError } = await supabase.functions.invoke('send-booking-emails', {
           body: emailData
         });
+
+        if (emailError) {
+          console.error("Error sending confirmation email:", emailError);
+          // Don't fail the booking if email fails, just log it
+        } else {
+          console.log("Confirmation email sent successfully");
+        }
 
         toast({
           title: "Rendez-vous confirmé !",

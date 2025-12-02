@@ -139,6 +139,33 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          created_at: string | null
+          html_content: string
+          id: string
+          subject: string
+          template_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          html_content: string
+          id?: string
+          subject: string
+          template_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          html_content?: string
+          id?: string
+          subject?: string
+          template_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       pending_bookings: {
         Row: {
           appointment_date: string
