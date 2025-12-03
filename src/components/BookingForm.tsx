@@ -7,11 +7,12 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Calendar, Clock, Scissors, MapPin, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { calculatePricing } from "@/lib/pricing";
-import { calculateTravelFees, formatTravelTime, formatDistance, type TravelCalculation } from "@/lib/travel-calculator";
+import { calculatePricing, type HourlySupplementSettings } from "@/lib/pricing";
+import { calculateTravelFees, formatTravelTime, formatDistance, type TravelCalculation, type TravelFeeSettings } from "@/lib/travel-calculator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { usePricingSettings } from "@/hooks/usePricingSettings";
 
 interface Service {
   id: string;
@@ -81,6 +82,23 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   const [depositPaidConfirmed, setDepositPaidConfirmed] = useState(false);
   const { toast } = useToast();
   
+  // Fetch pricing settings from database
+  const { data: pricingSettings } = usePricingSettings();
+  
+  // Convert settings to the format expected by calculation functions
+  const travelFeeSettings: TravelFeeSettings | undefined = pricingSettings ? {
+    freeMinutes: pricingSettings.travel_free_minutes,
+    intervalMinutes: pricingSettings.travel_interval_minutes,
+    feePerInterval: pricingSettings.travel_fee_per_interval,
+  } : undefined;
+  
+  const hourlySettings: HourlySupplementSettings | undefined = pricingSettings ? {
+    earlyHourThreshold: pricingSettings.early_hour_threshold,
+    earlyHourFee: pricingSettings.early_hour_fee,
+    lateHourThreshold: pricingSettings.late_hour_threshold,
+    lateHourFee: pricingSettings.late_hour_fee,
+  } : undefined;
+  
   // Effet pour sauvegarder le token Mapbox
   useEffect(() => {
     if (mapboxToken) {
@@ -94,7 +112,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
       if (formData.address.trim() && mapboxToken.trim()) {
         setIsCalculatingTravel(true);
         try {
-          const result = await calculateTravelFees(formData.address, mapboxToken);
+          const result = await calculateTravelFees(formData.address, mapboxToken, travelFeeSettings);
           setTravelCalculation(result);
         } catch (error) {
           console.error('Erreur calcul déplacement:', error);
@@ -115,10 +133,10 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     // Délai pour éviter trop de requêtes
     const timeoutId = setTimeout(calculateTravel, 1000);
     return () => clearTimeout(timeoutId);
-  }, [formData.address, mapboxToken, toast]);
+  }, [formData.address, mapboxToken, toast, travelFeeSettings?.freeMinutes, travelFeeSettings?.intervalMinutes, travelFeeSettings?.feePerInterval]);
   
   // Calculer le prix total avec supplément horaire et frais de déplacement
-  const pricing = calculatePricing(bookingData.service.price, bookingData.time, travelCalculation.fees);
+  const pricing = calculatePricing(bookingData.service.price, bookingData.time, travelCalculation.fees, hourlySettings);
   
   // Calculer l'acompte (50% du total)
   const depositAmount = Math.round(pricing.totalPrice * 0.5);
