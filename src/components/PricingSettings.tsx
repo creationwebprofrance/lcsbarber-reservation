@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Euro, Clock, MapPin } from "lucide-react";
+import { PricingSettingsManager } from "./PricingSettingsManager";
 
 interface Service {
   id: string;
@@ -116,42 +117,8 @@ export const PricingSettings = () => {
         </CardContent>
       </Card>
 
-      {/* Travel fees information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Frais de déplacement
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <h3 className="font-semibold mb-2">Calcul automatique</h3>
-              <p className="text-sm text-muted-foreground">
-                Les frais de déplacement sont calculés automatiquement en fonction de la distance depuis Louvres (95):
-              </p>
-              <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 space-y-1">
-                <li>0-19 minutes : 0€</li>
-                <li>20-39 minutes : 10€</li>
-                <li>40-59 minutes : 20€</li>
-                <li>Et ainsi de suite (+10€ par tranche de 20 minutes)</li>
-              </ul>
-            </div>
-
-            <div className="p-4 bg-muted rounded-lg">
-              <h3 className="font-semibold mb-2">Suppléments horaires</h3>
-              <p className="text-sm text-muted-foreground">
-                Des suppléments sont automatiquement appliqués pour les créneaux :
-              </p>
-              <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 space-y-1">
-                <li>Avant 10h : +5€ par heure avant 10h (ex: 8h = +10€, 9h = +5€)</li>
-                <li>Après 20h : +5€ par heure après 19h (ex: 20h = +5€, 21h = +10€)</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Pricing Settings Manager */}
+      <PricingSettingsManager />
     </div>
   );
 };

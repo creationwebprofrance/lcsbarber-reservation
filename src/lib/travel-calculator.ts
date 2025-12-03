@@ -6,13 +6,28 @@ export interface TravelCalculation {
   distance: number; // en mètres
 }
 
+export interface TravelFeeSettings {
+  freeMinutes: number;
+  intervalMinutes: number;
+  feePerInterval: number;
+}
+
+const defaultTravelSettings: TravelFeeSettings = {
+  freeMinutes: 20,
+  intervalMinutes: 20,
+  feePerInterval: 10,
+};
+
 export const calculateTravelFees = async (
   address: string, 
-  mapboxToken: string
+  mapboxToken: string,
+  settings?: TravelFeeSettings
 ): Promise<TravelCalculation> => {
   if (!address.trim() || !mapboxToken.trim()) {
     return { duration: 0, fees: 0, distance: 0 };
   }
+
+  const travelSettings = settings || defaultTravelSettings;
 
   try {
     // Géocoder l'adresse du client
@@ -41,9 +56,10 @@ export const calculateTravelFees = async (
     const durationInMinutes = Math.ceil(route.duration / 60);
     const distanceInMeters = route.distance;
     
-    // Calculer les frais : 10€ pour chaque tranche de 20 minutes à partir de 20 minutes
-    // 0-19 min = 0€, 20-39 min = 10€, 40-59 min = 20€, etc.
-    const fees = durationInMinutes < 20 ? 0 : Math.floor(durationInMinutes / 20) * 10;
+    // Calculer les frais selon les paramètres configurables
+    const fees = durationInMinutes < travelSettings.freeMinutes 
+      ? 0 
+      : Math.floor(durationInMinutes / travelSettings.intervalMinutes) * travelSettings.feePerInterval;
     
     return {
       duration: durationInMinutes,
