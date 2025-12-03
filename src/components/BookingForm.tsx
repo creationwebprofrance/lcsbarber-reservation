@@ -197,13 +197,19 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         throw new Error(`Erreur lors de la création de la réservation en attente: ${pendingError?.message || 'échec de la fonction'}`);
       }
 
-      // Envoyer l'email de vérification
+      // Envoyer l'email de vérification avec récap détaillé
       const verificationEmailData = {
         clientName: validatedData.name,
         clientEmail: validatedData.email,
+        clientPhone: validatedData.phone,
+        clientAddress: validatedData.address,
         serviceName: bookingData.service.name,
+        servicePrice: bookingData.service.price,
         appointmentDate: format(bookingData.date, "dd MMMM yyyy", { locale: fr }),
         appointmentTime: bookingData.time,
+        totalPrice: pricing.totalPrice,
+        travelFee: travelCalculation.fees,
+        notes: validatedData.message || '',
         verificationToken,
         appUrl: window.location.origin,
       };
