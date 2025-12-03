@@ -15,21 +15,65 @@ const corsHeaders = {
 const verificationEmailSchema = z.object({
   clientName: z.string().trim().min(1).max(100),
   clientEmail: z.string().trim().email().max(255),
+  clientPhone: z.string().trim().min(1).max(50).optional(),
+  clientAddress: z.string().trim().max(500).optional(),
   serviceName: z.string().trim().min(1).max(200),
+  servicePrice: z.number().min(0).optional(),
   appointmentDate: z.string().trim().min(1).max(50),
   appointmentTime: z.string().trim().min(1).max(20),
+  totalPrice: z.number().min(0).optional(),
+  travelFee: z.number().min(0).optional(),
+  notes: z.string().trim().max(1000).optional(),
   verificationToken: z.string().trim().min(1).max(500),
   appUrl: z.string().trim().url().max(500),
 });
 
 type VerificationEmailRequest = z.infer<typeof verificationEmailSchema>;
 
-const getVerificationEmailTemplate = (data: VerificationEmailRequest) => `
+// Function to replace template variables
+const replaceTemplateVars = (template: string, data: VerificationEmailRequest): string => {
+  const verificationLink = `${data.appUrl}/verify-booking?token=${data.verificationToken}`;
+  const depositAmount = data.totalPrice ? Math.round(data.totalPrice * 0.5) : 0;
+  
+  let result = template
+    .replace(/\{\{clientName\}\}/g, data.clientName || '')
+    .replace(/\{\{clientEmail\}\}/g, data.clientEmail || '')
+    .replace(/\{\{clientPhone\}\}/g, data.clientPhone || '')
+    .replace(/\{\{clientAddress\}\}/g, data.clientAddress || '')
+    .replace(/\{\{serviceName\}\}/g, data.serviceName || '')
+    .replace(/\{\{servicePrice\}\}/g, String(data.servicePrice || 0))
+    .replace(/\{\{appointmentDate\}\}/g, data.appointmentDate || '')
+    .replace(/\{\{appointmentTime\}\}/g, data.appointmentTime || '')
+    .replace(/\{\{totalPrice\}\}/g, String(data.totalPrice || 0))
+    .replace(/\{\{travelFee\}\}/g, String(data.travelFee || 0))
+    .replace(/\{\{depositAmount\}\}/g, String(depositAmount))
+    .replace(/\{\{verificationLink\}\}/g, verificationLink)
+    .replace(/\{\{notes\}\}/g, data.notes || '');
+
+  // Handle conditional blocks for travelFee
+  if (data.travelFee && data.travelFee > 0) {
+    result = result.replace(/\{\{#if travelFee\}\}/g, '').replace(/\{\{\/if\}\}/g, '');
+  } else {
+    result = result.replace(/\{\{#if travelFee\}\}[\s\S]*?\{\{\/if\}\}/g, '');
+  }
+
+  // Handle conditional blocks for clientAddress
+  if (data.clientAddress && data.clientAddress.trim()) {
+    result = result.replace(/\{\{#if clientAddress\}\}/g, '').replace(/\{\{\/if\}\}/g, '');
+  } else {
+    result = result.replace(/\{\{#if clientAddress\}\}[\s\S]*?\{\{\/if\}\}/g, '');
+  }
+
+  return result;
+};
+
+// Fallback template if database template is not found
+const getFallbackTemplate = (data: VerificationEmailRequest) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Vérifiez votre rendez-vous - Barbier Pro</title>
+  <title>Vérifiez votre rendez-vous - LCS Style</title>
   <style>
     body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -44,13 +88,13 @@ const getVerificationEmailTemplate = (data: VerificationEmailRequest) => `
 <body>
   <div class="container">
     <div class="header">
-      <h1>✂️ Barbier Pro</h1>
+      <h1>✂️ LCS Style</h1>
       <h2>Vérification de votre rendez-vous</h2>
     </div>
     <div class="content">
       <p>Bonjour <strong>${data.clientName}</strong>,</p>
       
-      <p>Merci d'avoir réservé un rendez-vous avec Barbier Pro !</p>
+      <p>Merci d'avoir réservé un rendez-vous avec LCS Style !</p>
       
       <div class="verification-box">
         <h3>🔐 Confirmez votre email</h3>
@@ -65,7 +109,7 @@ const getVerificationEmailTemplate = (data: VerificationEmailRequest) => `
         </p>
       </div>
       
-      <h3>📅 Détails de votre rendez-vous :</h3>
+      <h3>📅 Récapitulatif de votre rendez-vous :</h3>
       
       <div class="detail-row">
         <strong>Service :</strong> ${data.serviceName}
@@ -79,6 +123,22 @@ const getVerificationEmailTemplate = (data: VerificationEmailRequest) => `
         <strong>Heure :</strong> ${data.appointmentTime}
       </div>
       
+      ${data.clientAddress ? `<div class="detail-row"><strong>Adresse :</strong> ${data.clientAddress}</div>` : ''}
+      
+      <div class="detail-row">
+        <strong>Prix du service :</strong> ${data.servicePrice || 0}€
+      </div>
+      
+      ${data.travelFee && data.travelFee > 0 ? `<div class="detail-row"><strong>Frais de déplacement :</strong> ${data.travelFee}€</div>` : ''}
+      
+      <div class="detail-row" style="background: #667eea; color: white;">
+        <strong>Total :</strong> ${data.totalPrice || 0}€
+      </div>
+      
+      <div class="detail-row">
+        <strong>Acompte à régler :</strong> ${Math.round((data.totalPrice || 0) * 0.5)}€
+      </div>
+      
       <div class="warning">
         <strong>⚠️ Important :</strong><br>
         Votre rendez-vous ne sera confirmé qu'après avoir cliqué sur le lien de vérification ci-dessus.
@@ -87,7 +147,7 @@ const getVerificationEmailTemplate = (data: VerificationEmailRequest) => `
       
       <div style="margin-top: 30px; text-align: center; color: #666; font-size: 14px;">
         <p>Vous n'avez pas demandé ce rendez-vous ?<br>Vous pouvez ignorer cet email en toute sécurité.</p>
-        <p><strong>Barbier Pro</strong></p>
+        <p><strong>LCS Style</strong></p>
       </div>
     </div>
   </div>
@@ -119,12 +179,13 @@ const handler = async (req: Request): Promise<Response> => {
     const data = validationResult.data;
     console.log("Verification data:", { ...data, verificationToken: "[REDACTED]" });
 
-    // Rate limiting: Check how many pending bookings this email has created in the last hour
+    // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    // Rate limiting: Check how many pending bookings this email has created in the last hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     
     const { data: recentBookings, error: countError } = await supabase
@@ -148,31 +209,50 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Fetch email template from database
+    let htmlContent: string;
+    let emailSubject = "🔐 Confirmez votre rendez-vous - LCS Style";
+    
+    const { data: templateData, error: templateError } = await supabase
+      .from("email_templates")
+      .select("html_content, subject")
+      .eq("template_type", "verification_client")
+      .single();
+
+    if (templateError || !templateData) {
+      console.warn("Template not found in database, using fallback:", templateError?.message);
+      htmlContent = getFallbackTemplate(data);
+    } else {
+      console.log("Using database template for verification_client");
+      htmlContent = replaceTemplateVars(templateData.html_content, data);
+      emailSubject = templateData.subject;
+    }
+
     // Toujours envoyer à l'adresse fixe du barbier
-    const barberEmail = "lucas.chipan97@gmail.com";
+    const barberEmail = Deno.env.get("BARBER_EMAIL") || "lucas.chipan97@gmail.com";
     
     // Envoyer au barbier (toujours réussi)
     const barberEmailResponse = await resend.emails.send({
-      from: "Barbier Pro <onboarding@resend.dev>",
+      from: "LCS Style <noreply@lookware.fr>",
       to: [barberEmail],
-      subject: "🔐 [COPIE] Vérification client - Barbier Pro",
-      html: getVerificationEmailTemplate(data),
+      subject: `📋 [COPIE] ${emailSubject}`,
+      html: htmlContent,
     });
 
     console.log("Barber email sent:", barberEmailResponse);
 
-    // Tenter d'envoyer au client (peut échouer en mode test)
+    // Tenter d'envoyer au client
     let clientEmailResponse;
     try {
       clientEmailResponse = await resend.emails.send({
-        from: "Barbier Pro <onboarding@resend.dev>",
+        from: "LCS Style <noreply@lookware.fr>",
         to: [data.clientEmail],
-        subject: "🔐 Vérifiez votre rendez-vous - Barbier Pro",
-        html: getVerificationEmailTemplate(data),
+        subject: emailSubject,
+        html: htmlContent,
       });
       console.log("Client email sent:", clientEmailResponse);
     } catch (clientError: any) {
-      console.warn("Client email failed (test mode):", clientError.message);
+      console.warn("Client email failed:", clientError.message);
     }
 
     return new Response(
