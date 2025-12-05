@@ -63,6 +63,24 @@ serve(async (req) => {
       );
     }
 
+    // Enregistrer ou mettre à jour le client
+    const { error: clientError } = await supabase
+      .from("clients")
+      .upsert(
+        {
+          email: data.client_email.toLowerCase(),
+          name: data.client_name,
+          phone: data.client_phone,
+          address: data.client_address,
+        },
+        { onConflict: "email" }
+      );
+
+    if (clientError) {
+      console.warn("Client upsert warning:", clientError.message);
+      // Continue anyway - client registration is not blocking
+    }
+
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     const insertPayload = {
