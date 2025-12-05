@@ -72,21 +72,21 @@ export const BookingTool = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-secondary p-4">
+    <div className="min-h-screen bg-gradient-secondary p-2 sm:p-4">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="mb-4 text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+        <div className="mb-4 sm:mb-8 text-center">
+          <h1 className="mb-2 sm:mb-4 text-2xl sm:text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Prenez Rendez-vous
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Réservez facilement votre créneau en quelques clics
           </p>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8 flex justify-center">
-          <div className="flex items-center space-x-4">
+        <div className="mb-4 sm:mb-8 flex justify-center overflow-x-auto">
+          <div className="flex items-center space-x-1 sm:space-x-4">
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isActive = currentStep === step.number;
@@ -95,7 +95,7 @@ export const BookingTool = () => {
               return (
                 <div key={step.number} className="flex items-center">
                   <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full transition-all ${
+                    className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-all ${
                       isCompleted
                         ? "bg-success text-success-foreground"
                         : isActive
@@ -103,17 +103,17 @@ export const BookingTool = () => {
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <span
-                    className={`ml-2 hidden text-sm font-medium sm:block ${
+                    className={`ml-2 hidden text-sm font-medium lg:block ${
                       isActive ? "text-foreground" : "text-muted-foreground"
                     }`}
                   >
                     {step.title}
                   </span>
                   {index < steps.length - 1 && (
-                    <div className="mx-4 h-px w-8 bg-border"></div>
+                    <div className="mx-1 sm:mx-4 h-px w-4 sm:w-8 bg-border"></div>
                   )}
                 </div>
               );
@@ -123,7 +123,7 @@ export const BookingTool = () => {
 
         {/* Main Content */}
         <Card className="bg-gradient-card shadow-card border-border/50 backdrop-blur-sm">
-          <div className="p-6">
+          <div className="p-3 sm:p-6">
             {currentStep === 1 && (
               <ServiceSelector
                 selectedService={bookingData.service}

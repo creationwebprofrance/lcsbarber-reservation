@@ -50,21 +50,21 @@ export const ServiceSelector = ({ selectedService, onServiceSelect, onBack }: Se
     );
   }
   return (
-    <div>
+    <div className="px-1 sm:px-0">
       {onBack && (
         <div className="mb-4">
-          <Button variant="outline" onClick={onBack}>
+          <Button variant="outline" size="sm" onClick={onBack}>
             ← Retour
           </Button>
         </div>
       )}
       
-      <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold mb-2">Choisissez votre prestation</h2>
-        <p className="text-muted-foreground">Sélectionnez le service que vous souhaitez</p>
+      <div className="mb-4 sm:mb-6 text-center">
+        <h2 className="text-xl sm:text-2xl font-bold mb-2">Choisissez votre prestation</h2>
+        <p className="text-sm sm:text-base text-muted-foreground">Sélectionnez le service que vous souhaitez</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service) => {
           const isSelected = selectedService?.id === service.id;
           
@@ -78,21 +78,21 @@ export const ServiceSelector = ({ selectedService, onServiceSelect, onBack }: Se
               }`}
               onClick={() => onServiceSelect(service)}
             >
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {isSelected && (
-                  <div className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary">
-                    <Check className="h-4 w-4 text-primary-foreground" />
+                  <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-primary">
+                    <Check className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
                   </div>
                 )}
                 
-                <div className="mb-3">
-                  <h3 className="text-lg font-semibold">{service.name}</h3>
+                <div className="mb-2 sm:mb-3 pr-6">
+                  <h3 className="text-base sm:text-lg font-semibold">{service.name}</h3>
                   {service.description && (
-                    <p className="text-sm text-muted-foreground">{service.description}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{service.description}</p>
                   )}
                 </div>
                 
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-xl sm:text-2xl font-bold text-primary">
                   {service.price}€
                 </div>
               </div>
