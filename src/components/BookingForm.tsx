@@ -345,10 +345,12 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
               <span>{bookingData.time}</span>
             </div>
             <div className="border-t pt-2 mt-2">
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
-                <span>Acompte (50%)</span>
-                <span>{depositAmount}€</span>
-              </div>
+              {requiresDeposit && (
+                <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
+                  <span>Acompte (50%)</span>
+                  <span>{depositAmount}€</span>
+                </div>
+              )}
               <div className="flex items-center justify-between font-semibold">
                 <span>Total</span>
                 <span className="text-primary text-lg">{pricing.totalPrice}€</span>
@@ -444,49 +446,34 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         </div>
 
         <div className="flex flex-col space-y-3 pt-4">
-          {requiresDeposit ? (
-            <>
-              <div className="text-center bg-blue-50 dark:bg-blue-950 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100 mb-3">
-                  ⚠️ Pour les prestations de 40€ ou plus, le paiement de l'acompte de {depositAmount}€ est obligatoire avant la réservation.
-                </p>
-                <Button 
-                  type="button"
-                  onClick={() => window.open(generatePayPalLink(), '_blank')}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white mb-3"
-                  size="lg"
-                >
-                  💳 Payer l'acompte obligatoire ({depositAmount}€)
-                </Button>
-                <div className="flex items-center justify-center space-x-2 mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg">
-                  <input
-                    type="checkbox"
-                    id="deposit-confirm"
-                    checked={depositPaidConfirmed}
-                    onChange={(e) => setDepositPaidConfirmed(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="deposit-confirm" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-                    Je confirme avoir effectué le paiement de l'acompte
-                  </label>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Cochez cette case après avoir effectué le paiement pour finaliser votre réservation
-                </p>
-              </div>
-            </>
-          ) : (
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-3">
-                Pour finaliser votre réservation, veuillez régler l'acompte de {depositAmount}€
+          {requiresDeposit && (
+            <div className="text-center bg-blue-50 dark:bg-blue-950 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100 mb-3">
+                ⚠️ Pour les prestations de 40€ ou plus, le paiement de l'acompte de {depositAmount}€ est obligatoire avant la réservation.
               </p>
               <Button 
                 type="button"
                 onClick={() => window.open(generatePayPalLink(), '_blank')}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white mb-3"
+                size="lg"
               >
-                💳 Payer l'acompte ({depositAmount}€) - PayPal
+                💳 Payer l'acompte obligatoire ({depositAmount}€)
               </Button>
+              <div className="flex items-center justify-center space-x-2 mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="deposit-confirm"
+                  checked={depositPaidConfirmed}
+                  onChange={(e) => setDepositPaidConfirmed(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="deposit-confirm" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                  Je confirme avoir effectué le paiement de l'acompte
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Cochez cette case après avoir effectué le paiement pour finaliser votre réservation
+              </p>
             </div>
           )}
           
