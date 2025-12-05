@@ -166,7 +166,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     }
   };
 
-  const requiresDeposit = bookingData.service.price > 50;
+  const requiresDeposit = bookingData.service.price >= 40;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,18 +268,19 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   };
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
+    <div className="px-1 sm:px-0">
+      <div className="mb-4 sm:mb-6 flex items-center justify-between">
         <Button 
           variant="ghost" 
           onClick={onBack}
-          className="hover:bg-accent"
+          className="hover:bg-accent h-9 px-2 sm:px-3"
+          size="sm"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour
+          <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
+          <span className="hidden sm:inline">Retour</span>
         </Button>
-        <h2 className="text-xl font-semibold">Vos informations</h2>
-        <div></div>
+        <h2 className="text-lg sm:text-xl font-semibold">Vos informations</h2>
+        <div className="w-8 sm:w-16"></div>
       </div>
 
       {/* Configuration Mapbox */}
@@ -359,7 +360,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
 
       {/* Formulaire */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4">
           <div>
             <Label htmlFor="name">Nom complet *</Label>
             <Input
@@ -445,9 +446,9 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         <div className="flex flex-col space-y-3 pt-4">
           {requiresDeposit ? (
             <>
-              <div className="text-center bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-3">
-                  ⚠️ Pour les prestations de plus de 50€, le paiement de l'acompte de {depositAmount}€ est obligatoire avant la réservation.
+              <div className="text-center bg-blue-50 dark:bg-blue-950 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100 mb-3">
+                  ⚠️ Pour les prestations de 40€ ou plus, le paiement de l'acompte de {depositAmount}€ est obligatoire avant la réservation.
                 </p>
                 <Button 
                   type="button"

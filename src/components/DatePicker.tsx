@@ -52,27 +52,27 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerPro
   };
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
+    <div className="px-1 sm:px-0">
+      <div className="mb-4 sm:mb-6 flex items-center justify-between">
         {onBack && (
           <Button
             variant="outline"
             size="sm"
             onClick={onBack}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 sm:gap-2 h-9 px-2 sm:px-3"
           >
             <ChevronLeft className="h-4 w-4" />
-            Retour
+            <span className="hidden sm:inline">Retour</span>
           </Button>
         )}
-        <h2 className="text-center text-2xl font-semibold flex-1">
+        <h2 className="text-center text-lg sm:text-2xl font-semibold flex-1">
           Choisissez votre date
         </h2>
-        <div className="w-20"></div> {/* Spacer pour centrer le titre */}
+        <div className="w-10 sm:w-20"></div> {/* Spacer pour centrer le titre */}
       </div>
       
       <div className="flex justify-center">
-        <Card className="border-border/20 bg-gradient-card backdrop-blur-sm shadow-elegant p-6 hover:shadow-glow transition-all duration-300">
+        <Card className="border-border/20 bg-gradient-card backdrop-blur-sm shadow-elegant p-3 sm:p-6 hover:shadow-glow transition-all duration-300 w-full sm:w-auto">
           {/* Navigation de semaine */}
           <div className="flex items-center justify-between mb-4">
             <Button
@@ -116,15 +116,15 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerPro
             className="pointer-events-auto"
             classNames={{
               months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-              month: "space-y-4",
-              caption: "hidden", // Cache la navigation par défaut
-              nav: "hidden", // Cache les boutons de navigation par défaut
-              table: "w-full border-collapse space-y-2",
-              head_row: "flex mb-2",
-              head_cell: "text-muted-foreground rounded-md w-12 h-10 font-medium text-sm flex items-center justify-center",
-              row: "flex w-full mt-1",
+              month: "space-y-2 sm:space-y-4",
+              caption: "hidden",
+              nav: "hidden",
+              table: "w-full border-collapse space-y-1 sm:space-y-2",
+              head_row: "flex mb-1 sm:mb-2",
+              head_cell: "text-muted-foreground rounded-md w-10 h-8 sm:w-12 sm:h-10 font-medium text-xs sm:text-sm flex items-center justify-center",
+              row: "flex w-full mt-0.5 sm:mt-1",
               cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 rounded-lg flex-1",
-              day: "h-12 w-12 p-0 font-normal rounded-lg hover:bg-accent/80 hover:text-accent-foreground transition-all duration-200 hover:scale-105 hover:shadow-md flex items-center justify-center mx-auto",
+              day: "h-10 w-10 sm:h-12 sm:w-12 p-0 font-normal rounded-lg hover:bg-accent/80 hover:text-accent-foreground transition-all duration-200 hover:scale-105 hover:shadow-md flex items-center justify-center mx-auto text-sm sm:text-base",
               day_selected: "bg-gradient-primary text-primary-foreground hover:bg-gradient-primary hover:text-primary-foreground focus:bg-gradient-primary focus:text-primary-foreground shadow-glow scale-105 font-semibold border-2 border-primary/20",
               day_today: "bg-accent/60 text-accent-foreground font-semibold border-2 border-primary/30 hover:bg-accent/80",
               day_outside: "text-muted-foreground opacity-40 aria-selected:bg-accent/20 aria-selected:text-muted-foreground aria-selected:opacity-30",
