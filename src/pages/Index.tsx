@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Settings, BarChart, LogIn } from "lucide-react";
 import { ReviewsList } from "@/components/ReviewsList";
 import { ReviewForm } from "@/components/ReviewForm";
+import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 
 export default function Index() {
   const { user, isAdmin } = useAuth();
@@ -15,7 +16,7 @@ export default function Index() {
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl sm:text-2xl font-bold">LCS Style ⭐</h1>
+            <img src={lcsBarberLogo} alt="LCS Barber" className="h-10 sm:h-12" />
             <div className="flex items-center gap-1 sm:gap-2">
               {user ? (
                 <>
