@@ -12,6 +12,7 @@ export const ReviewForm = () => {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
@@ -35,9 +36,10 @@ export const ReviewForm = () => {
         .from('reviews')
         .insert([{
           client_name: name,
+          client_email: email,
           rating,
           comment: comment || null,
-        } as any]);
+        }]);
 
       if (error) throw error;
 
@@ -49,6 +51,7 @@ export const ReviewForm = () => {
       // Reset form
       setRating(0);
       setName("");
+      setEmail("");
       setComment("");
     } catch (error) {
       console.error('Error submitting review:', error);
@@ -103,7 +106,17 @@ export const ReviewForm = () => {
             />
           </div>
 
-
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="votre@email.com"
+              required
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="comment">Commentaire (optionnel)</Label>
             <Textarea
