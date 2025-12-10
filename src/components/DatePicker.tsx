@@ -27,9 +27,8 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerPro
   maxDate.setMonth(maxDate.getMonth() + 3); // 3 mois à l'avance
 
   const isDateDisabled = (date: Date) => {
-    const day = date.getDay();
-    // Désactiver les dimanches (0) et les dates passées
-    return day === 0 || date < today;
+    // Désactiver uniquement les dates passées
+    return date < today;
   };
 
   const goToPreviousWeek = () => {
@@ -137,7 +136,7 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerPro
       </div>
       
       <p className="mt-4 text-center text-sm text-muted-foreground">
-        Les dimanches ne sont pas disponibles
+        Réservation possible jusqu'à 3 mois à l'avance
       </p>
     </div>
   );
