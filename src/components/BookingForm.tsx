@@ -138,8 +138,9 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   // Calculer le prix total avec supplément horaire et frais de déplacement
   const pricing = calculatePricing(bookingData.service.price, bookingData.time, travelCalculation.fees, hourlySettings);
   
-  // Calculer l'acompte (50% du total)
-  const depositAmount = Math.round(pricing.totalPrice * 0.5);
+  // Acompte de 10€ si le total dépasse 50€
+  const requiresDeposit = pricing.totalPrice > 50;
+  const depositAmount = 10;
   
   // Générer le lien PayPal avec acompte
   const generatePayPalLink = () => {
@@ -166,7 +167,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     }
   };
 
-  const requiresDeposit = bookingData.service.price >= 40;
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -241,8 +242,9 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
       }
 
       toast({
-        title: "Vérification requise",
-        description: "Un email de vérification vous a été envoyé pour confirmer votre rendez-vous.",
+        title: "✅ Demande de rendez-vous envoyée !",
+        description: `Un email de vérification a été envoyé à ${validatedData.email}. Cliquez sur le lien pour confirmer votre rendez-vous.${requiresDeposit ? ` Un acompte de ${depositAmount}€ est requis.` : ''}`,
+        duration: 8000,
       });
 
       // Passer au screen de confirmation sans ID (sera ajouté après vérification)
@@ -345,16 +347,16 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
               <span>{bookingData.time}</span>
             </div>
             <div className="border-t pt-2 mt-2">
-              {requiresDeposit && (
-                <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
-                  <span>Acompte (50%)</span>
-                  <span>{depositAmount}€</span>
-                </div>
-              )}
               <div className="flex items-center justify-between font-semibold">
                 <span>Total</span>
                 <span className="text-primary text-lg">{pricing.totalPrice}€</span>
               </div>
+              {requiresDeposit && (
+                <div className="flex items-center justify-between text-sm text-blue-600 mt-1">
+                  <span>Acompte requis</span>
+                  <span className="font-medium">{depositAmount}€</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -449,7 +451,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
           {requiresDeposit && (
             <div className="text-center bg-blue-50 dark:bg-blue-950 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-800">
               <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100 mb-3">
-                ⚠️ Pour les prestations de 40€ ou plus, le paiement de l'acompte de {depositAmount}€ est obligatoire avant la réservation.
+                ⚠️ Pour les réservations de plus de 50€, un acompte de {depositAmount}€ est obligatoire.
               </p>
               <Button 
                 type="button"
