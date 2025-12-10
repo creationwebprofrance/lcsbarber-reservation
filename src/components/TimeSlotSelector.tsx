@@ -137,34 +137,34 @@ export const TimeSlotSelector = ({
             return (
               <Card
                 key={time}
-                className={`cursor-pointer border transition-all duration-200 ${
+                className={`cursor-pointer border-2 transition-all duration-200 ${
                   !isAvailable
-                    ? "border-border/30 bg-muted/30 cursor-not-allowed"
+                    ? "border-muted-foreground/30 bg-muted/50 cursor-not-allowed opacity-60"
                     : isSelected
-                    ? "border-primary bg-primary/10 shadow-glow"
-                    : "border-border/50 bg-card/50 hover:border-primary/50 hover:bg-primary/5"
+                    ? "border-primary bg-primary/20 shadow-glow ring-2 ring-primary/30"
+                    : "border-success/50 bg-success/10 hover:border-success hover:bg-success/20"
                 }`}
                 onClick={() => isAvailable && onTimeSelect(time)}
               >
                 <div className="p-2 sm:p-3 text-center">
                   <span
-                    className={`font-medium text-sm sm:text-base ${
+                    className={`font-semibold text-sm sm:text-base ${
                       !isAvailable
-                        ? "text-muted-foreground/50"
+                        ? "text-muted-foreground/60 line-through"
                         : isSelected
                         ? "text-primary"
-                        : "text-foreground"
+                        : "text-success"
                     }`}
                   >
                     {time}
                   </span>
                   {supplementText && isAvailable && (
-                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-orange-600 font-medium">
+                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-orange-500 font-medium">
                       {supplementText.match(/\+(\d+)€/)?.[0] || '+?€'}
                     </div>
                   )}
                   {!isAvailable && (
-                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-muted-foreground">
+                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-muted-foreground font-medium">
                       Réservé
                     </div>
                   )}
@@ -174,18 +174,18 @@ export const TimeSlotSelector = ({
           })}
         </div>
 
-        <div className="mt-4 sm:mt-6 flex justify-center flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm">
-          <div className="flex items-center">
-            <div className="mr-1.5 sm:mr-2 h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-success"></div>
-            <span className="text-muted-foreground">Disponible</span>
+        <div className="mt-4 sm:mt-6 flex justify-center flex-wrap gap-4 sm:gap-6 text-xs sm:text-sm bg-card/50 p-3 rounded-lg border border-border/50">
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-success border-2 border-success"></div>
+            <span className="text-foreground font-medium">Disponible</span>
           </div>
-          <div className="flex items-center">
-            <div className="mr-1.5 sm:mr-2 h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-muted"></div>
-            <span className="text-muted-foreground">Réservé</span>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-muted-foreground/30 border-2 border-muted-foreground/30"></div>
+            <span className="text-foreground font-medium">Réservé</span>
           </div>
-          <div className="flex items-center">
-            <div className="mr-1.5 sm:mr-2 h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-primary"></div>
-            <span className="text-muted-foreground">Sélectionné</span>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-primary border-2 border-primary"></div>
+            <span className="text-foreground font-medium">Sélectionné</span>
           </div>
         </div>
       </div>
