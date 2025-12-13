@@ -14,6 +14,8 @@ interface DatePickerProps {
 
 export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerProps) => {
   const today = new Date();
+  today.setHours(0, 0, 0, 0); // Normaliser à minuit pour permettre le jour même
+  
   // Initialiser avec la semaine actuelle
   const [currentWeek, setCurrentWeek] = useState(() => {
     // S'assurer que la semaine commence bien avec la semaine actuelle
@@ -27,7 +29,7 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerPro
   maxDate.setMonth(maxDate.getMonth() + 3); // 3 mois à l'avance
 
   const isDateDisabled = (date: Date) => {
-    // Désactiver uniquement les dates passées
+    // Désactiver uniquement les dates passées (pas le jour même)
     return date < today;
   };
 
