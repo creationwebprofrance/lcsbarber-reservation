@@ -3,6 +3,7 @@ export interface HourlySupplementSettings {
   earlyHourFee: number;
   lateHourThreshold: number;
   lateHourFee: number;
+  sameDayFee: number;
 }
 
 const defaultHourlySettings: HourlySupplementSettings = {
@@ -10,18 +11,21 @@ const defaultHourlySettings: HourlySupplementSettings = {
   earlyHourFee: 5,
   lateHourThreshold: 20,
   lateHourFee: 5,
+  sameDayFee: 5,
 };
 
 export const calculatePricing = (
   basePrice: number, 
   time: string, 
   travelFees: number = 0,
-  settings?: HourlySupplementSettings
+  settings?: HourlySupplementSettings,
+  appointmentDate?: Date
 ) => {
   const hour = parseInt(time.split(':')[0]);
   const hourlySettings = settings || defaultHourlySettings;
   
   let supplement = 0;
+  let sameDayFee = 0;
   
   // Calcul du supplément pour les heures avant le seuil du matin
   if (hour < hourlySettings.earlyHourThreshold) {
@@ -35,15 +39,26 @@ export const calculatePricing = (
     supplement += hoursAfter * hourlySettings.lateHourFee;
   }
   
-  const totalPrice = basePrice + supplement + travelFees;
+  // Frais pour réservation le jour même
+  if (appointmentDate) {
+    const today = new Date();
+    const isToday = appointmentDate.toDateString() === today.toDateString();
+    if (isToday) {
+      sameDayFee = hourlySettings.sameDayFee;
+    }
+  }
+  
+  const totalPrice = basePrice + supplement + travelFees + sameDayFee;
   
   return {
     basePrice,
     supplement,
     travelFees,
+    sameDayFee,
     totalPrice,
-    hasTimeupplement: supplement > 0,
-    hasTravelFees: travelFees > 0
+    hasTimeSupplement: supplement > 0,
+    hasTravelFees: travelFees > 0,
+    hasSameDayFee: sameDayFee > 0
   };
 };
 

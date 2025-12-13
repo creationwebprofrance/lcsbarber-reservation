@@ -97,6 +97,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     earlyHourFee: pricingSettings.early_hour_fee,
     lateHourThreshold: pricingSettings.late_hour_threshold,
     lateHourFee: pricingSettings.late_hour_fee,
+    sameDayFee: pricingSettings.same_day_fee,
   } : undefined;
   
   // Effet pour sauvegarder le token Mapbox
@@ -135,8 +136,8 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     return () => clearTimeout(timeoutId);
   }, [formData.address, mapboxToken, toast, travelFeeSettings?.freeMinutes, travelFeeSettings?.intervalMinutes, travelFeeSettings?.feePerInterval]);
   
-  // Calculer le prix total avec supplément horaire et frais de déplacement
-  const pricing = calculatePricing(bookingData.service.price, bookingData.time, travelCalculation.fees, hourlySettings);
+  // Calculer le prix total avec supplément horaire, frais de déplacement et frais jour même
+  const pricing = calculatePricing(bookingData.service.price, bookingData.time, travelCalculation.fees, hourlySettings, bookingData.date);
   
   // Acompte de 10€ si le total dépasse 50€
   const requiresDeposit = pricing.totalPrice > 50;
@@ -346,13 +347,19 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
               <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
               <span>{bookingData.time}</span>
             </div>
-            <div className="border-t pt-2 mt-2">
+            <div className="border-t pt-2 mt-2 space-y-1">
+              {pricing.hasSameDayFee && (
+                <div className="flex items-center justify-between text-sm text-orange-600">
+                  <span>Frais jour même</span>
+                  <span>+{pricing.sameDayFee}€</span>
+                </div>
+              )}
               <div className="flex items-center justify-between font-semibold">
                 <span>Total</span>
                 <span className="text-primary text-lg">{pricing.totalPrice}€</span>
               </div>
               {requiresDeposit && (
-                <div className="flex items-center justify-between text-sm text-blue-600 mt-1">
+                <div className="flex items-center justify-between text-sm text-blue-600">
                   <span>Acompte requis</span>
                   <span className="font-medium">{depositAmount}€</span>
                 </div>
