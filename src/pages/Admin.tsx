@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientStats } from "@/components/ClientStats";
 import { ReviewsList } from "@/components/ReviewsList";
 import { TimeSlotsManager } from "@/components/TimeSlotsManager";
+import { CalendarSlotsManager } from "@/components/CalendarSlotsManager";
 import { UserManagement } from "@/components/UserManagement";
 import { PricingSettings } from "@/components/PricingSettings";
 import { BookingsCalendar } from "@/components/BookingsCalendar";
@@ -308,7 +309,7 @@ export const Admin = () => {
           </TabsContent>
 
           <TabsContent value="timeslots">
-            <TimeSlotsManager />
+            <CalendarSlotsManager />
           </TabsContent>
 
           <TabsContent value="users">
