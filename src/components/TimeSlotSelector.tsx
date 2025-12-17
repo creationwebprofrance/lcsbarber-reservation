@@ -41,7 +41,16 @@ export const TimeSlotSelector = ({
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
     try {
-      // Récupérer les créneaux configurés pour ce jour
+      // D'abord vérifier s'il y a une exception (date_override) pour cette date
+      const { data: dateOverride, error: overrideError } = await supabase
+        .from('date_overrides')
+        .select('*')
+        .eq('date', dateStr)
+        .maybeSingle();
+
+      if (overrideError) throw overrideError;
+
+      // Récupérer les créneaux réguliers pour ce jour de la semaine
       const { data: timeSlots, error: slotsError } = await supabase
         .from('time_slots')
         .select('*')
@@ -61,17 +70,45 @@ export const TimeSlotSelector = ({
 
       // Créer une liste de tous les créneaux disponibles (par heure)
       const slots: string[] = [];
-      timeSlots?.forEach((slot: TimeSlot) => {
-        const start = slot.start_time.substring(0, 5); // Format HH:MM
-        const end = slot.end_time.substring(0, 5);
-        
-        const startHour = parseInt(start.split(':')[0]);
-        const endHour = parseInt(end.split(':')[0]);
-        
-        for (let hour = startHour; hour < endHour; hour++) {
-          slots.push(`${hour.toString().padStart(2, '0')}:00`);
+
+      // Si une exception existe pour cette date
+      if (dateOverride) {
+        if (dateOverride.is_available && dateOverride.start_time && dateOverride.end_time) {
+          // Utiliser les horaires de l'exception
+          const start = dateOverride.start_time.substring(0, 5);
+          const end = dateOverride.end_time.substring(0, 5);
+          
+          const startHour = parseInt(start.split(':')[0]);
+          const startMin = parseInt(start.split(':')[1]);
+          const endHour = parseInt(end.split(':')[0]);
+          
+          // Générer des créneaux toutes les 30 minutes
+          for (let hour = startHour; hour < endHour; hour++) {
+            if (hour === startHour && startMin > 0) {
+              slots.push(`${hour.toString().padStart(2, '0')}:30`);
+            } else {
+              slots.push(`${hour.toString().padStart(2, '0')}:00`);
+              if (hour < endHour - 1 || (hour === endHour - 1 && parseInt(end.split(':')[1]) >= 30)) {
+                slots.push(`${hour.toString().padStart(2, '0')}:30`);
+              }
+            }
+          }
         }
-      });
+        // Si is_available est false, aucun créneau (jour bloqué)
+      } else {
+        // Utiliser les créneaux réguliers
+        timeSlots?.forEach((slot: TimeSlot) => {
+          const start = slot.start_time.substring(0, 5);
+          const end = slot.end_time.substring(0, 5);
+          
+          const startHour = parseInt(start.split(':')[0]);
+          const endHour = parseInt(end.split(':')[0]);
+          
+          for (let hour = startHour; hour < endHour; hour++) {
+            slots.push(`${hour.toString().padStart(2, '0')}:00`);
+          }
+        });
+      }
 
       // Marquer les créneaux déjà réservés
       const booked = bookings?.map(b => b.appointment_time.substring(0, 5)) || [];
