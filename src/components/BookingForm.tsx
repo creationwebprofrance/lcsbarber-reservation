@@ -230,9 +230,32 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         console.error('Erreur enregistrement client:', clientError);
       }
 
+      // Envoyer les emails de confirmation (client + admin)
+      const emailData = {
+        clientName: validatedData.name,
+        clientEmail: validatedData.email,
+        clientPhone: validatedData.phone,
+        clientAddress: validatedData.address,
+        serviceName: bookingData.service.name,
+        servicePrice: bookingData.service.price,
+        appointmentDate: format(bookingData.date, "EEEE d MMMM yyyy", { locale: fr }),
+        appointmentTime: bookingData.time,
+        totalPrice: pricing.totalPrice,
+        travelFee: travelCalculation.fees,
+        message: validatedData.message || '',
+      };
+
+      const { error: emailError } = await supabase.functions.invoke('send-booking-emails', {
+        body: emailData,
+      });
+
+      if (emailError) {
+        console.error('Erreur envoi emails de confirmation:', emailError);
+      }
+
       toast({
         title: "✅ Rendez-vous confirmé !",
-        description: `Votre rendez-vous du ${format(bookingData.date, "d MMMM", { locale: fr })} à ${bookingData.time} a été enregistré avec succès.`,
+        description: `Votre rendez-vous du ${format(bookingData.date, "d MMMM", { locale: fr })} à ${bookingData.time} a été enregistré. Un email de confirmation vous a été envoyé.`,
         duration: 6000,
       });
 
