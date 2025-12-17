@@ -6,7 +6,6 @@ import { ServiceSelector } from "./ServiceSelector";
 import { DatePicker } from "./DatePicker";
 import { TimeSlotSelector } from "./TimeSlotSelector";
 import { BookingForm } from "./BookingForm";
-import { CalendarLinks } from "./CalendarLinks";
 
 interface Service {
   id: string;
@@ -165,12 +164,6 @@ export const BookingTool = () => {
                 <p className="mb-6 text-muted-foreground">
                   Un email de confirmation vous a été envoyé.
                 </p>
-                
-                {bookingData.clientInfo.bookingId && (
-                  <div className="max-w-md mx-auto mb-6">
-                    <CalendarLinks bookingId={bookingData.clientInfo.bookingId} />
-                  </div>
-                )}
                 
                 <Button variant="outline" onClick={resetBooking}>
                   Prendre un autre rendez-vous
