@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Star } from "lucide-react";
+
+// Validation schema for review form
+const reviewSchema = z.object({
+  client_name: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100, "Le nom ne peut pas dépasser 100 caractères"),
+  client_email: z.string().trim().email("Email invalide").max(255, "L'email ne peut pas dépasser 255 caractères"),
+  rating: z.number().int().min(1, "Note requise").max(5, "Note maximale: 5"),
+  comment: z.string().trim().max(500, "Le commentaire ne peut pas dépasser 500 caractères").optional().nullable()
+});
 
 export const ReviewForm = () => {
   const [rating, setRating] = useState(0);
@@ -32,13 +41,21 @@ export const ReviewForm = () => {
     setSubmitting(true);
 
     try {
+      // Validate input with Zod schema
+      const validated = reviewSchema.parse({
+        client_name: name,
+        client_email: email,
+        rating,
+        comment: comment || null,
+      });
+
       const { error } = await supabase
         .from('reviews')
         .insert([{
-          client_name: name,
-          client_email: email,
-          rating,
-          comment: comment || null,
+          client_name: validated.client_name,
+          client_email: validated.client_email,
+          rating: validated.rating,
+          comment: validated.comment,
         }]);
 
       if (error) throw error;
@@ -54,12 +71,21 @@ export const ReviewForm = () => {
       setEmail("");
       setComment("");
     } catch (error) {
-      console.error('Error submitting review:', error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'envoi de votre avis",
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        const firstError = error.issues[0];
+        toast({
+          title: "Erreur de validation",
+          description: firstError.message,
+          variant: "destructive",
+        });
+      } else {
+        console.error('Error submitting review:', error);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors de l'envoi de votre avis",
+          variant: "destructive",
+        });
+      }
     } finally {
       setSubmitting(false);
     }
