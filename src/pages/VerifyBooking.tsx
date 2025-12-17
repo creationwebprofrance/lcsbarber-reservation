@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader2, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarLinks } from "@/components/CalendarLinks";
 
 export default function VerifyBooking() {
   const [searchParams] = useSearchParams();
@@ -136,12 +135,6 @@ export default function VerifyBooking() {
                   </div>
                 )}
               </div>
-
-              {bookingId && (
-                <div className="max-w-md mx-auto">
-                  <CalendarLinks bookingId={bookingId} />
-                </div>
-              )}
 
               <p className="text-sm text-muted-foreground">
                 Un email de confirmation vous a été envoyé avec tous les détails.
