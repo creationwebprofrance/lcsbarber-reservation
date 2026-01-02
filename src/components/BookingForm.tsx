@@ -190,8 +190,8 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
       // Validate and sanitize form data before submission
       const validatedData = bookingFormSchema.parse(formData);
       
-      // Créer directement la réservation dans la table bookings
-      const bookingToInsert = {
+      // Créer la réservation via edge function (contourne RLS)
+      const bookingPayload = {
         service_id: bookingData.service.id,
         appointment_date: format(bookingData.date, 'yyyy-MM-dd'),
         appointment_time: bookingData.time,
@@ -202,33 +202,19 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
         total_price: pricing.totalPrice,
         travel_fee: travelCalculation.fees,
         notes: validatedData.message || null,
-        status: 'confirmed',
         deposit_paid: requiresDeposit ? depositPaidConfirmed : true,
       };
 
-      const { data: newBooking, error: bookingError } = await supabase
-        .from('bookings')
-        .insert(bookingToInsert)
-        .select()
-        .single();
+      const { data: bookingResult, error: bookingError } = await supabase.functions.invoke('create-booking', {
+        body: bookingPayload,
+      });
 
-      if (bookingError) {
-        throw new Error(`Erreur lors de la création de la réservation: ${bookingError.message}`);
+      if (bookingError || !bookingResult?.success) {
+        throw new Error(bookingResult?.error || bookingError?.message || 'Erreur lors de la création de la réservation');
       }
+      
+      const newBooking = bookingResult.booking;
 
-      // Enregistrer le client dans la table clients (s'il n'existe pas déjà)
-      const { error: clientError } = await supabase
-        .from('clients')
-        .upsert({
-          email: validatedData.email,
-          name: validatedData.name,
-          phone: validatedData.phone,
-          address: validatedData.address,
-        }, { onConflict: 'email' });
-
-      if (clientError) {
-        console.error('Erreur enregistrement client:', clientError);
-      }
 
       // Envoyer les emails de confirmation (client + admin)
       const emailData = {
