@@ -265,40 +265,42 @@ export const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="bookings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="bookings">
-              <CalendarIcon className="h-4 w-4 mr-2" />
-              Réservations
-            </TabsTrigger>
-            <TabsTrigger value="pricing">
-              <Euro className="h-4 w-4 mr-2" />
-              Prix
-            </TabsTrigger>
-            <TabsTrigger value="timeslots">
-              <Clock className="h-4 w-4 mr-2" />
-              Créneaux
-            </TabsTrigger>
-            <TabsTrigger value="calendar">
-              <CalendarIcon className="h-4 w-4 mr-2" />
-              Exceptions
-            </TabsTrigger>
-            <TabsTrigger value="users">
-              <Users className="h-4 w-4 mr-2" />
-              Utilisateurs
-            </TabsTrigger>
-            <TabsTrigger value="clients">
-              <Users className="h-4 w-4 mr-2" />
-              Clients
-            </TabsTrigger>
-            <TabsTrigger value="reviews">
-              <Star className="h-4 w-4 mr-2" />
-              Avis
-            </TabsTrigger>
-            <TabsTrigger value="emails">
-              <Mail className="h-4 w-4 mr-2" />
-              Emails
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 pb-2">
+            <TabsList className="inline-flex w-max gap-1 p-1">
+              <TabsTrigger value="bookings" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <CalendarIcon className="h-4 w-4 shrink-0" />
+                <span>Réservations</span>
+              </TabsTrigger>
+              <TabsTrigger value="pricing" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <Euro className="h-4 w-4 shrink-0" />
+                <span>Prix</span>
+              </TabsTrigger>
+              <TabsTrigger value="timeslots" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <Clock className="h-4 w-4 shrink-0" />
+                <span>Créneaux</span>
+              </TabsTrigger>
+              <TabsTrigger value="calendar" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <CalendarIcon className="h-4 w-4 shrink-0" />
+                <span>Exceptions</span>
+              </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <Users className="h-4 w-4 shrink-0" />
+                <span>Utilisateurs</span>
+              </TabsTrigger>
+              <TabsTrigger value="clients" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <Users className="h-4 w-4 shrink-0" />
+                <span>Clients</span>
+              </TabsTrigger>
+              <TabsTrigger value="reviews" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <Star className="h-4 w-4 shrink-0" />
+                <span>Avis</span>
+              </TabsTrigger>
+              <TabsTrigger value="emails" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <Mail className="h-4 w-4 shrink-0" />
+                <span>Emails</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="bookings">
             <BookingsCalendar />
