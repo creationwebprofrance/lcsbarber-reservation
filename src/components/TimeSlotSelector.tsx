@@ -41,12 +41,11 @@ export const TimeSlotSelector = ({
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
     try {
-      // D'abord vérifier s'il y a une exception (date_override) pour cette date
-      const { data: dateOverride, error: overrideError } = await supabase
+      // D'abord vérifier s'il y a des exceptions (date_overrides) pour cette date
+      const { data: dateOverrides, error: overrideError } = await supabase
         .from('date_overrides')
         .select('*')
-        .eq('date', dateStr)
-        .maybeSingle();
+        .eq('date', dateStr);
 
       if (overrideError) throw overrideError;
 
@@ -71,30 +70,35 @@ export const TimeSlotSelector = ({
       // Créer une liste de tous les créneaux disponibles (par heure)
       const slots: string[] = [];
 
-      // Si une exception existe pour cette date
-      if (dateOverride) {
-        if (dateOverride.is_available && dateOverride.start_time && dateOverride.end_time) {
-          // Utiliser les horaires de l'exception
-          const start = dateOverride.start_time.substring(0, 5);
-          const end = dateOverride.end_time.substring(0, 5);
+      // Vérifier s'il y a une exception bloquante (jour fermé)
+      const blockingOverride = dateOverrides?.find(o => !o.is_available && !o.start_time);
+      
+      if (blockingOverride) {
+        // Jour bloqué - aucun créneau
+        setAvailableSlots([]);
+        setBookedSlots([]);
+        setLoading(false);
+        return;
+      }
+
+      // Récupérer les créneaux des exceptions avec horaires
+      const overrideSlots = dateOverrides?.filter(o => o.is_available && o.start_time && o.end_time) || [];
+
+      if (overrideSlots.length > 0) {
+        // Utiliser les horaires des exceptions
+        overrideSlots.forEach((override) => {
+          const start = override.start_time!.substring(0, 5);
+          const end = override.end_time!.substring(0, 5);
           
           const startHour = parseInt(start.split(':')[0]);
           const startMin = parseInt(start.split(':')[1]);
           const endHour = parseInt(end.split(':')[0]);
           
-          // Générer des créneaux toutes les 30 minutes
+          // Générer des créneaux toutes les heures
           for (let hour = startHour; hour < endHour; hour++) {
-            if (hour === startHour && startMin > 0) {
-              slots.push(`${hour.toString().padStart(2, '0')}:30`);
-            } else {
-              slots.push(`${hour.toString().padStart(2, '0')}:00`);
-              if (hour < endHour - 1 || (hour === endHour - 1 && parseInt(end.split(':')[1]) >= 30)) {
-                slots.push(`${hour.toString().padStart(2, '0')}:30`);
-              }
-            }
+            slots.push(`${hour.toString().padStart(2, '0')}:00`);
           }
-        }
-        // Si is_available est false, aucun créneau (jour bloqué)
+        });
       } else {
         // Utiliser les créneaux réguliers
         timeSlots?.forEach((slot: TimeSlot) => {

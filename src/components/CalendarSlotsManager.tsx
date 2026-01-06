@@ -71,7 +71,7 @@ export const CalendarSlotsManager = () => {
 
   const loadTimeSlots = async () => {
     const { data } = await supabase
-      .from('time_slots')
+      .from('calendar_settings')
       .select('*')
       .order('day_of_week')
       .order('start_time');
@@ -102,21 +102,30 @@ export const CalendarSlotsManager = () => {
     const dayOfWeek = date.getDay();
     const dateStr = format(date, 'yyyy-MM-dd');
     
-    // Check for date override first
-    const override = dateOverrides.find(o => o.date === dateStr);
-    if (override) {
-      if (!override.is_available) return [];
-      if (override.start_time && override.end_time) {
-        return [{ 
-          id: override.id, 
-          start_time: override.start_time, 
-          end_time: override.end_time, 
-          is_available: true,
-          isOverride: true 
-        }];
-      }
+    // Check for date overrides first
+    const overrides = dateOverrides.filter(o => o.date === dateStr);
+    
+    // If there's a blocking override (is_available = false without times), day is blocked
+    const blockingOverride = overrides.find(o => !o.is_available && !o.start_time);
+    if (blockingOverride) return [];
+    
+    // Get custom slots from overrides
+    const overrideSlots = overrides
+      .filter(o => o.is_available && o.start_time && o.end_time)
+      .map(o => ({ 
+        id: o.id, 
+        start_time: o.start_time!, 
+        end_time: o.end_time!, 
+        is_available: true,
+        isOverride: true 
+      }));
+    
+    // If there are override slots, use only those
+    if (overrideSlots.length > 0) {
+      return overrideSlots;
     }
     
+    // Otherwise, use regular weekly slots
     return timeSlots
       .filter(slot => slot.day_of_week === dayOfWeek && slot.is_available)
       .map(slot => ({ ...slot, isOverride: false }));
@@ -129,8 +138,14 @@ export const CalendarSlotsManager = () => {
 
   const isDayBlocked = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const override = dateOverrides.find(o => o.date === dateStr);
-    if (override) return !override.is_available;
+    const overrides = dateOverrides.filter(o => o.date === dateStr);
+    
+    // Check if there's a blocking override
+    const blockingOverride = overrides.find(o => !o.is_available && !o.start_time);
+    if (blockingOverride) return true;
+    
+    // If there are available overrides with times, day is not blocked
+    if (overrides.some(o => o.is_available && o.start_time)) return false;
     
     const dayOfWeek = date.getDay();
     const daySlots = timeSlots.filter(s => s.day_of_week === dayOfWeek && s.is_available);
@@ -176,38 +191,28 @@ export const CalendarSlotsManager = () => {
     if (!selectedDay) return;
     
     const dateStr = format(selectedDay, 'yyyy-MM-dd');
-    const existingOverride = dateOverrides.find(o => o.date === dateStr);
     
-    if (existingOverride) {
-      // Update existing override with new times
-      const { error } = await supabase
-        .from('date_overrides')
-        .update({
-          start_time: newSlot.start_time,
-          end_time: newSlot.end_time,
-          is_available: true
-        })
-        .eq('id', existingOverride.id);
-        
-      if (error) {
-        toast({ title: "Erreur", variant: "destructive" });
-        return;
-      }
-    } else {
-      // Create new override with specific times
-      const { error } = await supabase
-        .from('date_overrides')
-        .insert({
-          date: dateStr,
-          start_time: newSlot.start_time,
-          end_time: newSlot.end_time,
-          is_available: true
+    // Always create a new override for additional slots
+    const { error } = await supabase
+      .from('date_overrides')
+      .insert({
+        date: dateStr,
+        start_time: newSlot.start_time,
+        end_time: newSlot.end_time,
+        is_available: true
+      });
+      
+    if (error) {
+      if (error.code === '23505') {
+        toast({ 
+          title: "Erreur", 
+          description: "Un créneau avec cette heure de début existe déjà",
+          variant: "destructive" 
         });
-        
-      if (error) {
+      } else {
         toast({ title: "Erreur", variant: "destructive" });
-        return;
       }
+      return;
     }
     
     toast({ title: "Créneau ajouté" });
