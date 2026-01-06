@@ -35,7 +35,7 @@ export const TimeSlotsManager = () => {
 
   const loadTimeSlots = async () => {
     const { data, error } = await supabase
-      .from('time_slots')
+      .from('calendar_settings')
       .select('*')
       .order('day_of_week')
       .order('start_time');
@@ -50,7 +50,7 @@ export const TimeSlotsManager = () => {
 
   const addTimeSlot = async () => {
     const { error } = await supabase
-      .from('time_slots')
+      .from('calendar_settings')
       .insert({
         day_of_week: selectedDay,
         start_time: newSlot.start_time,
@@ -77,7 +77,7 @@ export const TimeSlotsManager = () => {
 
   const deleteTimeSlot = async (id: string) => {
     const { error } = await supabase
-      .from('time_slots')
+      .from('calendar_settings')
       .delete()
       .eq('id', id);
 
@@ -100,7 +100,7 @@ export const TimeSlotsManager = () => {
 
   const toggleSlotAvailability = async (slot: TimeSlot) => {
     const { error } = await supabase
-      .from('time_slots')
+      .from('calendar_settings')
       .update({ is_available: !slot.is_available })
       .eq('id', slot.id);
 

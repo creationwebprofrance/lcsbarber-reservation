@@ -52,7 +52,7 @@ export const TimeSlotSelector = ({
 
       // Récupérer les créneaux réguliers pour ce jour de la semaine
       const { data: timeSlots, error: slotsError } = await supabase
-        .from('time_slots')
+        .from('calendar_settings')
         .select('*')
         .eq('day_of_week', dayOfWeek)
         .eq('is_available', true);
