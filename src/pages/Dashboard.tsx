@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, DollarSign, Calendar as CalendarIcon, TrendingUp, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Users, DollarSign, Calendar as CalendarIcon, TrendingUp, Trash2, Pencil, Check, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,6 +52,8 @@ export default function Dashboard() {
   });
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
+  const [editingPrice, setEditingPrice] = useState<string>("");
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -138,6 +141,53 @@ export default function Dashboard() {
       toast({
         title: "Erreur",
         description: "Impossible de supprimer la réservation.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditPrice = (booking: RecentBooking) => {
+    setEditingBookingId(booking.id);
+    setEditingPrice(booking.total_price.toString());
+  };
+
+  const handleCancelEdit = () => {
+    setEditingBookingId(null);
+    setEditingPrice("");
+  };
+
+  const handleSavePrice = async (bookingId: string) => {
+    const newPrice = parseFloat(editingPrice);
+    if (isNaN(newPrice) || newPrice < 0) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez entrer un prix valide.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ total_price: newPrice })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Prix modifié",
+        description: "Le prix de la réservation a été mis à jour.",
+      });
+
+      setEditingBookingId(null);
+      setEditingPrice("");
+      loadDashboardData();
+    } catch (error) {
+      console.error('Erreur modification prix:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le prix.",
         variant: "destructive",
       });
     }
@@ -261,7 +311,47 @@ export default function Dashboard() {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <div className="font-bold">{booking.total_price}€</div>
+                          {editingBookingId === booking.id ? (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                value={editingPrice}
+                                onChange={(e) => setEditingPrice(e.target.value)}
+                                className="w-24 h-8"
+                                min="0"
+                                step="0.01"
+                              />
+                              <span>€</span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-green-600"
+                                onClick={() => handleSavePrice(booking.id)}
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600"
+                                onClick={handleCancelEdit}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div className="font-bold">{booking.total_price}€</div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleEditPrice(booking)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
                           <div className="text-sm text-muted-foreground">
                             {booking.deposit_paid ? '✓ Acompte payé' : '⚠ Acompte non payé'}
                           </div>
