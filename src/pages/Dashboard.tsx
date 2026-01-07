@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { MonthlyRevenue } from "@/components/MonthlyRevenue";
+import { AdminBookingForm } from "@/components/AdminBookingForm";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -285,8 +286,9 @@ export default function Dashboard() {
 
           <TabsContent value="bookings">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Toutes les réservations</CardTitle>
+                <AdminBookingForm onBookingCreated={loadDashboardData} />
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
