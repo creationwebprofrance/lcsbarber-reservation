@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Users, DollarSign, Calendar as CalendarIcon, TrendingUp, Trash2, Pencil, Check, X } from "lucide-react";
+import { ArrowLeft, Users, DollarSign, Calendar as CalendarIcon, TrendingUp, Trash2, Pencil, Check, X, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +31,11 @@ interface DashboardStats {
   monthlyGrowth: number;
 }
 
+interface CityStats {
+  city: string;
+  count: number;
+}
+
 interface RecentBooking {
   id: string;
   client_name: string;
@@ -52,6 +57,7 @@ export default function Dashboard() {
     monthlyGrowth: 0
   });
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
+  const [cityStats, setCityStats] = useState<CityStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
   const [editingPrice, setEditingPrice] = useState<string>("");
@@ -98,6 +104,28 @@ export default function Dashboard() {
         confirmedBookings,
         monthlyGrowth
       });
+
+      // Calculate city statistics
+      const cityMap = new Map<string, number>();
+      bookings?.forEach((booking) => {
+        if (booking.client_address) {
+          // Extract city from address (assume last part after comma or the whole address)
+          const parts = booking.client_address.split(',');
+          const city = parts.length > 1 
+            ? parts[parts.length - 1].trim().replace(/\d{5}/g, '').trim() 
+            : booking.client_address.trim();
+          if (city) {
+            cityMap.set(city, (cityMap.get(city) || 0) + 1);
+          }
+        }
+      });
+      
+      const sortedCities = Array.from(cityMap.entries())
+        .map(([city, count]) => ({ city, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+      
+      setCityStats(sortedCities);
 
       setRecentBookings(bookings?.slice(0, 10) || []);
     } catch (error) {
@@ -278,6 +306,33 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Top Cities Card */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium">Top Villes</CardTitle>
+                <MapPin className="h-5 w-5 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                {cityStats.length > 0 ? (
+                  <div className="space-y-3">
+                    {cityStats.map((stat, index) => (
+                      <div key={stat.city} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                            {index + 1}
+                          </span>
+                          <span className="font-medium">{stat.city}</span>
+                        </div>
+                        <Badge variant="secondary">{stat.count} réservation{stat.count > 1 ? 's' : ''}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm">Aucune donnée de ville disponible</p>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="monthly">
