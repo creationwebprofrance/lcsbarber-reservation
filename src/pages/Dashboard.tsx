@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { MonthlyRevenue } from "@/components/MonthlyRevenue";
+import { CityStatsMap } from "@/components/CityStatsMap";
 import { AdminBookingForm } from "@/components/AdminBookingForm";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -307,32 +308,8 @@ export default function Dashboard() {
               </Card>
             </div>
 
-            {/* Top Cities Card */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium">Top Villes</CardTitle>
-                <MapPin className="h-5 w-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                {cityStats.length > 0 ? (
-                  <div className="space-y-3">
-                    {cityStats.map((stat, index) => (
-                      <div key={stat.city} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                            {index + 1}
-                          </span>
-                          <span className="font-medium">{stat.city}</span>
-                        </div>
-                        <Badge variant="secondary">{stat.count} réservation{stat.count > 1 ? 's' : ''}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-sm">Aucune donnée de ville disponible</p>
-                )}
-              </CardContent>
-            </Card>
+            {/* Top Cities Card with Map */}
+            <CityStatsMap cityStats={cityStats} onCityUpdated={loadDashboardData} />
           </TabsContent>
 
           <TabsContent value="monthly">
