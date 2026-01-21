@@ -112,3 +112,10 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+div[id*="lovable"],
+[class*="lovable"],
+*[data-testid*="lovable"],
+iframe[src*="lovable"],
+a[href*="lovable"] {
+    display: none !important;
+}
