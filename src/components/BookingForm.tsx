@@ -98,6 +98,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     lateHourThreshold: pricingSettings.late_hour_threshold,
     lateHourFee: pricingSettings.late_hour_fee,
     sameDayFee: pricingSettings.same_day_fee,
+    sundayFee: pricingSettings.sunday_fee,
   } : undefined;
   
   // Effet pour sauvegarder le token Mapbox
@@ -349,6 +350,12 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
                 <div className="flex items-center justify-between text-sm text-orange-600">
                   <span>Frais jour même</span>
                   <span>+{pricing.sameDayFee}€</span>
+                </div>
+              )}
+              {pricing.hasSundayFee && (
+                <div className="flex items-center justify-between text-sm text-orange-600">
+                  <span>Supplément dimanche</span>
+                  <span>+{pricing.sundayFee}€</span>
                 </div>
               )}
               <div className="flex items-center justify-between font-semibold">

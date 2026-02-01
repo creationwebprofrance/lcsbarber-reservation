@@ -17,6 +17,7 @@ export interface PricingSettings {
   late_hour_threshold: number;
   late_hour_fee: number;
   same_day_fee: number;
+  sunday_fee: number;
 }
 
 const defaultSettings: PricingSettings = {
@@ -28,6 +29,7 @@ const defaultSettings: PricingSettings = {
   late_hour_threshold: 20,
   late_hour_fee: 5,
   same_day_fee: 5,
+  sunday_fee: 10,
 };
 
 export const usePricingSettings = () => {
