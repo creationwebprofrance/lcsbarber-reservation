@@ -86,6 +86,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
     lateHourThreshold: pricingSettings.late_hour_threshold,
     lateHourFee: pricingSettings.late_hour_fee,
     sameDayFee: pricingSettings.same_day_fee,
+    sundayFee: pricingSettings.sunday_fee,
   } : undefined;
 
   useEffect(() => {
@@ -130,7 +131,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
 
   // Total calculation - travel fees only once (same address for all)
   const totalBasePrice = pricingDetails.reduce((sum, { pricing }) => sum + pricing.basePrice, 0);
-  const totalSupplements = pricingDetails.reduce((sum, { pricing }) => sum + pricing.supplement + pricing.sameDayFee, 0);
+  const totalSupplements = pricingDetails.reduce((sum, { pricing }) => sum + pricing.supplement + pricing.sameDayFee + pricing.sundayFee, 0);
   const totalPrice = totalBasePrice + totalSupplements + travelCalculation.fees;
   
   const requiresDeposit = totalPrice > 50;
@@ -188,7 +189,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
           client_email: validatedData.email,
           client_phone: validatedData.phone,
           client_address: validatedData.address,
-          total_price: pricing.basePrice + pricing.supplement + pricing.sameDayFee + 
+          total_price: pricing.basePrice + pricing.supplement + pricing.sameDayFee + pricing.sundayFee + 
             (createdBookings.length === 0 ? travelCalculation.fees : 0), // Travel fees only on first booking
           travel_fee: createdBookings.length === 0 ? travelCalculation.fees : 0,
           notes: validatedData.message || null,
@@ -295,7 +296,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
               <div key={item.id} className="bg-background rounded-lg p-3 border border-border/30">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-muted-foreground">RDV {index + 1}</span>
-                  <span className="font-medium">{pricing.basePrice + pricing.supplement + pricing.sameDayFee}€</span>
+                  <span className="font-medium">{pricing.basePrice + pricing.supplement + pricing.sameDayFee + pricing.sundayFee}€</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Scissors className="h-3.5 w-3.5 text-primary" />
@@ -311,9 +312,10 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
                     <span>{item.time}</span>
                   </div>
                 </div>
-                {(pricing.hasSameDayFee || pricing.hasTimeSupplement) && (
+                {(pricing.hasSameDayFee || pricing.hasTimeSupplement || pricing.hasSundayFee) && (
                   <div className="mt-2 text-xs text-orange-600">
                     {pricing.hasSameDayFee && <span>+{pricing.sameDayFee}€ (jour même) </span>}
+                    {pricing.hasSundayFee && <span>+{pricing.sundayFee}€ (dimanche) </span>}
                     {pricing.hasTimeSupplement && <span>+{pricing.supplement}€ (horaire)</span>}
                   </div>
                 )}
