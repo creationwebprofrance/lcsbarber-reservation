@@ -39,19 +39,27 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Rate limiting: Check for recent bookings from this email
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    const { data: recentBookings, error: rateLimitError } = await supabase
-      .from('bookings')
-      .select('id')
-      .eq('client_email', validatedData.client_email)
-      .gte('created_at', fiveMinutesAgo);
+    // Rate limiting: Check for recent bookings from this email (hourly + daily)
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
-    if (rateLimitError) {
-      console.error('Rate limit check error:', rateLimitError);
+    const { count: hourCount, error: hourError } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('client_email', validatedData.client_email)
+      .gte('created_at', oneHourAgo);
+    
+    const { count: dayCount, error: dayError } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('client_email', validatedData.client_email)
+      .gte('created_at', oneDayAgo);
+    
+    if (hourError) {
+      console.error('Rate limit check error:', hourError);
     }
     
-    if (recentBookings && recentBookings.length >= 3) {
+    if ((hourCount ?? 0) >= 3 || (dayCount ?? 0) >= 5) {
       return new Response(
         JSON.stringify({ 
           success: false, 

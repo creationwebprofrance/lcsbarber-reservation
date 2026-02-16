@@ -58,10 +58,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [mapboxToken, setMapboxToken] = useState(() => {
-    const defaultToken = 'pk.eyJ1IjoibGNoaXBhbiIsImEiOiJjbWZtOHc1dG4wZDdzMmlzN3hmeDRldnhzIn0.lK1A8wh63mIkudWk8h7f6Q';
-    return localStorage.getItem('mapbox-token') || defaultToken;
-  });
+  const mapboxToken = 'pk.eyJ1IjoibGNoaXBhbiIsImEiOiJjbWZtOHc1dG4wZDdzMmlzN3hmeDRldnhzIn0.lK1A8wh63mIkudWk8h7f6Q';
   const [travelCalculation, setTravelCalculation] = useState<TravelCalculation>({
     duration: 0,
     fees: 0,
@@ -89,11 +86,6 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
     sundayFee: pricingSettings.sunday_fee,
   } : undefined;
 
-  useEffect(() => {
-    if (mapboxToken) {
-      localStorage.setItem('mapbox-token', mapboxToken);
-    }
-  }, [mapboxToken]);
 
   useEffect(() => {
     const calculateTravel = async () => {

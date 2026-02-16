@@ -57,6 +57,29 @@ const handler = async (req: Request): Promise<Response> => {
     const booking = validationResult.data;
     console.log("Booking data validated for:", booking.clientName);
 
+    // Rate limiting: max 3 emails per hour, 5 per day per client email
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    
+    const { count: hourCount } = await supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("client_email", booking.clientEmail)
+      .gte("created_at", oneHourAgo);
+    
+    const { count: dayCount } = await supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("client_email", booking.clientEmail)
+      .gte("created_at", oneDayAgo);
+    
+    if ((hourCount ?? 0) >= 3 || (dayCount ?? 0) >= 5) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Email HTML pour le client
     const clientEmailHtml = `
 <!DOCTYPE html>
