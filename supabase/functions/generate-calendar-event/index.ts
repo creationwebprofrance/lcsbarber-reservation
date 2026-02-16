@@ -12,13 +12,20 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { bookingId } = await req.json();
+    const { bookingId, clientEmail } = await req.json();
+
+    if (!bookingId || !clientEmail) {
+      return new Response(
+        JSON.stringify({ error: "bookingId and clientEmail are required" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Récupérer les infos de la réservation
+    // Fetch booking and verify ownership by matching clientEmail
     const { data: booking, error } = await supabase
       .from('bookings')
       .select(`
@@ -26,10 +33,14 @@ serve(async (req: Request): Promise<Response> => {
         services (name, duration_minutes)
       `)
       .eq('id', bookingId)
+      .eq('client_email', clientEmail)
       .single();
 
     if (error || !booking) {
-      throw new Error('Booking not found');
+      return new Response(
+        JSON.stringify({ error: 'Booking not found' }),
+        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     // Créer le fichier .ics
@@ -86,7 +97,7 @@ serve(async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error generating calendar event:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Server error" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
