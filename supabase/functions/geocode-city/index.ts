@@ -1,9 +1,14 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const geocodeSchema = z.object({
+  city: z.string().trim().min(2, "City name too short").max(100, "City name too long"),
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,7 +16,17 @@ serve(async (req) => {
   }
 
   try {
-    const { city } = await req.json();
+    const body = await req.json();
+    const parsed = geocodeSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { city } = parsed.data;
     const MAPBOX_ACCESS_TOKEN = Deno.env.get("MAPBOX_ACCESS_TOKEN");
 
     if (!MAPBOX_ACCESS_TOKEN) {
@@ -38,7 +53,7 @@ serve(async (req) => {
     );
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
