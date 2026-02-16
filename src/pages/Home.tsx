@@ -75,7 +75,7 @@ export default function Home() {
                 initial="hidden" animate="visible" variants={fadeUp} custom={1}
               >
                 Ton style,<br />
-                <span className="text-primary">notre expertise.</span>
+                <span className="text-primary">mon expertise.</span>
               </motion.h1>
 
               <motion.p
