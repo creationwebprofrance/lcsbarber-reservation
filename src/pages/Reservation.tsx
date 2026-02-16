@@ -14,70 +14,76 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/40 backdrop-blur-2xl">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/40">
+        <div className="max-w-6xl mx-auto px-5 py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <Link to="/">
-              <img src={lcsBarberLogo} alt="LCS Barber" className="h-10 sm:h-12" />
+              <img src={lcsBarberLogo} alt="LCS Barber" className="h-9 sm:h-11" />
             </Link>
           </div>
-          <nav className="flex items-center gap-3">
+          <nav className="flex items-center gap-2">
             {user && isAdmin && (
               <>
-                <Link to="/dashboard" className="text-muted-foreground hover:text-foreground text-xs uppercase tracking-[0.15em] transition-colors font-medium hidden sm:block">
-                  Dashboard
-                </Link>
-                <Link to="/admin" className="text-muted-foreground hover:text-foreground text-xs uppercase tracking-[0.15em] transition-colors font-medium hidden sm:block">
-                  Admin
-                </Link>
+                <Button asChild variant="ghost" size="sm" className="text-xs">
+                  <Link to="/dashboard">
+                    <BarChart className="h-4 w-4 sm:mr-1.5" />
+                    <span className="hidden sm:inline">Dashboard</span>
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" size="sm" className="text-xs">
+                  <Link to="/admin">
+                    <Settings className="h-4 w-4 sm:mr-1.5" />
+                    <span className="hidden sm:inline">Admin</span>
+                  </Link>
+                </Button>
               </>
             )}
             {!user && (
-              <Link to="/auth" className="text-muted-foreground hover:text-foreground text-xs uppercase tracking-[0.15em] transition-colors font-medium">
-                Connexion
-              </Link>
+              <Button asChild variant="ghost" size="sm" className="text-xs">
+                <Link to="/auth">
+                  <LogIn className="h-4 w-4 mr-1.5" />
+                  Connexion
+                </Link>
+              </Button>
             )}
           </nav>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-28 pb-12 space-y-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-5 pt-24 pb-10 space-y-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="text-center"
+          transition={{ duration: 0.5 }}
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-primary mb-4 font-medium" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Réservation
-          </p>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-foreground mb-4">
-            Prenez <span className="text-gold-gradient italic font-light">Rendez-vous</span>
+          <p className="text-primary text-sm font-semibold mb-2 tracking-wide">RÉSERVATION</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+            Choisis ta coupe, <span className="text-primary">on s'occupe du reste.</span>
           </h1>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 300 }}>
-            Sélectionnez votre prestation et choisissez le créneau qui vous convient.
+          <p className="text-muted-foreground text-sm mb-6">
+            Sélectionne ta prestation et ton créneau. Confirmation par email.
           </p>
-          <div className="gold-line mt-8" />
+          <div className="stripe-line" />
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
           <BookingTool />
         </motion.div>
 
-        <div className="gold-line" />
+        <div className="stripe-line" />
 
         <motion.div
-          className="space-y-10"
-          initial={{ opacity: 0, y: 20 }}
+          className="space-y-8"
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
         >
           <ReviewForm />
           <ReviewsList />
@@ -85,10 +91,10 @@ export default function Index() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-10 mt-8">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <img src={lcsBarberLogo} alt="LCS Barber" className="h-10 mx-auto mb-4 opacity-60" />
-          <p className="text-xs text-muted-foreground tracking-widest uppercase" style={{ fontFamily: "'Outfit', sans-serif" }}>
+      <footer className="border-t border-border/40 py-8 mt-8">
+        <div className="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <img src={lcsBarberLogo} alt="LCS Barber" className="h-8 opacity-50" />
+          <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} LCS Barber — Tous droits réservés
           </p>
         </div>
