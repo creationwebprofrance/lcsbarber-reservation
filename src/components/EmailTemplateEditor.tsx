@@ -181,9 +181,11 @@ export const EmailTemplateEditor = () => {
                 <p className="text-sm text-muted-foreground mb-1">Sujet :</p>
                 <p className="font-semibold">{template.subject}</p>
               </div>
-              <div 
-                className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: getPreviewHtml() }}
+              <iframe
+                sandbox=""
+                srcDoc={getPreviewHtml()}
+                className="w-full min-h-[400px] border-0 rounded"
+                title="Email template preview"
               />
             </div>
           </TabsContent>
