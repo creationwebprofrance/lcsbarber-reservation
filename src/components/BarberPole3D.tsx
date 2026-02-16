@@ -20,6 +20,9 @@ function useBarberTexture() {
     // The key: stripes must connect at top and bottom edges
     const stripeWidth = 60;
     const colors = ["#FF4433", "#FFFFFF", "#0099FF", "#FFFFFF"];
+    const patternWidth = stripeWidth * colors.length; // 240
+    // shift must be exact multiple of patternWidth for seamless tiling
+    const shift = patternWidth * 2; // 480
     const numStripes = 30;
 
     for (let i = -numStripes; i < numStripes; i++) {
@@ -27,8 +30,6 @@ function useBarberTexture() {
       ctx.fillStyle = colors[colorIndex];
       ctx.beginPath();
       const x = i * stripeWidth;
-      // Slope matched so pattern repeats exactly every `size` pixels vertically
-      const shift = size;
       ctx.moveTo(x, 0);
       ctx.lineTo(x + stripeWidth, 0);
       ctx.lineTo(x + stripeWidth - shift, size);
