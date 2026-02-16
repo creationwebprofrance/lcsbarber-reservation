@@ -62,17 +62,16 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-center">
+      <section className="relative min-h-[100svh] sm:min-h-[90vh] flex items-center">
         <div className="absolute inset-0 bg-gradient-to-br from-secondary via-background to-background" />
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-5 w-full py-24 sm:py-32">
-          <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
+        <div className="relative z-10 max-w-6xl mx-auto px-5 w-full py-20 sm:py-32">
+          <div className="flex flex-col-reverse lg:flex-row items-center gap-2 sm:gap-4 lg:gap-6">
             {/* Left: text content */}
             <div className="flex-1 text-center lg:text-left">
-
               <motion.h1
-                className="text-4xl sm:text-5xl md:text-7xl font-bold text-foreground mb-4 leading-tight"
+                className="text-3xl sm:text-5xl md:text-7xl font-bold text-foreground mb-3 sm:mb-4 leading-tight"
                 initial="hidden" animate="visible" variants={fadeUp} custom={1}
               >
                 Ton style,<br />
@@ -80,23 +79,23 @@ export default function Home() {
               </motion.h1>
 
               <motion.p
-                className="text-base sm:text-lg text-muted-foreground max-w-md mb-8 mx-auto lg:mx-0"
+                className="text-sm sm:text-lg text-muted-foreground max-w-md mb-5 sm:mb-8 mx-auto lg:mx-0"
                 initial="hidden" animate="visible" variants={fadeUp} custom={2}
               >
                 Coupes afro & européennes. Service pro, ambiance cool. À domicile ou en salon.
               </motion.p>
 
               <motion.div
-                className="flex flex-wrap gap-3 justify-center lg:justify-start"
+                className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
                 initial="hidden" animate="visible" variants={fadeUp} custom={3}
               >
-                <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant">
+                <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant w-full sm:w-auto">
                   <Link to="/reservation">
                     <Calendar className="h-4 w-4 mr-2" />
                     Prendre rendez-vous
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="border-border/60 hover:bg-card">
+                <Button asChild size="lg" variant="outline" className="border-border/60 hover:bg-card w-full sm:w-auto">
                   <a href="#services">
                     Nos services
                     <ArrowRight className="h-4 w-4 ml-2" />
@@ -107,8 +106,8 @@ export default function Home() {
 
             {/* Right: 3D Barber Pole */}
             <motion.div
-              className="flex-1 w-full max-w-sm lg:max-w-md"
-              initial="hidden" animate="visible" variants={fadeUp} custom={2}
+              className="w-full max-w-[200px] sm:max-w-xs lg:max-w-md lg:flex-1"
+              initial="hidden" animate="visible" variants={fadeUp} custom={0}
             >
               <BarberPole3D />
             </motion.div>
