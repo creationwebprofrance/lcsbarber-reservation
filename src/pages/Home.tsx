@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Settings, BarChart, LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
-import heroImage from "@/assets/hero-barber.jpg";
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -61,15 +61,15 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-end pb-16 sm:pb-24">
-        <div className="absolute inset-0">
-          <img src={heroImage} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{ background: 'var(--gradient-hero)' }} />
-        </div>
+      <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-secondary via-background to-background" />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-5 w-full">
-          <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0} className="mb-6">
-            <img src={lcsBarberLogo} alt="LCS Barber" className="h-20 sm:h-28 drop-shadow-lg" />
+        <div className="relative z-10 max-w-6xl mx-auto px-5 w-full py-24 sm:py-32">
+          <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0} className="mb-8">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 inline-block">
+              <img src={lcsBarberLogo} alt="LCS Barber" className="h-28 sm:h-40 md:h-48" />
+            </div>
           </motion.div>
 
           <motion.h1
