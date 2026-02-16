@@ -67,12 +67,9 @@ export default function Home() {
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 
         <div className="relative z-10 max-w-6xl mx-auto px-5 w-full py-24 sm:py-32">
-          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+          <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
             {/* Left: text content */}
             <div className="flex-1 text-center lg:text-left">
-              <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0} className="mb-6">
-                <img src={lcsBarberLogo} alt="LCS Barber" className="h-14 sm:h-16 inline-block" />
-              </motion.div>
 
               <motion.h1
                 className="text-4xl sm:text-5xl md:text-7xl font-bold text-foreground mb-4 leading-tight"
