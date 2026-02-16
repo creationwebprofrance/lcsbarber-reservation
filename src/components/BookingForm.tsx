@@ -68,10 +68,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [mapboxToken, setMapboxToken] = useState(() => {
-    const defaultToken = 'pk.eyJ1IjoibGNoaXBhbiIsImEiOiJjbWZtOHc1dG4wZDdzMmlzN3hmeDRldnhzIn0.lK1A8wh63mIkudWk8h7f6Q';
-    return localStorage.getItem('mapbox-token') || defaultToken;
-  });
+  const mapboxToken = 'pk.eyJ1IjoibGNoaXBhbiIsImEiOiJjbWZtOHc1dG4wZDdzMmlzN3hmeDRldnhzIn0.lK1A8wh63mIkudWk8h7f6Q';
   const [travelCalculation, setTravelCalculation] = useState<TravelCalculation>({
     duration: 0,
     fees: 0,
@@ -101,12 +98,6 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     sundayFee: pricingSettings.sunday_fee,
   } : undefined;
   
-  // Effet pour sauvegarder le token Mapbox
-  useEffect(() => {
-    if (mapboxToken) {
-      localStorage.setItem('mapbox-token', mapboxToken);
-    }
-  }, [mapboxToken]);
 
   // Effet pour calculer les frais de déplacement quand l'adresse change
   useEffect(() => {
@@ -285,33 +276,6 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
       </div>
 
       {/* Configuration Mapbox */}
-      {!mapboxToken && (
-        <Card className="mb-6 border-orange-200 bg-orange-50">
-          <div className="p-4">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="font-medium text-orange-800 mb-2">Configuration requise</h3>
-                <p className="text-sm text-orange-700 mb-3">
-                  Pour calculer automatiquement les frais de déplacement, veuillez entrer votre clé API Mapbox.
-                  <br />
-                  <a href="https://mapbox.com/" target="_blank" rel="noopener noreferrer" className="underline">
-                    Obtenez votre clé gratuite sur mapbox.com
-                  </a>
-                </p>
-                <Input
-                  placeholder="Entrez votre clé API Mapbox..."
-                  value={mapboxToken}
-                  onChange={(e) => setMapboxToken(e.target.value)}
-                  className="text-sm"
-                />
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Récapitulatif */}
       <Card className="mb-6 border-border/50 bg-primary/5">
         <div className="p-4">
           <h3 className="mb-3 font-medium text-primary">Récapitulatif de votre rendez-vous</h3>
