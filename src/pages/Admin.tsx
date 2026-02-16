@@ -75,14 +75,14 @@ export const Admin = () => {
 
       setUser(session.user);
 
-      // Check if user is admin
-      const { data: profile } = await supabase
-        .from('profiles')
+      // Check if user is admin using user_roles table
+      const { data: roles, error: roleError } = await supabase
+        .from('user_roles')
         .select('role')
         .eq('user_id', session.user.id)
-        .single();
+        .eq('role', 'admin');
 
-      if (profile?.role !== 'admin') {
+      if (roleError || !roles || roles.length === 0) {
         toast({
           title: "Accès refusé",
           description: "Vous n'avez pas les droits d'administration.",
