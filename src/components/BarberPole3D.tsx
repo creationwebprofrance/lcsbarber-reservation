@@ -1,32 +1,38 @@
-import { useRef, useState, useMemo, Suspense } from "react";
+import { useRef, useState, useMemo, Suspense, useCallback } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 
-function BarberPoleStripes() {
-  const texture = useMemo(() => {
+function useBarberTexture() {
+  return useMemo(() => {
     const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 1024;
+    // Use a square canvas for perfect tiling
+    const size = 512;
+    canvas.width = size;
+    canvas.height = size;
     const ctx = canvas.getContext("2d")!;
 
     // White base
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, 512, 1024);
+    ctx.fillRect(0, 0, size, size);
 
-    // Draw diagonal stripes
-    const stripeWidth = 80;
+    // Draw diagonal stripes that tile perfectly
+    // The key: stripes must connect at top and bottom edges
+    const stripeWidth = 60;
     const colors = ["#FF4433", "#FFFFFF", "#0099FF", "#FFFFFF"];
+    const numStripes = 30;
 
-    for (let i = -20; i < 40; i++) {
+    for (let i = -numStripes; i < numStripes; i++) {
       const colorIndex = ((i % colors.length) + colors.length) % colors.length;
       ctx.fillStyle = colors[colorIndex];
       ctx.beginPath();
       const x = i * stripeWidth;
+      // Slope matched so pattern repeats exactly every `size` pixels vertically
+      const shift = size;
       ctx.moveTo(x, 0);
       ctx.lineTo(x + stripeWidth, 0);
-      ctx.lineTo(x + stripeWidth - 600, 1024);
-      ctx.lineTo(x - 600, 1024);
+      ctx.lineTo(x + stripeWidth - shift, size);
+      ctx.lineTo(x - shift, size);
       ctx.closePath();
       ctx.fill();
     }
@@ -34,29 +40,39 @@ function BarberPoleStripes() {
     const tex = new THREE.CanvasTexture(canvas);
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(1, 2);
+    tex.needsUpdate = true;
     return tex;
   }, []);
-
-  return texture;
 }
 
 function Pole() {
   const groupRef = useRef<THREE.Group>(null);
   const textureRef = useRef<THREE.CanvasTexture | null>(null);
   const [hovered, setHovered] = useState(false);
-  const stripeTexture = BarberPoleStripes();
+  const [pressed, setPressed] = useState(false);
+  const stripeTexture = useBarberTexture();
 
   textureRef.current = stripeTexture;
 
   useFrame((_, delta) => {
     if (textureRef.current) {
-      const speed = hovered ? 0.6 : 0.25;
+      const speed = pressed ? 1.2 : hovered ? 0.6 : 0.25;
       textureRef.current.offset.y += delta * speed;
     }
     if (groupRef.current) {
-      groupRef.current.rotation.y += delta * (hovered ? 0.4 : 0.15);
+      const targetRotSpeed = pressed ? 0.8 : hovered ? 0.4 : 0.15;
+      groupRef.current.rotation.y += delta * targetRotSpeed;
     }
   });
+
+  const handlePointerOver = useCallback(() => setHovered(true), []);
+  const handlePointerOut = useCallback(() => {
+    setHovered(false);
+    setPressed(false);
+  }, []);
+  const handlePointerDown = useCallback(() => setPressed(true), []);
+  const handlePointerUp = useCallback(() => setPressed(false), []);
 
   const capMaterial = useMemo(
     () =>
@@ -81,8 +97,10 @@ function Pole() {
   return (
     <group
       ref={groupRef}
-      onPointerOver={() => setHovered(true)}
-      onPointerOut={() => setHovered(false)}
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
     >
       {/* Main cylinder with stripes */}
       <mesh position={[0, 0, 0]}>
@@ -140,7 +158,7 @@ function Pole() {
 
 export default function BarberPole3D() {
   return (
-    <div className="w-full h-[240px] sm:h-[400px] md:h-[450px] cursor-grab active:cursor-grabbing">
+    <div className="w-full h-[240px] sm:h-[400px] md:h-[450px] cursor-grab active:cursor-grabbing touch-none">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 40 }}
         gl={{ antialias: true, alpha: true }}
