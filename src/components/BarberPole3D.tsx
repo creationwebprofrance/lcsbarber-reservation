@@ -140,7 +140,7 @@ function Pole() {
 
 export default function BarberPole3D() {
   return (
-    <div className="w-full h-[320px] sm:h-[400px] md:h-[450px] cursor-grab active:cursor-grabbing">
+    <div className="w-full h-[240px] sm:h-[400px] md:h-[450px] cursor-grab active:cursor-grabbing">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 40 }}
         gl={{ antialias: true, alpha: true }}
