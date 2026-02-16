@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Settings, BarChart, LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
+import BarberPole3D from "@/components/BarberPole3D";
 
 
 const fadeUp = {
@@ -66,44 +67,55 @@ export default function Home() {
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 
         <div className="relative z-10 max-w-6xl mx-auto px-5 w-full py-24 sm:py-32">
-          <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0} className="mb-8">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 inline-block">
-              <img src={lcsBarberLogo} alt="LCS Barber" className="h-28 sm:h-40 md:h-48" />
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+            {/* Left: text content */}
+            <div className="flex-1 text-center lg:text-left">
+              <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0} className="mb-6">
+                <img src={lcsBarberLogo} alt="LCS Barber" className="h-14 sm:h-16 inline-block" />
+              </motion.div>
+
+              <motion.h1
+                className="text-4xl sm:text-5xl md:text-7xl font-bold text-foreground mb-4 leading-tight"
+                initial="hidden" animate="visible" variants={fadeUp} custom={1}
+              >
+                Ton style,<br />
+                <span className="text-primary">notre expertise.</span>
+              </motion.h1>
+
+              <motion.p
+                className="text-base sm:text-lg text-muted-foreground max-w-md mb-8 mx-auto lg:mx-0"
+                initial="hidden" animate="visible" variants={fadeUp} custom={2}
+              >
+                Coupes afro & européennes. Service pro, ambiance cool. À domicile ou en salon.
+              </motion.p>
+
+              <motion.div
+                className="flex flex-wrap gap-3 justify-center lg:justify-start"
+                initial="hidden" animate="visible" variants={fadeUp} custom={3}
+              >
+                <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant">
+                  <Link to="/reservation">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Prendre rendez-vous
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="border-border/60 hover:bg-card">
+                  <a href="#services">
+                    Nos services
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </a>
+                </Button>
+              </motion.div>
             </div>
-          </motion.div>
 
-          <motion.h1
-            className="text-4xl sm:text-5xl md:text-7xl font-bold text-foreground mb-4 leading-tight"
-            initial="hidden" animate="visible" variants={fadeUp} custom={1}
-          >
-            Ton style,<br />
-            <span className="text-primary">notre expertise.</span>
-          </motion.h1>
-
-          <motion.p
-            className="text-base sm:text-lg text-muted-foreground max-w-md mb-8"
-            initial="hidden" animate="visible" variants={fadeUp} custom={2}
-          >
-            Coupes afro & européennes. Service pro, ambiance cool. À domicile ou en salon.
-          </motion.p>
-
-          <motion.div
-            className="flex flex-wrap gap-3"
-            initial="hidden" animate="visible" variants={fadeUp} custom={3}
-          >
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant">
-              <Link to="/reservation">
-                <Calendar className="h-4 w-4 mr-2" />
-                Prendre rendez-vous
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="border-border/60 hover:bg-card">
-              <a href="#services">
-                Nos services
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </a>
-            </Button>
-          </motion.div>
+            {/* Right: 3D Barber Pole */}
+            <motion.div
+              className="flex-1 w-full max-w-sm lg:max-w-md"
+              initial="hidden" animate="visible" variants={fadeUp} custom={2}
+            >
+              <BarberPole3D />
+            </motion.div>
+          </div>
         </div>
       </section>
 
