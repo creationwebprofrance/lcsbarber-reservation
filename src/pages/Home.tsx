@@ -24,7 +24,7 @@ export default function Home() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-6xl mx-auto px-5 py-3 flex justify-between items-center">
           <Link to="/" className="shrink-0">
-            <img src={lcsBarberLogo} alt="LCS Barber" className="h-16 sm:h-20" />
+            <img src={lcsBarberLogo} alt="LCS Barber" className="h-20 sm:h-24" />
           </Link>
           <nav className="flex items-center gap-2 sm:gap-3">
             {user && isAdmin && (
