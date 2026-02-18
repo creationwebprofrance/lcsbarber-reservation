@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import { Auth } from "./pages/Auth";
 import { Admin } from "./pages/Admin";
 import { AuthProvider } from "./hooks/useAuth";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/reservation" element={<Reservation />} />
