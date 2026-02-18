@@ -1,9 +1,8 @@
 import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { fr } from "date-fns/locale";
-import { addWeeks, startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import { useState } from "react";
 
 interface DatePickerProps {
@@ -14,42 +13,15 @@ interface DatePickerProps {
 
 export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerProps) => {
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Normaliser à minuit pour permettre le jour même
-  
-  // Initialiser avec la semaine actuelle
-  const [currentWeek, setCurrentWeek] = useState(() => {
-    // S'assurer que la semaine commence bien avec la semaine actuelle
-    return startOfWeek(today, { weekStartsOn: 1 });
-  });
-  
-  const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 }); // Lundi
-  const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 1 }); // Dimanche
-  
+  today.setHours(0, 0, 0, 0);
+
+  const [month, setMonth] = useState(today);
+
   const maxDate = new Date();
-  maxDate.setMonth(maxDate.getMonth() + 3); // 3 mois à l'avance
+  maxDate.setMonth(maxDate.getMonth() + 3);
 
   const isDateDisabled = (date: Date) => {
-    // Désactiver uniquement les dates passées (pas le jour même)
     return date < today;
-  };
-
-  const goToPreviousWeek = () => {
-    const prevWeek = subWeeks(currentWeek, 1);
-    if (prevWeek >= startOfWeek(today, { weekStartsOn: 1 })) {
-      setCurrentWeek(prevWeek);
-    }
-  };
-
-  const goToNextWeek = () => {
-    const nextWeek = addWeeks(currentWeek, 1);
-    if (nextWeek <= maxDate) {
-      setCurrentWeek(nextWeek);
-    }
-  };
-
-  const isCurrentWeek = () => {
-    const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
-    return weekStart.getTime() === currentWeekStart.getTime();
   };
 
   return (
@@ -69,57 +41,31 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerPro
         <h2 className="text-center text-lg sm:text-2xl font-semibold flex-1">
           Choisissez votre date
         </h2>
-        <div className="w-10 sm:w-20"></div> {/* Spacer pour centrer le titre */}
+        <div className="w-10 sm:w-20"></div>
       </div>
-      
+
       <div className="flex justify-center">
         <Card className="border-border/20 bg-gradient-card backdrop-blur-sm shadow-elegant p-3 sm:p-6 hover:shadow-glow transition-all duration-300 w-full sm:w-auto">
-          {/* Navigation de semaine */}
-          <div className="flex items-center justify-between mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={goToPreviousWeek}
-              disabled={subWeeks(currentWeek, 1) < startOfWeek(today, { weekStartsOn: 1 })}
-              className="h-8 w-8 p-0 hover:bg-accent hover:shadow-glow transition-all duration-300"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-foreground">
-                Semaine du {weekStart.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
-              </h3>
-              {isCurrentWeek() && (
-                <p className="text-xs text-primary font-medium">Semaine en cours</p>
-              )}
-            </div>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={goToNextWeek}
-              disabled={addWeeks(currentWeek, 1) > maxDate}
-              className="h-8 w-8 p-0 hover:bg-accent hover:shadow-glow transition-all duration-300"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          
           <Calendar
             mode="single"
             selected={selectedDate || undefined}
             onSelect={(date) => date && onDateSelect(date)}
             disabled={isDateDisabled}
-            fromDate={weekStart}
-            toDate={weekEnd}
+            fromDate={today}
+            toDate={maxDate}
+            month={month}
+            onMonthChange={setMonth}
             locale={fr}
             className="pointer-events-auto"
             classNames={{
               months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
               month: "space-y-2 sm:space-y-4",
-              caption: "hidden",
-              nav: "hidden",
+              caption: "flex justify-center pt-1 relative items-center text-lg font-semibold text-foreground",
+              caption_label: "text-base sm:text-lg font-semibold capitalize",
+              nav: "space-x-1 flex items-center",
+              nav_button: "h-8 w-8 bg-transparent p-0 opacity-60 hover:opacity-100 hover:bg-accent rounded-lg transition-all",
+              nav_button_previous: "absolute left-1",
+              nav_button_next: "absolute right-1",
               table: "w-full border-collapse space-y-1 sm:space-y-2",
               head_row: "flex mb-1 sm:mb-2",
               head_cell: "text-muted-foreground rounded-md w-10 h-8 sm:w-12 sm:h-10 font-medium text-xs sm:text-sm flex items-center justify-center",
@@ -136,9 +82,9 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerPro
           />
         </Card>
       </div>
-      
+
       <p className="mt-4 text-center text-sm text-muted-foreground">
-        Réservation possible jusqu'à 3 mois à l'avance
+        Réservation possible jusqu'à 3 mois à l'avance • Tous les jours disponibles
       </p>
     </div>
   );
