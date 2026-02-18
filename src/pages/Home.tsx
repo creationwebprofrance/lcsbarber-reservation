@@ -24,7 +24,7 @@ export default function Home() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-6xl mx-auto px-5 py-3 flex justify-between items-center">
           <Link to="/" className="shrink-0">
-            <img src={lcsBarberLogo} alt="LCS Barber" className="h-11 sm:h-13" />
+            <img src={lcsBarberLogo} alt="LCS Barber" className="h-13 sm:h-16 brightness-0 invert" />
           </Link>
           <nav className="flex items-center gap-2 sm:gap-3">
             {user && isAdmin && (
@@ -74,15 +74,15 @@ export default function Home() {
                 className="text-3xl sm:text-5xl md:text-7xl font-bold text-foreground mb-3 sm:mb-4 leading-tight"
                 initial="hidden" animate="visible" variants={fadeUp} custom={1}
               >
-                Ton style,<br />
-                <span className="text-primary">mon expertise.</span>
+                Lcsbarber s'occupe<br />
+                <span className="text-primary">de ton style.</span>
               </motion.h1>
 
               <motion.p
                 className="text-sm sm:text-lg text-muted-foreground max-w-md mb-5 sm:mb-8 mx-auto lg:mx-0"
                 initial="hidden" animate="visible" variants={fadeUp} custom={2}
               >
-                Coupes afro & européennes. Service pro, ambiance cool. À domicile ou en salon.
+                Coupes afro & européennes. Service pro, ambiance cool. À domicile uniquement.
               </motion.p>
 
               <motion.div
@@ -214,7 +214,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border/40 py-8">
         <div className="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <img src={lcsBarberLogo} alt="LCS Barber" className="h-8 opacity-50" />
+          <img src={lcsBarberLogo} alt="LCS Barber" className="h-10 brightness-0 invert opacity-60" />
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} LCS Barber — Tous droits réservés
           </p>
