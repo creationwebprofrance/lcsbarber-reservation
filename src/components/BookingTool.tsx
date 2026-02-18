@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Scissors, Calendar, Clock, CheckCircle, ShoppingCart } from "lucide-react";
@@ -22,7 +22,11 @@ interface CurrentSelection {
 }
 
 export const BookingTool = () => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStepState] = useState(1);
+  const setCurrentStep = (step: number) => {
+    setCurrentStepState(step);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const [currentSelection, setCurrentSelection] = useState<CurrentSelection>({
     service: null,
     date: null,
