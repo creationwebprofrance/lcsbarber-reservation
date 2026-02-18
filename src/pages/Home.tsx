@@ -24,7 +24,7 @@ export default function Home() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-6xl mx-auto px-5 py-3 flex justify-between items-center">
           <Link to="/" className="shrink-0">
-            <img src={lcsBarberLogo} alt="LCS Barber" className="h-13 sm:h-16 brightness-0 invert" />
+            <img src={lcsBarberLogo} alt="LCS Barber" className="h-16 sm:h-20" />
           </Link>
           <nav className="flex items-center gap-2 sm:gap-3">
             {user && isAdmin && (
@@ -214,7 +214,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border/40 py-8">
         <div className="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <img src={lcsBarberLogo} alt="LCS Barber" className="h-10 brightness-0 invert opacity-60" />
+          <img src={lcsBarberLogo} alt="LCS Barber" className="h-12 opacity-60" />
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} LCS Barber — Tous droits réservés
           </p>
