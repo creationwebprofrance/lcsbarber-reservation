@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
-import { Settings, BarChart, LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight } from "lucide-react";
+import { Settings, BarChart, LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight, Calculator } from "lucide-react";
 import { motion } from "framer-motion";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 import BarberPole3D from "@/components/BarberPole3D";
@@ -39,6 +39,12 @@ export default function Home() {
                   <Link to="/admin">
                     <Settings className="h-4 w-4 sm:mr-1.5" />
                     <span className="hidden sm:inline">Admin</span>
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" size="sm" className="text-xs">
+                  <Link to="/simulator">
+                    <Calculator className="h-4 w-4 sm:mr-1.5" />
+                    <span className="hidden sm:inline">Simulation</span>
                   </Link>
                 </Button>
               </>
