@@ -1,13 +1,19 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Calculator, Clock, Car, Calendar, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calculator, MapPin, CalendarIcon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePricingSettings } from "@/hooks/usePricingSettings";
 import { Separator } from "@/components/ui/separator";
+import { calculateTravelFees, formatTravelTime, formatDistance } from "@/lib/travel-calculator";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface Service {
   id: string;
@@ -19,10 +25,13 @@ interface Service {
 export const PriceSimulator = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState("");
+  const [date, setDate] = useState<Date | undefined>();
   const [time, setTime] = useState("14:00");
-  const [travelMinutes, setTravelMinutes] = useState(0);
-  const [isSameDay, setIsSameDay] = useState(false);
-  const [isSunday, setIsSunday] = useState(false);
+  const [address, setAddress] = useState("");
+  const [travelFee, setTravelFee] = useState(0);
+  const [travelDuration, setTravelDuration] = useState(0);
+  const [travelDistance, setTravelDistance] = useState(0);
+  const [calculatingTravel, setCalculatingTravel] = useState(false);
   const { data: settings } = usePricingSettings();
 
   useEffect(() => {
@@ -35,13 +44,49 @@ export const PriceSimulator = () => {
 
   const selectedService = services.find(s => s.id === selectedServiceId);
 
+  // Auto-detect Sunday and same-day
+  const isSunday = date ? date.getDay() === 0 : false;
+  const isSameDay = date ? date.toDateString() === new Date().toDateString() : false;
+
+  // Calculate travel fees from address
+  const calculateTravel = useCallback(async () => {
+    if (!address.trim()) {
+      setTravelFee(0);
+      setTravelDuration(0);
+      setTravelDistance(0);
+      return;
+    }
+    setCalculatingTravel(true);
+    try {
+      const { data: tokenData } = await supabase.functions.invoke("get-mapbox-token");
+      const token = tokenData?.token;
+      if (!token) return;
+
+      const travelSettings = settings ? {
+        freeMinutes: settings.travel_free_minutes,
+        intervalMinutes: settings.travel_interval_minutes,
+        feePerInterval: settings.travel_fee_per_interval,
+      } : undefined;
+
+      const result = await calculateTravelFees(address, token, travelSettings);
+      setTravelFee(result.fees);
+      setTravelDuration(result.duration);
+      setTravelDistance(result.distance);
+    } catch {
+      setTravelFee(0);
+      setTravelDuration(0);
+      setTravelDistance(0);
+    } finally {
+      setCalculatingTravel(false);
+    }
+  }, [address, settings]);
+
   const simulation = useMemo(() => {
     if (!selectedService || !settings) return null;
 
     const basePrice = selectedService.price;
     const hour = parseInt(time.split(":")[0]);
 
-    // Supplément horaire
     let hourSupplement = 0;
     if (hour < settings.early_hour_threshold) {
       hourSupplement = (settings.early_hour_threshold - hour) * settings.early_hour_fee;
@@ -50,24 +95,12 @@ export const PriceSimulator = () => {
       hourSupplement = (hour - (settings.late_hour_threshold - 1)) * settings.late_hour_fee;
     }
 
-    // Frais de déplacement
-    let travelFee = 0;
-    if (travelMinutes > settings.travel_free_minutes) {
-      const extraMinutes = travelMinutes - settings.travel_free_minutes;
-      const intervals = Math.ceil(extraMinutes / settings.travel_interval_minutes);
-      travelFee = intervals * settings.travel_fee_per_interval;
-    }
-
-    // Frais jour même
     const sameDayFee = isSameDay ? settings.same_day_fee : 0;
-
-    // Supplément dimanche
     const sundayFee = isSunday ? settings.sunday_fee : 0;
-
     const total = basePrice + hourSupplement + travelFee + sameDayFee + sundayFee;
 
     return { basePrice, hourSupplement, travelFee, sameDayFee, sundayFee, total };
-  }, [selectedService, time, travelMinutes, isSameDay, isSunday, settings]);
+  }, [selectedService, time, travelFee, isSameDay, isSunday, settings]);
 
   return (
     <Card>
@@ -96,23 +129,63 @@ export const PriceSimulator = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Heure du RDV</Label>
+              <Label className="flex items-center gap-1"><CalendarIcon className="h-3.5 w-3.5" /> Date du RDV</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP", { locale: fr }) : "Choisir une date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                    locale={fr}
+                  />
+                </PopoverContent>
+              </Popover>
+              {date && (isSunday || isSameDay) && (
+                <div className="flex gap-2 flex-wrap">
+                  {isSunday && <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Dimanche</span>}
+                  {isSameDay && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Jour même</span>}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Heure du RDV</Label>
               <Input type="time" value={time} onChange={e => setTime(e.target.value)} />
             </div>
 
             <div className="space-y-2">
-              <Label className="flex items-center gap-1"><Car className="h-3.5 w-3.5" /> Temps de trajet (min)</Label>
-              <Input type="number" min={0} value={travelMinutes} onChange={e => setTravelMinutes(parseInt(e.target.value) || 0)} />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Réservation jour même</Label>
-              <Switch checked={isSameDay} onCheckedChange={setIsSameDay} />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-1"><Sun className="h-3.5 w-3.5" /> Dimanche</Label>
-              <Switch checked={isSunday} onCheckedChange={setIsSunday} />
+              <Label className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> Adresse du client</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Ex: 10 rue de Paris, 95000 Cergy"
+                  value={address}
+                  onChange={e => setAddress(e.target.value)}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={calculateTravel}
+                  disabled={calculatingTravel || !address.trim()}
+                >
+                  {calculatingTravel ? <Loader2 className="h-4 w-4 animate-spin" /> : "Calculer"}
+                </Button>
+              </div>
+              {travelDuration > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {formatTravelTime(travelDuration)} · {formatDistance(travelDistance)}
+                </p>
+              )}
             </div>
           </div>
 
