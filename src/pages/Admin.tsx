@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, Settings, Calendar as CalendarIcon, Users, BarChart, Star, Clock, Euro, Mail, Calculator } from "lucide-react";
-import { PriceSimulator } from "@/components/PriceSimulator";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -251,10 +250,14 @@ export const Admin = () => {
             <Settings className="h-6 w-6" />
             Administration
           </h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => navigate('/dashboard')}>
               <BarChart className="h-4 w-4 mr-2" />
               Dashboard
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/simulator')}>
+              <Calculator className="h-4 w-4 mr-2" />
+              Simulation
             </Button>
             <Button variant="outline" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
@@ -299,10 +302,6 @@ export const Admin = () => {
               <TabsTrigger value="emails" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
                 <Mail className="h-4 w-4 shrink-0" />
                 <span>Emails</span>
-              </TabsTrigger>
-              <TabsTrigger value="simulator" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
-                <Calculator className="h-4 w-4 shrink-0" />
-                <span>Simulation</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -504,10 +503,6 @@ export const Admin = () => {
 
           <TabsContent value="emails">
             <EmailTemplateEditor />
-          </TabsContent>
-
-          <TabsContent value="simulator">
-            <PriceSimulator />
           </TabsContent>
         </Tabs>
       </div>
