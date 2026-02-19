@@ -131,7 +131,51 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    console.log(`Price change notification: ${emailsSent} emails sent for ${serviceName}`);
+    // Also notify the admin/barber
+    const barberEmail = Deno.env.get("BARBER_EMAIL");
+    if (barberEmail) {
+      try {
+        await resend.emails.send({
+          from: "LCS Style <noreply@lookware.fr>",
+          to: [barberEmail],
+          subject: `💈 Tarif modifié - ${serviceName} (${oldPrice}€ → ${newPrice}€)`,
+          html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8">
+<style>
+  body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+  .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+  .header { background: linear-gradient(135deg, #0099FF, #FF4433); padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+  .header h1 { color: white; margin: 0; font-size: 24px; }
+  .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+  .price-change { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0099FF; text-align: center; }
+  .old-price { font-size: 18px; color: #999; text-decoration: line-through; }
+  .new-price { font-size: 28px; color: #0099FF; font-weight: bold; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header"><h1>💈 Modification de tarif (Admin)</h1></div>
+    <div class="content">
+      <p>Le tarif de <strong>${serviceName}</strong> a été modifié.</p>
+      <div class="price-change">
+        <div class="old-price">${oldPrice}€</div>
+        <div style="font-size:24px;margin:10px 0;">⬇️</div>
+        <div class="new-price">${newPrice}€</div>
+      </div>
+      <p><strong>${emailsSent}</strong> client(s) ont été notifiés par email.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+        });
+      } catch (err) {
+        console.error("Failed to send admin notification:", err);
+      }
+    }
+
+    console.log(`Price change notification: ${emailsSent} client emails + admin notified for ${serviceName}`);
 
     return new Response(
       JSON.stringify({ success: true, emailsSent }),
