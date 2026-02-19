@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Euro, Clock, MapPin, Mail, Loader2 } from "lucide-react";
 import { PricingSettingsManager } from "./PricingSettingsManager";
-import { PriceSimulator } from "./PriceSimulator";
+
 
 interface Service {
   id: string;
@@ -147,9 +147,6 @@ export const PricingSettings = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Price Simulator */}
-      <PriceSimulator />
 
       {/* Pricing Settings Manager */}
       <PricingSettingsManager />
