@@ -197,6 +197,16 @@ export default function Dashboard() {
       return;
     }
 
+    const booking = recentBookings.find(b => b.id === bookingId);
+    if (!booking) return;
+    const oldPrice = booking.total_price;
+
+    if (oldPrice === newPrice) {
+      setEditingBookingId(null);
+      setEditingPrice("");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('bookings')
@@ -205,9 +215,22 @@ export default function Dashboard() {
 
       if (error) throw error;
 
+      // Send email notification to client and admin
+      try {
+        await supabase.functions.invoke('notify-price-change', {
+          body: {
+            serviceName: booking.service?.name || 'Service',
+            oldPrice,
+            newPrice,
+          },
+        });
+      } catch (emailError) {
+        console.error("Email notification error:", emailError);
+      }
+
       toast({
         title: "Prix modifié",
-        description: "Le prix de la réservation a été mis à jour.",
+        description: `Prix mis à jour (${oldPrice}€ → ${newPrice}€). Notifications envoyées.`,
       });
 
       setEditingBookingId(null);
