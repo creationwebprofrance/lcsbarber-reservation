@@ -40,6 +40,7 @@ interface CityStats {
 interface RecentBooking {
   id: string;
   client_name: string;
+  client_email: string;
   appointment_date: string;
   appointment_time: string;
   total_price: number;
@@ -217,11 +218,15 @@ export default function Dashboard() {
 
       // Send email notification to client and admin
       try {
-        await supabase.functions.invoke('notify-price-change', {
+        await supabase.functions.invoke('notify-booking-price-change', {
           body: {
+            clientName: booking.client_name,
+            clientEmail: booking.client_email,
             serviceName: booking.service?.name || 'Service',
             oldPrice,
             newPrice,
+            appointmentDate: new Date(booking.appointment_date).toLocaleDateString('fr-FR'),
+            appointmentTime: booking.appointment_time,
           },
         });
       } catch (emailError) {

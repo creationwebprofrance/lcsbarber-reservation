@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.notify-price-change]
 verify_jwt = false
+
+[functions.notify-booking-price-change]
+verify_jwt = false
