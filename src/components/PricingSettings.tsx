@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Euro, Clock, MapPin } from "lucide-react";
+import { Euro, Clock, MapPin, Mail, Loader2 } from "lucide-react";
 import { PricingSettingsManager } from "./PricingSettingsManager";
+import { PriceSimulator } from "./PriceSimulator";
 
 interface Service {
   id: string;
@@ -45,7 +46,17 @@ export const PricingSettings = () => {
     }
   };
 
+  const [updatingPriceId, setUpdatingPriceId] = useState<string | null>(null);
+
   const updateServicePrice = async (serviceId: string, newPrice: number) => {
+    const service = services.find(s => s.id === serviceId);
+    if (!service) return;
+    const oldPrice = service.price;
+
+    // Don't do anything if price hasn't changed
+    if (oldPrice === newPrice) return;
+
+    setUpdatingPriceId(serviceId);
     try {
       const { error } = await supabase
         .from('services')
@@ -54,9 +65,22 @@ export const PricingSettings = () => {
 
       if (error) throw error;
 
+      // Send notification email to clients with future bookings
+      try {
+        await supabase.functions.invoke('notify-price-change', {
+          body: {
+            serviceName: service.name,
+            oldPrice,
+            newPrice,
+          },
+        });
+      } catch (emailError) {
+        console.error("Email notification error:", emailError);
+      }
+
       toast({
         title: "Succès",
-        description: "Prix mis à jour avec succès.",
+        description: `Prix mis à jour (${oldPrice}€ → ${newPrice}€). Les clients concernés ont été notifiés.`,
       });
       loadServices();
     } catch (error: any) {
@@ -65,6 +89,8 @@ export const PricingSettings = () => {
         description: "Impossible de mettre à jour le prix.",
         variant: "destructive",
       });
+    } finally {
+      setUpdatingPriceId(null);
     }
   };
 
@@ -108,14 +134,22 @@ export const PricingSettings = () => {
                     }}
                     onBlur={() => updateServicePrice(service.id, service.price)}
                     className="w-24"
+                    disabled={updatingPriceId === service.id}
                   />
-                  <span className="font-medium">€</span>
+                  {updatingPriceId === service.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <span className="font-medium">€</span>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
+
+      {/* Price Simulator */}
+      <PriceSimulator />
 
       {/* Pricing Settings Manager */}
       <PricingSettingsManager />
