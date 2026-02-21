@@ -17,17 +17,38 @@ import { z } from "zod";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 import { TimeSlotSelector } from "@/components/TimeSlotSelector";
 
-// Prix spéciaux Carnaval — override par nom de service
-const CARNAVAL_PRICE_OVERRIDES: Record<string, number> = {
-  "Coupe + barbe": 20,
-  "Coupe classique": 15,
-  "Barbe uniquement": 10,
-};
-// Services exclus du Carnaval
-const CARNAVAL_EXCLUDED_SERVICES = ["Coupe enfant"];
+// Hook pour charger les paramètres Carnaval depuis la DB
+function useCarnavalSettings() {
+  const [settings, setSettings] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
 
-const CARNAVAL_START = new Date(2026, 1, 26); // Feb 26
-const CARNAVAL_END = new Date(2026, 2, 2);   // March 2
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase.from("carnaval_settings").select("*");
+      const map: Record<string, string> = {};
+      data?.forEach((s: any) => { map[s.setting_key] = s.setting_value; });
+      setSettings(map);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const isEnabled = settings.enabled === "true";
+  const startDate = settings.start_date ? new Date(settings.start_date + "T00:00:00") : new Date(2026, 1, 26);
+  const endDate = settings.end_date ? new Date(settings.end_date + "T00:00:00") : new Date(2026, 2, 2);
+  
+  const priceOverrides: Record<string, number> = {};
+  if (settings.prix_coupe_classique) priceOverrides["Coupe classique"] = Number(settings.prix_coupe_classique);
+  if (settings.prix_coupe_barbe) priceOverrides["Coupe + barbe"] = Number(settings.prix_coupe_barbe);
+  if (settings.prix_barbe) priceOverrides["Barbe uniquement"] = Number(settings.prix_barbe);
+  if (settings.prix_contours) priceOverrides["Contours"] = Number(settings.prix_contours);
+
+  const excludedServices = settings.excluded_services
+    ? settings.excluded_services.split(",").map((s) => s.trim()).filter(Boolean)
+    : ["Coupe enfant"];
+
+  return { loading, isEnabled, startDate, endDate, priceOverrides, excludedServices };
+}
 
 const bookingFormSchema = z.object({
   name: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100).regex(/^[a-zA-ZÀ-ÿ\s'-]+$/),
@@ -44,7 +65,7 @@ interface Service {
   description?: string;
 }
 
-function CarnivalServiceSelector({ selectedService, onServiceSelect }: { selectedService: Service | null; onServiceSelect: (s: Service) => void }) {
+function CarnivalServiceSelector({ selectedService, onServiceSelect, priceOverrides, excludedServices }: { selectedService: Service | null; onServiceSelect: (s: Service) => void; priceOverrides: Record<string, number>; excludedServices: string[] }) {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,10 +73,10 @@ function CarnivalServiceSelector({ selectedService, onServiceSelect }: { selecte
     const load = async () => {
       const { data } = await supabase.from("services").select("*").eq("is_active", true).order("name");
       const filtered = (data || [])
-        .filter((s: any) => !CARNAVAL_EXCLUDED_SERVICES.includes(s.name))
+        .filter((s: any) => !excludedServices.includes(s.name))
         .map((s: any) => ({
           ...s,
-          price: CARNAVAL_PRICE_OVERRIDES[s.name] ?? s.price,
+          price: priceOverrides[s.name] ?? s.price,
         }));
       setServices(filtered);
       setLoading(false);
@@ -107,6 +128,7 @@ function CarnivalServiceSelector({ selectedService, onServiceSelect }: { selecte
 }
 
 export default function Carnaval() {
+  const carnaval = useCarnavalSettings();
   const [step, setStep] = useState(1);
   const [service, setService] = useState<Service | null>(null);
   const [date, setDate] = useState<Date | undefined>(undefined);
@@ -116,6 +138,9 @@ export default function Carnaval() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const { toast } = useToast();
+
+  if (carnaval.loading) return <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(25 95% 10%), hsl(0 70% 12%))" }}><p className="text-orange-200">Chargement...</p></div>;
+  if (!carnaval.isEnabled) return <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(25 95% 10%), hsl(0 70% 12%))" }}><p className="text-orange-200">L'événement Carnaval n'est pas actif pour le moment.</p></div>;
 
   const handleServiceSelect = (s: Service) => {
     setService(s);
@@ -208,7 +233,7 @@ export default function Carnaval() {
 
   const isCarnavalDate = (d: Date) => {
     const day = d.getTime();
-    return day >= CARNAVAL_START.getTime() && day <= CARNAVAL_END.getTime();
+    return day >= carnaval.startDate.getTime() && day <= carnaval.endDate.getTime();
   };
 
   return (
@@ -281,7 +306,7 @@ export default function Carnaval() {
           <div className="p-4 sm:p-6">
             {/* Step 1: Service */}
             {!isConfirmed && step === 1 && (
-              <CarnivalServiceSelector selectedService={service} onServiceSelect={handleServiceSelect} />
+              <CarnivalServiceSelector selectedService={service} onServiceSelect={handleServiceSelect} priceOverrides={carnaval.priceOverrides} excludedServices={carnaval.excludedServices} />
             )}
 
             {/* Step 2: Calendar */}
@@ -298,8 +323,8 @@ export default function Carnaval() {
                   <div className="grid grid-cols-5 gap-2 sm:gap-3">
                     {(() => {
                       const days: Date[] = [];
-                      const d = new Date(CARNAVAL_START);
-                      while (d <= CARNAVAL_END) {
+                      const d = new Date(carnaval.startDate);
+                      while (d <= carnaval.endDate) {
                         days.push(new Date(d));
                         d.setDate(d.getDate() + 1);
                       }
