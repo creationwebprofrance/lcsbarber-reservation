@@ -236,7 +236,7 @@ export default function Carnaval() {
             Carnaval de Bordeaux
           </h1>
           <p className="text-orange-200/70 text-sm mb-2">
-            Réserve ta coupe spéciale carnaval — du 28 février au 1er mars 2026
+            Réserve ta coupe spéciale carnaval — du 26 février au 2 mars 2026
           </p>
           <p className="text-orange-300/50 text-xs">
             🎉 Sans frais de déplacement, sans supplément jour même ni dimanche
@@ -296,19 +296,47 @@ export default function Carnaval() {
                   <div className="w-16" />
                 </div>
                 <div className="flex justify-center">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={handleDateSelect}
-                    locale={fr}
-                    defaultMonth={CARNAVAL_START}
-                    disabled={(d) => !isCarnavalDate(d)}
-                    className="pointer-events-auto rounded-xl border p-3"
-                    style={{ borderColor: "hsla(20, 80%, 30%, 0.3)" }}
-                  />
+                  <div className="grid grid-cols-5 gap-2 sm:gap-3">
+                    {(() => {
+                      const days: Date[] = [];
+                      const d = new Date(CARNAVAL_START);
+                      while (d <= CARNAVAL_END) {
+                        days.push(new Date(d));
+                        d.setDate(d.getDate() + 1);
+                      }
+                      return days.map((day) => {
+                        const isSelected = date && format(date, "yyyy-MM-dd") === format(day, "yyyy-MM-dd");
+                        return (
+                          <button
+                            key={day.toISOString()}
+                            type="button"
+                            onClick={() => handleDateSelect(day)}
+                            className="flex flex-col items-center justify-center rounded-xl p-3 sm:p-4 transition-all"
+                            style={{
+                              background: isSelected
+                                ? "linear-gradient(135deg, hsl(30 100% 50%), hsl(0 80% 50%))"
+                                : "hsla(20, 30%, 15%, 0.6)",
+                              border: isSelected ? "2px solid hsl(30 100% 60%)" : "2px solid hsla(20, 30%, 25%, 0.4)",
+                              boxShadow: isSelected ? "0 0 20px hsla(20, 100%, 50%, 0.3)" : "none",
+                              color: isSelected ? "white" : "hsl(30 80% 75%)",
+                              minWidth: "70px",
+                            }}
+                          >
+                            <span className="text-xs font-medium opacity-70">
+                              {format(day, "EEE", { locale: fr })}
+                            </span>
+                            <span className="text-2xl font-bold">{format(day, "d")}</span>
+                            <span className="text-xs opacity-70">
+                              {format(day, "MMM", { locale: fr })}
+                            </span>
+                          </button>
+                        );
+                      });
+                    })()}
+                  </div>
                 </div>
                 <p className="text-center text-orange-300/50 text-xs mt-3">
-                  Seules les dates du Carnaval (28 fév – 1er mars) sont disponibles
+                  Sélectionne un jour du Carnaval (26 fév – 2 mars)
                 </p>
               </div>
             )}
