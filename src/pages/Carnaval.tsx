@@ -19,7 +19,9 @@ import { TimeSlotSelector } from "@/components/TimeSlotSelector";
 
 // Prix spéciaux Carnaval — override par nom de service
 const CARNAVAL_PRICE_OVERRIDES: Record<string, number> = {
-  "Barbe uniquement": 20,
+  "Coupe + barbe": 20,
+  "Coupe classique": 15,
+  "Barbe uniquement": 10,
 };
 // Services exclus du Carnaval
 const CARNAVAL_EXCLUDED_SERVICES = ["Coupe enfant"];
