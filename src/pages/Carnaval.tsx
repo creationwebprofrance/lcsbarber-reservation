@@ -24,8 +24,8 @@ const CARNAVAL_PRICE_OVERRIDES: Record<string, number> = {
 // Services exclus du Carnaval
 const CARNAVAL_EXCLUDED_SERVICES = ["Coupe enfant"];
 
-const CARNAVAL_START = new Date(2026, 1, 28); // Feb 28
-const CARNAVAL_END = new Date(2026, 2, 1);   // March 1
+const CARNAVAL_START = new Date(2026, 1, 26); // Feb 26
+const CARNAVAL_END = new Date(2026, 2, 2);   // March 2
 
 const bookingFormSchema = z.object({
   name: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100).regex(/^[a-zA-ZÀ-ÿ\s'-]+$/),
