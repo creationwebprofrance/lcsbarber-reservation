@@ -240,9 +240,6 @@ export default function Carnaval() {
           <p className="text-orange-200/70 text-sm mb-2">
             Réserve ta coupe spéciale carnaval — du 26 février au 2 mars 2026
           </p>
-          <p className="text-orange-300/50 text-xs">
-            🎉 Sans frais de déplacement, sans supplément jour même ni dimanche
-          </p>
           <div className="mt-4 h-[2px] mx-auto max-w-xs" style={{ background: "linear-gradient(90deg, transparent, hsl(30 100% 50%), hsl(0 80% 50%), transparent)" }} />
         </motion.div>
 
