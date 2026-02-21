@@ -107,6 +107,11 @@ export default function Home() {
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </a>
                 </Button>
+                <Button asChild size="lg" className="w-full sm:w-auto text-white font-bold border-0" style={{ background: "linear-gradient(135deg, hsl(30 100% 50%), hsl(0 80% 50%))", boxShadow: "0 0 25px hsla(20, 100%, 50%, 0.25)" }}>
+                  <Link to="/carnaval">
+                    🎭 Carnaval de Bordeaux
+                  </Link>
+                </Button>
               </motion.div>
             </div>
 
