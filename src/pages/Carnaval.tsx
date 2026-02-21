@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar as CalendarIcon, Clock, Scissors, Check, CheckCircle, PartyPopper } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Clock, Scissors, Check, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -15,8 +15,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
-import { ServiceSelector } from "@/components/ServiceSelector";
 import { TimeSlotSelector } from "@/components/TimeSlotSelector";
+
+// Prix spéciaux Carnaval — override par nom de service
+const CARNAVAL_PRICE_OVERRIDES: Record<string, number> = {
+  "Barbe uniquement": 20,
+};
+// Services exclus du Carnaval
+const CARNAVAL_EXCLUDED_SERVICES = ["Coupe enfant"];
 
 const CARNAVAL_START = new Date(2026, 1, 28); // Feb 28
 const CARNAVAL_END = new Date(2026, 2, 1);   // March 1
@@ -34,6 +40,68 @@ interface Service {
   name: string;
   price: number;
   description?: string;
+}
+
+function CarnivalServiceSelector({ selectedService, onServiceSelect }: { selectedService: Service | null; onServiceSelect: (s: Service) => void }) {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase.from("services").select("*").eq("is_active", true).order("name");
+      const filtered = (data || [])
+        .filter((s: any) => !CARNAVAL_EXCLUDED_SERVICES.includes(s.name))
+        .map((s: any) => ({
+          ...s,
+          price: CARNAVAL_PRICE_OVERRIDES[s.name] ?? s.price,
+        }));
+      setServices(filtered);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  if (loading) return <div className="text-center py-8">Chargement...</div>;
+
+  return (
+    <div>
+      <div className="mb-4 sm:mb-6 text-center">
+        <h2 className="text-xl sm:text-2xl font-bold mb-2 text-orange-100">Choisis ta prestation 🎭</h2>
+        <p className="text-sm text-orange-200/60">Prix spéciaux Carnaval de Bordeaux</p>
+      </div>
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {services.map((s) => {
+          const isSelected = selectedService?.id === s.id;
+          return (
+            <Card
+              key={s.id}
+              className="relative cursor-pointer transition-all border-2 hover:shadow-lg"
+              style={{
+                borderColor: isSelected ? "hsl(30 100% 50%)" : "hsla(20, 30%, 25%, 0.4)",
+                background: isSelected ? "hsla(25, 80%, 50%, 0.1)" : "transparent",
+              }}
+              onClick={() => onServiceSelect(s)}
+            >
+              <div className="p-4 sm:p-6">
+                {isSelected && (
+                  <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full" style={{ background: "linear-gradient(135deg, hsl(30 100% 50%), hsl(0 80% 50%))" }}>
+                    <Check className="h-3 w-3 text-white" />
+                  </div>
+                )}
+                <div className="mb-2 pr-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-orange-100">{s.name}</h3>
+                  {s.description && <p className="text-xs text-orange-200/50">{s.description}</p>}
+                </div>
+                <div className="text-xl sm:text-2xl font-bold" style={{ color: "hsl(30 100% 60%)" }}>
+                  {s.price}€
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export default function Carnaval() {
@@ -214,7 +282,7 @@ export default function Carnaval() {
           <div className="p-4 sm:p-6">
             {/* Step 1: Service */}
             {!isConfirmed && step === 1 && (
-              <ServiceSelector selectedService={service} onServiceSelect={handleServiceSelect} />
+              <CarnivalServiceSelector selectedService={service} onServiceSelect={handleServiceSelect} />
             )}
 
             {/* Step 2: Calendar */}
