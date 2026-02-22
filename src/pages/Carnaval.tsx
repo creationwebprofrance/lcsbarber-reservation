@@ -47,7 +47,10 @@ function useCarnavalSettings() {
     ? settings.excluded_services.split(",").map((s) => s.trim()).filter(Boolean)
     : ["Coupe enfant"];
 
-  return { loading, isEnabled, startDate, endDate, priceOverrides, excludedServices };
+  const startHour = settings.start_hour || "08:00";
+  const endHour = settings.end_hour || "21:00";
+
+  return { loading, isEnabled, startDate, endDate, priceOverrides, excludedServices, startHour, endHour };
 }
 
 const bookingFormSchema = z.object({
@@ -375,8 +378,14 @@ export default function Carnaval() {
                 hideSupplements
                 customSlots={(() => {
                   const slots: string[] = [];
-                  for (let h = 8; h <= 21; h++) {
-                    slots.push(`${h.toString().padStart(2, '0')}:00`);
+                  const [startH, startM] = carnaval.startHour.split(':').map(Number);
+                  const [endH, endM] = carnaval.endHour.split(':').map(Number);
+                  const startMin = startH * 60 + (startM || 0);
+                  const endMin = endH * 60 + (endM || 0);
+                  for (let m = startMin; m <= endMin; m += 30) {
+                    const h = Math.floor(m / 60);
+                    const min = m % 60;
+                    slots.push(`${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`);
                   }
                   return slots;
                 })()}
