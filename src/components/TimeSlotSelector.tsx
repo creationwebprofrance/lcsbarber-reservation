@@ -12,6 +12,8 @@ interface TimeSlotSelectorProps {
   selectedTime: string | null;
   onTimeSelect: (time: string) => void;
   onBack: () => void;
+  hideSupplements?: boolean;
+  customSlots?: string[];
 }
 
 interface TimeSlot {
@@ -26,14 +28,41 @@ export const TimeSlotSelector = ({
   selectedTime,
   onTimeSelect,
   onBack,
+  hideSupplements = false,
+  customSlots,
 }: TimeSlotSelectorProps) => {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadAvailableSlots();
-  }, [selectedDate]);
+    if (customSlots) {
+      // Use custom slots instead of calendar_settings
+      loadBookedSlotsOnly();
+    } else {
+      loadAvailableSlots();
+    }
+  }, [selectedDate, customSlots]);
+
+  const loadBookedSlotsOnly = async () => {
+    setLoading(true);
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    try {
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select('appointment_time')
+        .eq('appointment_date', dateStr)
+        .in('status', ['pending', 'confirmed']);
+      
+      const booked = bookings?.map(b => b.appointment_time.substring(0, 5)) || [];
+      setAvailableSlots(customSlots!.sort());
+      setBookedSlots(booked);
+    } catch (error) {
+      console.error('Error loading booked slots:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadAvailableSlots = async () => {
     setLoading(true);
@@ -173,7 +202,7 @@ export const TimeSlotSelector = ({
           {availableSlots.map((time) => {
             const isAvailable = isSlotAvailable(time);
             const isSelected = selectedTime === time;
-            const supplementText = getTimeSupplementText(time);
+            const supplementText = hideSupplements ? null : getTimeSupplementText(time);
 
             return (
               <Card
