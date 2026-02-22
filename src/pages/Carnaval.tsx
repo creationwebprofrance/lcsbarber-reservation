@@ -365,13 +365,21 @@ export default function Carnaval() {
               </div>
             )}
 
-            {/* Step 3: Time */}
+            {/* Step 3: Time — créneaux indépendants du calendrier de base */}
             {!isConfirmed && step === 3 && date && (
               <TimeSlotSelector
                 selectedDate={date}
                 selectedTime={time}
                 onTimeSelect={handleTimeSelect}
                 onBack={() => setStep(2)}
+                hideSupplements
+                customSlots={(() => {
+                  const slots: string[] = [];
+                  for (let h = 8; h <= 21; h++) {
+                    slots.push(`${h.toString().padStart(2, '0')}:00`);
+                  }
+                  return slots;
+                })()}
               />
             )}
 
