@@ -1,0 +1,1 @@
+INSERT INTO carnaval_settings (setting_key, setting_value, description) VALUES ('start_hour', '08:00', 'Heure de début des créneaux Carnaval'), ('end_hour', '21:00', 'Heure de fin des créneaux Carnaval');

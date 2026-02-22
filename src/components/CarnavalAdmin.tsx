@@ -175,6 +175,36 @@ export const CarnavalAdmin = () => {
         </CardContent>
       </Card>
 
+      {/* Plage horaire */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">🕐 Plage horaire des créneaux</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label>Heure de début</Label>
+              <Input
+                type="time"
+                value={getValue("start_hour")}
+                onChange={(e) => updateLocal("start_hour", e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Heure de fin</Label>
+              <Input
+                type="time"
+                value={getValue("end_hour")}
+                onChange={(e) => updateLocal("end_hour", e.target.value)}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Les créneaux seront générés toutes les 30 minutes entre ces heures</p>
+        </CardContent>
+      </Card>
+
       {/* Services exclus */}
       <Card>
         <CardHeader>
