@@ -6,6 +6,7 @@ import { Settings, BarChart, LogIn, Calendar, Scissors, Star, Clock, MapPin, Arr
 import { motion } from "framer-motion";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 import BarberPole3D from "@/components/BarberPole3D";
+import EventSection from "@/components/EventSection";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -206,6 +207,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <div className="stripe-line" />
+
+      <EventSection />
 
       <div className="stripe-line" />
 
