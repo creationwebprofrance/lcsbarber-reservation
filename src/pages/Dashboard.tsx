@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Users, DollarSign, Calendar as CalendarIcon, TrendingUp, Trash2, Pencil, Check, X, MapPin } from "lucide-react";
+import { ArrowLeft, Users, DollarSign, Calendar as CalendarIcon, TrendingUp, Trash2, Pencil, Check, X, MapPin, Ban } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,6 +41,7 @@ interface RecentBooking {
   id: string;
   client_name: string;
   client_email: string;
+  client_phone: string;
   appointment_date: string;
   appointment_time: string;
   total_price: number;
@@ -172,6 +173,48 @@ export default function Dashboard() {
       toast({
         title: "Erreur",
         description: "Impossible de supprimer la réservation.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelBooking = async (booking: RecentBooking) => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('id', booking.id);
+
+      if (error) throw error;
+
+      // Send cancellation email
+      try {
+        await supabase.functions.invoke('send-cancellation-email', {
+          body: {
+            clientName: booking.client_name,
+            clientEmail: booking.client_email,
+            clientPhone: booking.client_phone || '',
+            serviceName: booking.service?.name || '',
+            appointmentDate: new Date(booking.appointment_date).toLocaleDateString('fr-FR'),
+            appointmentTime: booking.appointment_time,
+            totalPrice: booking.total_price,
+          },
+        });
+      } catch (emailError) {
+        console.error('Erreur envoi email annulation:', emailError);
+      }
+
+      toast({
+        title: "Réservation annulée",
+        description: "Le client a été notifié par email.",
+      });
+
+      loadDashboardData();
+    } catch (error) {
+      console.error('Erreur annulation:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'annuler la réservation.",
         variant: "destructive",
       });
     }
@@ -418,6 +461,29 @@ export default function Dashboard() {
                             {booking.deposit_paid ? '✓ Acompte payé' : '⚠ Acompte non payé'}
                           </div>
                         </div>
+                        {booking.status !== 'cancelled' && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="icon" className="border-orange-300 text-orange-600 hover:bg-orange-50">
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Annuler ce rendez-vous ?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Le client sera notifié par email de l'annulation.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Retour</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleCancelBooking(booking)} className="bg-orange-600 hover:bg-orange-700">
+                                  Annuler le RDV
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="destructive" size="icon">
