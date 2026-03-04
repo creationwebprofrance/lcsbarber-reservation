@@ -223,6 +223,60 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string
+          end_hour: string
+          excluded_services: string | null
+          id: string
+          is_active: boolean
+          name: string
+          prix_barbe: number | null
+          prix_contours: number | null
+          prix_coupe_barbe: number | null
+          prix_coupe_classique: number | null
+          start_date: string
+          start_hour: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date: string
+          end_hour?: string
+          excluded_services?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          prix_barbe?: number | null
+          prix_contours?: number | null
+          prix_coupe_barbe?: number | null
+          prix_coupe_classique?: number | null
+          start_date: string
+          start_hour?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          end_hour?: string
+          excluded_services?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          prix_barbe?: number | null
+          prix_contours?: number | null
+          prix_coupe_barbe?: number | null
+          prix_coupe_classique?: number | null
+          start_date?: string
+          start_hour?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pending_bookings: {
         Row: {
           appointment_date: string

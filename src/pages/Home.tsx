@@ -6,7 +6,6 @@ import { Settings, BarChart, LogIn, Calendar, Scissors, Star, Clock, MapPin, Arr
 import { motion } from "framer-motion";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 import BarberPole3D from "@/components/BarberPole3D";
-import EventSection from "@/components/EventSection";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -20,12 +19,7 @@ const fadeUp = {
 
 export default function Home() {
   const { user, isAdmin } = useAuth();
-  const [carnavalEnabled, setCarnavalEnabled] = useState(false);
 
-  useEffect(() => {
-    supabase.from("carnaval_settings").select("setting_value").eq("setting_key", "enabled").single()
-      .then(({ data }) => { if (data?.setting_value === "true") setCarnavalEnabled(true); });
-  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,13 +110,6 @@ export default function Home() {
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </a>
                 </Button>
-                {carnavalEnabled && (
-                  <Button asChild size="lg" className="w-full sm:w-auto text-white font-bold border-0" style={{ background: "linear-gradient(135deg, hsl(30 100% 50%), hsl(0 80% 50%))", boxShadow: "0 0 25px hsla(20, 100%, 50%, 0.25)" }}>
-                    <Link to="/carnaval">
-                      🎭 Carnaval de Bordeaux
-                    </Link>
-                  </Button>
-                )}
               </motion.div>
             </div>
 
@@ -210,7 +197,29 @@ export default function Home() {
 
       <div className="stripe-line" />
 
-      <EventSection />
+      {/* BOOK Événementiel CTA */}
+      <section className="py-16 sm:py-20">
+        <div className="max-w-4xl mx-auto px-5 text-center">
+          <motion.div
+            initial="hidden" whileInView="visible" viewport={{ once: true }}
+            variants={fadeUp} custom={0}
+          >
+            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">BOOK ÉVÉNEMENTIEL</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+              Événements, artistes & collaborations
+            </h2>
+            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+              Découvrez nos partenaires, les artistes qui nous font confiance et nos prochains événements.
+            </p>
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant px-8">
+              <Link to="/evenements">
+                <ArrowRight className="h-4 w-4 mr-2" />
+                Voir nos événements
+              </Link>
+            </Button>
+          </motion.div>
+        </div>
+      </section>
 
       <div className="stripe-line" />
 

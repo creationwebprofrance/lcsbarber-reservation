@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Settings, Calendar as CalendarIcon, Users, BarChart, Star, Clock, Euro, Mail, Calculator, PartyPopper } from "lucide-react";
+import { LogOut, Settings, Calendar as CalendarIcon, Users, BarChart, Star, Clock, Euro, Mail, Calculator, PartyPopper, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +23,7 @@ import { PricingSettings } from "@/components/PricingSettings";
 import { BookingsCalendar } from "@/components/BookingsCalendar";
 import { EmailTemplateEditor } from "@/components/EmailTemplateEditor";
 import { CarnavalAdmin } from "@/components/CarnavalAdmin";
+import { EventsAdmin } from "@/components/EventsAdmin";
 
 interface CalendarSetting {
   id: string;
@@ -308,6 +309,10 @@ export const Admin = () => {
                 <PartyPopper className="h-4 w-4 shrink-0" />
                 <span>🎭 Carnaval</span>
               </TabsTrigger>
+              <TabsTrigger value="events" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <CalendarDays className="h-4 w-4 shrink-0" />
+                <span>Événements</span>
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -512,6 +517,10 @@ export const Admin = () => {
 
           <TabsContent value="carnaval">
             <CarnavalAdmin />
+          </TabsContent>
+
+          <TabsContent value="events">
+            <EventsAdmin />
           </TabsContent>
         </Tabs>
       </div>
