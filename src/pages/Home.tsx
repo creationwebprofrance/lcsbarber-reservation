@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
-import { Settings, BarChart, LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight, Calculator } from "lucide-react";
+import { Settings, BarChart, LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight, Calculator, PartyPopper } from "lucide-react";
 import { motion } from "framer-motion";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 import BarberPole3D from "@/components/BarberPole3D";
@@ -19,7 +19,16 @@ const fadeUp = {
 
 export default function Home() {
   const { user, isAdmin } = useAuth();
+  const [hasActiveEvent, setHasActiveEvent] = useState(false);
 
+  useEffect(() => {
+    supabase
+      .from("events")
+      .select("id")
+      .eq("is_active", true)
+      .limit(1)
+      .then(({ data }) => setHasActiveEvent(!!(data && data.length > 0)));
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,6 +175,27 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+
+          {/* Prochain événement button */}
+          <motion.div
+            className="mt-10 flex justify-center"
+            initial="hidden" whileInView="visible" viewport={{ once: true }}
+            variants={fadeUp} custom={4}
+          >
+            {hasActiveEvent ? (
+              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant px-8">
+                <Link to="/evenements">
+                  <PartyPopper className="h-4 w-4 mr-2" />
+                  Prochain événement
+                </Link>
+              </Button>
+            ) : (
+              <Button size="lg" disabled className="opacity-50 cursor-not-allowed px-8">
+                <PartyPopper className="h-4 w-4 mr-2" />
+                Prochain événement à venir
+              </Button>
+            )}
+          </motion.div>
         </div>
       </section>
 
@@ -209,12 +239,12 @@ export default function Home() {
               Événements, artistes & collaborations
             </h2>
             <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Découvrez nos partenaires, les artistes qui nous font confiance et nos prochains événements.
+              Découvrez nos partenaires, les artistes qui nous font confiance et nos prestations événementielles.
             </p>
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant px-8">
               <Link to="/evenements">
                 <ArrowRight className="h-4 w-4 mr-2" />
-                Voir nos événements
+                Voir mes prestations
               </Link>
             </Button>
           </motion.div>
