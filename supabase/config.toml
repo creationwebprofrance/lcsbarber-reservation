@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.notify-booking-price-change]
 verify_jwt = false
+
+[functions.notify-booking-time-change]
+verify_jwt = false
