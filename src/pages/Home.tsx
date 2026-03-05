@@ -115,10 +115,23 @@ export default function Home() {
                 </Button>
                 <Button asChild size="lg" variant="outline" className="border-border/60 hover:bg-card w-full sm:w-auto">
                   <a href="#services">
-                    Nos services
+                    Mes services
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </a>
                 </Button>
+                {hasActiveEvent ? (
+                  <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold w-full sm:w-auto">
+                    <Link to="/evenements">
+                      <PartyPopper className="h-4 w-4 mr-2" />
+                      Prochain événement
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button size="lg" disabled className="opacity-50 cursor-not-allowed w-full sm:w-auto">
+                    <PartyPopper className="h-4 w-4 mr-2" />
+                    Prochain événement
+                  </Button>
+                )}
               </motion.div>
             </div>
 
@@ -136,6 +149,32 @@ export default function Home() {
       {/* Barber stripe divider */}
       <div className="stripe-line" />
 
+      {/* BOOK Événementiel CTA - moved above services */}
+      <section className="py-16 sm:py-20">
+        <div className="max-w-4xl mx-auto px-5 text-center">
+          <motion.div
+            initial="hidden" whileInView="visible" viewport={{ once: true }}
+            variants={fadeUp} custom={0}
+          >
+            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">BOOK ÉVÉNEMENTIEL</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+              Événements, artistes & collaborations
+            </h2>
+            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+              Découvrez mes partenaires, les artistes qui me font confiance et mes prestations événementielles.
+            </p>
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant px-8">
+              <Link to="/evenements">
+                <ArrowRight className="h-4 w-4 mr-2" />
+                Voir mes prestations
+              </Link>
+            </Button>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="stripe-line" />
+
       {/* Services */}
       <section id="services" className="py-20 sm:py-28">
         <div className="max-w-6xl mx-auto px-5">
@@ -144,7 +183,7 @@ export default function Home() {
             initial="hidden" whileInView="visible" viewport={{ once: true }}
             variants={fadeUp} custom={0}
           >
-            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">CE QU'ON FAIT</p>
+            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">CE QUE JE FAIS</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
               Des coupes qui parlent<br className="hidden sm:block" /> pour vous.
             </h2>
@@ -152,7 +191,7 @@ export default function Home() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { icon: Scissors, title: "Coupes Afro", desc: "Dégradé, taper, fade, box cut, waves — on maîtrise tous les styles.", tag: "Spécialité" },
+              { icon: Scissors, title: "Coupes Afro", desc: "Dégradé, taper, fade, box cut, waves — je maîtrise tous les styles.", tag: "Spécialité" },
               { icon: Scissors, title: "Coupes Européennes", desc: "Undercut, pompadour, crew cut, textured crop — toujours propre.", tag: "Classique" },
               { icon: Star, title: "Barbe & Finitions", desc: "Taille de barbe, rasage, tracé net — le souci du détail.", tag: "Détails" },
             ].map((s, i) => (
@@ -175,27 +214,6 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
-
-          {/* Prochain événement button */}
-          <motion.div
-            className="mt-10 flex justify-center"
-            initial="hidden" whileInView="visible" viewport={{ once: true }}
-            variants={fadeUp} custom={4}
-          >
-            {hasActiveEvent ? (
-              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant px-8">
-                <Link to="/evenements">
-                  <PartyPopper className="h-4 w-4 mr-2" />
-                  Prochain événement
-                </Link>
-              </Button>
-            ) : (
-              <Button size="lg" disabled className="opacity-50 cursor-not-allowed px-8">
-                <PartyPopper className="h-4 w-4 mr-2" />
-                Prochain événement à venir
-              </Button>
-            )}
-          </motion.div>
         </div>
       </section>
 
@@ -207,7 +225,7 @@ export default function Home() {
           <div className="grid grid-cols-3 gap-6">
             {[
               { icon: Clock, value: "Sur RDV", label: "Toujours à l'heure" },
-              { icon: MapPin, value: "À domicile", label: "On vient chez toi" },
+              { icon: MapPin, value: "À domicile", label: "Je viens chez toi" },
               { icon: Star, value: "5/5", label: "Avis clients" },
             ].map((item, i) => (
               <motion.div
@@ -222,32 +240,6 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      <div className="stripe-line" />
-
-      {/* BOOK Événementiel CTA */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-4xl mx-auto px-5 text-center">
-          <motion.div
-            initial="hidden" whileInView="visible" viewport={{ once: true }}
-            variants={fadeUp} custom={0}
-          >
-            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">BOOK ÉVÉNEMENTIEL</p>
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
-              Événements, artistes & collaborations
-            </h2>
-            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Découvrez nos partenaires, les artistes qui nous font confiance et nos prestations événementielles.
-            </p>
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant px-8">
-              <Link to="/evenements">
-                <ArrowRight className="h-4 w-4 mr-2" />
-                Voir mes prestations
-              </Link>
-            </Button>
-          </motion.div>
         </div>
       </section>
 

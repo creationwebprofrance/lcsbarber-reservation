@@ -64,6 +64,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
   const [editingPrice, setEditingPrice] = useState<string>("");
+  const [editingTimeBookingId, setEditingTimeBookingId] = useState<string | null>(null);
+  const [editingTime, setEditingTime] = useState<string>("");
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -228,6 +230,78 @@ export default function Dashboard() {
   const handleCancelEdit = () => {
     setEditingBookingId(null);
     setEditingPrice("");
+  };
+
+  const handleEditTime = (booking: RecentBooking) => {
+    setEditingTimeBookingId(booking.id);
+    setEditingTime(booking.appointment_time);
+  };
+
+  const handleCancelTimeEdit = () => {
+    setEditingTimeBookingId(null);
+    setEditingTime("");
+  };
+
+  const handleSaveTime = async (bookingId: string) => {
+    if (!editingTime || !/^\d{2}:\d{2}/.test(editingTime)) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez entrer une heure valide.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const booking = recentBookings.find(b => b.id === bookingId);
+    if (!booking) return;
+    const oldTime = booking.appointment_time;
+    const newTime = editingTime.slice(0, 5); // HH:mm
+
+    if (oldTime === newTime) {
+      handleCancelTimeEdit();
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ appointment_time: newTime })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke('notify-booking-time-change', {
+          body: {
+            clientName: booking.client_name,
+            clientEmail: booking.client_email,
+            serviceName: booking.service?.name || 'Service',
+            oldTime,
+            newTime,
+            appointmentDate: new Date(booking.appointment_date).toLocaleDateString('fr-FR'),
+          },
+        });
+      } catch (emailError) {
+        console.error("Email notification error:", emailError);
+      }
+
+      toast({
+        title: "Horaire modifié",
+        description: `Horaire mis à jour (${oldTime} → ${newTime}). Notifications envoyées.`,
+      });
+
+      setEditingTimeBookingId(null);
+      setEditingTime("");
+      loadDashboardData();
+    } catch (error) {
+      console.error('Erreur modification horaire:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier l'horaire.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSavePrice = async (bookingId: string) => {
@@ -410,9 +484,47 @@ export default function Dashboard() {
                         <p className="text-sm text-muted-foreground">
                           {booking.service?.name}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(booking.appointment_date).toLocaleDateString('fr-FR')} à {booking.appointment_time}
-                        </p>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(booking.appointment_date).toLocaleDateString('fr-FR')} à{' '}
+                          {editingTimeBookingId === booking.id ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Input
+                                type="time"
+                                value={editingTime}
+                                onChange={(e) => setEditingTime(e.target.value)}
+                                className="w-28 h-7 inline-block text-xs"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-green-600"
+                                onClick={() => handleSaveTime(booking.id)}
+                              >
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-red-600"
+                                onClick={handleCancelTimeEdit}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1">
+                              {booking.appointment_time}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => handleEditTime(booking)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
