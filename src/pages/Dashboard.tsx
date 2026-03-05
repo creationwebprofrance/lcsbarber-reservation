@@ -4,6 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Users, DollarSign, Calendar as CalendarIcon, TrendingUp, Trash2, Pencil, Check, X, MapPin, Ban } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -66,6 +71,8 @@ export default function Dashboard() {
   const [editingPrice, setEditingPrice] = useState<string>("");
   const [editingTimeBookingId, setEditingTimeBookingId] = useState<string | null>(null);
   const [editingTime, setEditingTime] = useState<string>("");
+  const [editingDateBookingId, setEditingDateBookingId] = useState<string | null>(null);
+  const [editingDate, setEditingDate] = useState<Date | undefined>(undefined);
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -235,6 +242,71 @@ export default function Dashboard() {
   const handleEditTime = (booking: RecentBooking) => {
     setEditingTimeBookingId(booking.id);
     setEditingTime(booking.appointment_time);
+  };
+
+  const handleEditDate = (booking: RecentBooking) => {
+    setEditingDateBookingId(booking.id);
+    setEditingDate(new Date(booking.appointment_date + 'T00:00:00'));
+  };
+
+  const handleCancelDateEdit = () => {
+    setEditingDateBookingId(null);
+    setEditingDate(undefined);
+  };
+
+  const handleSaveDate = async (bookingId: string) => {
+    if (!editingDate) return;
+
+    const booking = recentBookings.find(b => b.id === bookingId);
+    if (!booking) return;
+    const oldDate = booking.appointment_date;
+    const newDate = format(editingDate, 'yyyy-MM-dd');
+
+    if (oldDate === newDate) {
+      handleCancelDateEdit();
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ appointment_date: newDate })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke('notify-booking-time-change', {
+          body: {
+            clientName: booking.client_name,
+            clientEmail: booking.client_email,
+            serviceName: booking.service?.name || 'Service',
+            oldTime: new Date(oldDate).toLocaleDateString('fr-FR'),
+            newTime: format(editingDate, 'd MMMM yyyy', { locale: fr }),
+            appointmentDate: new Date(oldDate).toLocaleDateString('fr-FR'),
+            type: 'date',
+          },
+        });
+      } catch (emailError) {
+        console.error("Email notification error:", emailError);
+      }
+
+      toast({
+        title: "Date modifiée",
+        description: `Date mise à jour. Notifications envoyées.`,
+      });
+
+      handleCancelDateEdit();
+      loadDashboardData();
+    } catch (error) {
+      console.error('Erreur modification date:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier la date.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancelTimeEdit = () => {
@@ -484,8 +556,42 @@ export default function Dashboard() {
                         <p className="text-sm text-muted-foreground">
                           {booking.service?.name}
                         </p>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(booking.appointment_date).toLocaleDateString('fr-FR')} à{' '}
+                        <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-1">
+                          {editingDateBookingId === booking.id ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="outline" size="sm" className="h-7 text-xs">
+                                    <CalendarIcon className="h-3 w-3 mr-1" />
+                                    {editingDate ? format(editingDate, 'd MMM yyyy', { locale: fr }) : 'Choisir'}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={editingDate}
+                                    onSelect={setEditingDate}
+                                    initialFocus
+                                    className={cn("p-3 pointer-events-auto")}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-green-600" onClick={() => handleSaveDate(booking.id)}>
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-red-600" onClick={handleCancelDateEdit}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1">
+                              {new Date(booking.appointment_date).toLocaleDateString('fr-FR')}
+                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleEditDate(booking)}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            </span>
+                          )}
+                          <span>à</span>
                           {editingTimeBookingId === booking.id ? (
                             <span className="inline-flex items-center gap-1">
                               <Input
@@ -494,32 +600,17 @@ export default function Dashboard() {
                                 onChange={(e) => setEditingTime(e.target.value)}
                                 className="w-28 h-7 inline-block text-xs"
                               />
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 text-green-600"
-                                onClick={() => handleSaveTime(booking.id)}
-                              >
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-green-600" onClick={() => handleSaveTime(booking.id)}>
                                 <Check className="h-3 w-3" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 text-red-600"
-                                onClick={handleCancelTimeEdit}
-                              >
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-red-600" onClick={handleCancelTimeEdit}>
                                 <X className="h-3 w-3" />
                               </Button>
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1">
                               {booking.appointment_time}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6"
-                                onClick={() => handleEditTime(booking)}
-                              >
+                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleEditTime(booking)}>
                                 <Pencil className="h-3 w-3" />
                               </Button>
                             </span>
