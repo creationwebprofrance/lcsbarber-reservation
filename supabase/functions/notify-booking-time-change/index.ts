@@ -15,7 +15,9 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { clientName, clientEmail, serviceName, oldTime, newTime, appointmentDate } = await req.json();
+    const { clientName, clientEmail, serviceName, oldTime, newTime, appointmentDate, type } = await req.json();
+    const isDateChange = type === 'date';
+    const changeLabel = isDateChange ? "Changement de date" : "Changement d'horaire";
 
     if (!clientEmail || !clientName || !oldTime || !newTime) {
       return new Response(
@@ -26,6 +28,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     let emailsSent = 0;
 
+    const cssClass = isDateChange ? "date-change" : "time-change";
     const clientHtml = `
 <!DOCTYPE html>
 <html>
@@ -47,11 +50,11 @@ const handler = async (req: Request): Promise<Response> => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>💈 Changement d'horaire</h1>
+      <h1>💈 ${changeLabel}</h1>
     </div>
     <div class="content">
       <p>Bonjour <strong>${clientName}</strong>,</p>
-      <p>L'horaire de votre réservation <strong>${serviceName || 'prestation'}</strong>${appointmentDate ? ` du <strong>${appointmentDate}</strong>` : ''} a été modifié.</p>
+      <p>${isDateChange ? 'La date' : "L'horaire"} de votre réservation <strong>${serviceName || 'prestation'}</strong>${appointmentDate ? ` du <strong>${appointmentDate}</strong>` : ''} a été modifié${isDateChange ? 'e' : ''}.</p>
       
       <div class="time-change">
         <div class="old-time">${oldTime}</div>
@@ -74,7 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
       await resend.emails.send({
         from: "LCS Style <noreply@lookware.fr>",
         to: [clientEmail],
-        subject: `💈 Changement d'horaire - ${serviceName || 'Votre réservation'}`,
+        subject: `💈 ${changeLabel} - ${serviceName || 'Votre réservation'}`,
         html: clientHtml,
       });
       emailsSent++;
@@ -90,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
         await resend.emails.send({
           from: "LCS Style <noreply@lookware.fr>",
           to: [barberEmail],
-          subject: `💈 Horaire modifié - ${clientName} (${oldTime} → ${newTime})`,
+          subject: `💈 ${isDateChange ? 'Date modifiée' : 'Horaire modifié'} - ${clientName} (${oldTime} → ${newTime})`,
           html: `
 <!DOCTYPE html>
 <html>
@@ -108,9 +111,9 @@ const handler = async (req: Request): Promise<Response> => {
 </head>
 <body>
   <div class="container">
-    <div class="header"><h1>💈 Changement d'horaire (Admin)</h1></div>
+    <div class="header"><h1>💈 ${changeLabel} (Admin)</h1></div>
     <div class="content">
-      <p>L'horaire de la réservation de <strong>${clientName}</strong> (${serviceName || 'prestation'}) a été modifié.</p>
+      <p>${isDateChange ? 'La date' : "L'horaire"} de la réservation de <strong>${clientName}</strong> (${serviceName || 'prestation'}) a été modifié${isDateChange ? 'e' : ''}.</p>
       ${appointmentDate ? `<p>📅 ${appointmentDate}</p>` : ''}
       <div class="time-change">
         <div class="old-time">${oldTime}</div>
