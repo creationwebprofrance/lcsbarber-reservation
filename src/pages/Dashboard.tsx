@@ -442,6 +442,18 @@ export default function Dashboard() {
     }
   };
 
+  // Pagination computed values
+  const totalPages = Math.ceil(allBookings.length / itemsPerPage);
+  const paginatedBookings = allBookings.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
