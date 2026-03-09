@@ -72,6 +72,7 @@ const AdminEvenements = () => {
           <TabsList>
             <TabsTrigger value="carnaval">🎭 Carnaval</TabsTrigger>
             <TabsTrigger value="events">📅 Événements</TabsTrigger>
+            <TabsTrigger value="artists">🎤 Artistes</TabsTrigger>
             <TabsTrigger value="book-section">📖 Section BOOK</TabsTrigger>
           </TabsList>
 
@@ -81,6 +82,10 @@ const AdminEvenements = () => {
 
           <TabsContent value="events">
             <EventsAdmin />
+          </TabsContent>
+
+          <TabsContent value="artists">
+            <ArtistsAdmin />
           </TabsContent>
 
           <TabsContent value="book-section">
