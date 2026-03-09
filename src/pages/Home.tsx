@@ -91,7 +91,7 @@ export default function Home() {
                   </Link>
                 </Button>
               </>
-            )
+            )}
             {!user && (
               <Button asChild variant="ghost" size="sm" className="text-xs">
                 <Link to="/auth">
