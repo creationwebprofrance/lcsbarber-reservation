@@ -259,7 +259,7 @@ export default function Dashboard() {
   const handleSaveDate = async (bookingId: string) => {
     if (!editingDate) return;
 
-    const booking = recentBookings.find(b => b.id === bookingId);
+    const booking = allBookings.find(b => b.id === bookingId);
     if (!booking) return;
     const oldDate = booking.appointment_date;
     const newDate = format(editingDate, 'yyyy-MM-dd');
