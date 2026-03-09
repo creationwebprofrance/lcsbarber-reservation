@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      artists: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          name: string
+          photo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          name: string
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          name?: string
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           appointment_date: string

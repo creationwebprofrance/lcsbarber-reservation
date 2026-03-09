@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CarnavalAdmin } from "@/components/CarnavalAdmin";
 import { EventsAdmin } from "@/components/EventsAdmin";
 import { BookEventSectionAdmin } from "@/components/BookEventSectionAdmin";
+import { ArtistsAdmin } from "@/components/ArtistsAdmin";
 
 const AdminEvenements = () => {
   const [loading, setLoading] = useState(true);
@@ -71,6 +72,7 @@ const AdminEvenements = () => {
           <TabsList>
             <TabsTrigger value="carnaval">🎭 Carnaval</TabsTrigger>
             <TabsTrigger value="events">📅 Événements</TabsTrigger>
+            <TabsTrigger value="artists">🎤 Artistes</TabsTrigger>
             <TabsTrigger value="book-section">📖 Section BOOK</TabsTrigger>
           </TabsList>
 
@@ -80,6 +82,10 @@ const AdminEvenements = () => {
 
           <TabsContent value="events">
             <EventsAdmin />
+          </TabsContent>
+
+          <TabsContent value="artists">
+            <ArtistsAdmin />
           </TabsContent>
 
           <TabsContent value="book-section">

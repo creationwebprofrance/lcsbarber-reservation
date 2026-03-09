@@ -84,6 +84,12 @@ export default function Home() {
                     <span className="hidden sm:inline">Simulation</span>
                   </Link>
                 </Button>
+                <Button asChild variant="ghost" size="sm" className="text-xs">
+                  <Link to="/admin-evenements">
+                    <PartyPopper className="h-4 w-4 sm:mr-1.5" />
+                    <span className="hidden sm:inline">Événements</span>
+                  </Link>
+                </Button>
               </>
             )}
             {!user && (
