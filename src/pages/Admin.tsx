@@ -22,9 +22,6 @@ import { UserManagement } from "@/components/UserManagement";
 import { PricingSettings } from "@/components/PricingSettings";
 import { BookingsCalendar } from "@/components/BookingsCalendar";
 import { EmailTemplateEditor } from "@/components/EmailTemplateEditor";
-import { CarnavalAdmin } from "@/components/CarnavalAdmin";
-import { EventsAdmin } from "@/components/EventsAdmin";
-import { BookEventSectionAdmin } from "@/components/BookEventSectionAdmin";
 
 interface CalendarSetting {
   id: string;
