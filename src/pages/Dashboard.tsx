@@ -472,10 +472,10 @@ export default function Dashboard() {
             <p className="text-muted-foreground">Aperçu de votre activité</p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" size="sm" onClick={() => navigate('/')}>Accueil</Button>
-            <Button variant="outline" size="sm" onClick={() => navigate('/admin')}>Administration</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/admin')}>Admin</Button>
             <Button variant="outline" size="sm" onClick={() => navigate('/simulator')}>Simulation</Button>
-            <Button variant="outline" size="sm" onClick={() => navigate('/evenements')}>Événements</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/admin-evenements')}>Événements</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/')}>Accueil</Button>
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Déconnexion</span>

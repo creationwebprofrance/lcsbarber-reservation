@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Settings, Calendar as CalendarIcon, Users, BarChart, Star, Clock, Euro, Mail, Calculator, PartyPopper, CalendarDays } from "lucide-react";
+import { LogOut, Settings, Calendar as CalendarIcon, Users, Star, Clock, Euro, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,9 +22,6 @@ import { UserManagement } from "@/components/UserManagement";
 import { PricingSettings } from "@/components/PricingSettings";
 import { BookingsCalendar } from "@/components/BookingsCalendar";
 import { EmailTemplateEditor } from "@/components/EmailTemplateEditor";
-import { CarnavalAdmin } from "@/components/CarnavalAdmin";
-import { EventsAdmin } from "@/components/EventsAdmin";
-import { BookEventSectionAdmin } from "@/components/BookEventSectionAdmin";
 
 interface CalendarSetting {
   id: string;
@@ -254,10 +251,10 @@ export const Admin = () => {
             Administration
           </h1>
           <div className="flex items-center gap-2 flex-wrap justify-end">
-            <Button variant="outline" size="sm" onClick={() => navigate('/')}>Accueil</Button>
             <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>Dashboard</Button>
             <Button variant="outline" size="sm" onClick={() => navigate('/simulator')}>Simulation</Button>
-            <Button variant="outline" size="sm" onClick={() => navigate('/evenements')}>Événements</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/admin-evenements')}>Événements</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/')}>Accueil</Button>
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Déconnexion</span>
@@ -301,18 +298,6 @@ export const Admin = () => {
               <TabsTrigger value="emails" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
                 <Mail className="h-4 w-4 shrink-0" />
                 <span>Emails</span>
-              </TabsTrigger>
-              <TabsTrigger value="carnaval" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
-                <PartyPopper className="h-4 w-4 shrink-0" />
-                <span>🎭 Carnaval</span>
-              </TabsTrigger>
-              <TabsTrigger value="events" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
-                <CalendarDays className="h-4 w-4 shrink-0" />
-                <span>Événements</span>
-              </TabsTrigger>
-              <TabsTrigger value="book-section" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
-                <PartyPopper className="h-4 w-4 shrink-0" />
-                <span>Section BOOK</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -516,17 +501,6 @@ export const Admin = () => {
             <EmailTemplateEditor />
           </TabsContent>
 
-          <TabsContent value="carnaval">
-            <CarnavalAdmin />
-          </TabsContent>
-
-          <TabsContent value="events">
-            <EventsAdmin />
-          </TabsContent>
-
-          <TabsContent value="book-section">
-            <BookEventSectionAdmin />
-          </TabsContent>
         </Tabs>
       </div>
     </div>
