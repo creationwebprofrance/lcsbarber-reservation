@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Users, DollarSign, Calendar as CalendarIcon, TrendingUp, Trash2, Pencil, Check, X, MapPin, Ban } from "lucide-react";
+import { ArrowLeft, Users, DollarSign, Calendar as CalendarIcon, TrendingUp, Trash2, Pencil, Check, X, MapPin, Ban, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -64,7 +64,9 @@ export default function Dashboard() {
     confirmedBookings: 0,
     monthlyGrowth: 0
   });
-  const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
+  const [allBookings, setAllBookings] = useState<RecentBooking[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [cityStats, setCityStats] = useState<CityStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
@@ -139,7 +141,7 @@ export default function Dashboard() {
       
       setCityStats(sortedCities);
 
-      setRecentBookings(bookings?.slice(0, 10) || []);
+      setAllBookings(bookings || []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -257,7 +259,7 @@ export default function Dashboard() {
   const handleSaveDate = async (bookingId: string) => {
     if (!editingDate) return;
 
-    const booking = recentBookings.find(b => b.id === bookingId);
+    const booking = allBookings.find(b => b.id === bookingId);
     if (!booking) return;
     const oldDate = booking.appointment_date;
     const newDate = format(editingDate, 'yyyy-MM-dd');
@@ -324,7 +326,7 @@ export default function Dashboard() {
       return;
     }
 
-    const booking = recentBookings.find(b => b.id === bookingId);
+    const booking = allBookings.find(b => b.id === bookingId);
     if (!booking) return;
     const oldTime = booking.appointment_time;
     const newTime = editingTime.slice(0, 5); // HH:mm
@@ -387,7 +389,7 @@ export default function Dashboard() {
       return;
     }
 
-    const booking = recentBookings.find(b => b.id === bookingId);
+    const booking = allBookings.find(b => b.id === bookingId);
     if (!booking) return;
     const oldPrice = booking.total_price;
 
@@ -440,6 +442,18 @@ export default function Dashboard() {
     }
   };
 
+  // Pagination computed values
+  const totalPages = Math.ceil(allBookings.length / itemsPerPage);
+  const paginatedBookings = allBookings.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -452,20 +466,19 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* En-tête */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
             <p className="text-muted-foreground">Aperçu de votre activité</p>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline">
-              <Link to="/admin">Administration</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour
-              </Link>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={() => navigate('/')}>Accueil</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/admin')}>Administration</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/simulator')}>Simulation</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/evenements')}>Événements</Button>
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Déconnexion</span>
             </Button>
           </div>
         </div>
@@ -541,7 +554,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentBookings.length > 0 ? recentBookings.map((booking) => (
+                  {paginatedBookings.length > 0 ? paginatedBookings.map((booking) => (
                     <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -716,6 +729,35 @@ export default function Dashboard() {
                     </div>
                   )}
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                    <p className="text-sm text-muted-foreground">
+                      Page {currentPage} sur {totalPages} ({allBookings.length} réservations)
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Précédent
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        Suivant
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
