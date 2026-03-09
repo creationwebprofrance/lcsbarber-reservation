@@ -181,17 +181,17 @@ export default function Home() {
             initial="hidden" whileInView="visible" viewport={{ once: true }}
             variants={fadeUp} custom={0}
           >
-            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">BOOK ÉVÉNEMENTIEL</p>
+            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">{bookSection.label}</p>
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
-              Événements, artistes & collaborations
+              {bookSection.title}
             </h2>
             <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Découvrez mes partenaires, les artistes qui me font confiance et mes prestations événementielles.
+              {bookSection.description}
             </p>
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant px-8">
-              <Link to="/evenements">
+              <Link to={bookSection.buttonLink}>
                 <ArrowRight className="h-4 w-4 mr-2" />
-                Voir mes prestations
+                {bookSection.buttonText}
               </Link>
             </Button>
           </motion.div>

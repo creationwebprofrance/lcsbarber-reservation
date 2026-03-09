@@ -527,6 +527,10 @@ export const Admin = () => {
           <TabsContent value="events">
             <EventsAdmin />
           </TabsContent>
+
+          <TabsContent value="book-section">
+            <BookEventSectionAdmin />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
