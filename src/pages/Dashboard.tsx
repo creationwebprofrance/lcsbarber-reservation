@@ -64,7 +64,9 @@ export default function Dashboard() {
     confirmedBookings: 0,
     monthlyGrowth: 0
   });
-  const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
+  const [allBookings, setAllBookings] = useState<RecentBooking[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [cityStats, setCityStats] = useState<CityStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
