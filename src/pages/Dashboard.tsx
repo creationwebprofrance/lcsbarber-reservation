@@ -466,20 +466,19 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* En-tête */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
             <p className="text-muted-foreground">Aperçu de votre activité</p>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline">
-              <Link to="/admin">Administration</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour
-              </Link>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={() => navigate('/')}>Accueil</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/admin')}>Administration</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/simulator')}>Simulation</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/evenements')}>Événements</Button>
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Déconnexion</span>
             </Button>
           </div>
         </div>
