@@ -141,7 +141,7 @@ export default function Dashboard() {
       
       setCityStats(sortedCities);
 
-      setRecentBookings(bookings?.slice(0, 10) || []);
+      setAllBookings(bookings || []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
