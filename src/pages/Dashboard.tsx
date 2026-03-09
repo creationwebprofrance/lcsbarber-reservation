@@ -326,7 +326,7 @@ export default function Dashboard() {
       return;
     }
 
-    const booking = recentBookings.find(b => b.id === bookingId);
+    const booking = allBookings.find(b => b.id === bookingId);
     if (!booking) return;
     const oldTime = booking.appointment_time;
     const newTime = editingTime.slice(0, 5); // HH:mm
