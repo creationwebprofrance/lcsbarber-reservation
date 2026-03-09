@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Users, DollarSign, Calendar as CalendarIcon, TrendingUp, Trash2, Pencil, Check, X, MapPin, Ban } from "lucide-react";
+import { ArrowLeft, Users, DollarSign, Calendar as CalendarIcon, TrendingUp, Trash2, Pencil, Check, X, MapPin, Ban, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
