@@ -314,6 +314,10 @@ export const Admin = () => {
                 <CalendarDays className="h-4 w-4 shrink-0" />
                 <span>Événements</span>
               </TabsTrigger>
+              <TabsTrigger value="book-section" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <PartyPopper className="h-4 w-4 shrink-0" />
+                <span>Section BOOK</span>
+              </TabsTrigger>
             </TabsList>
           </div>
 
