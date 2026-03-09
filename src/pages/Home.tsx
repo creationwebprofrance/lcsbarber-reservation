@@ -20,6 +20,13 @@ const fadeUp = {
 export default function Home() {
   const { user, isAdmin } = useAuth();
   const [hasActiveEvent, setHasActiveEvent] = useState(false);
+  const [bookSection, setBookSection] = useState({
+    label: "BOOK ÉVÉNEMENTIEL",
+    title: "Événements, artistes & collaborations",
+    description: "Découvrez mes partenaires, les artistes qui me font confiance et mes prestations événementielles.",
+    buttonText: "Voir mes prestations",
+    buttonLink: "/evenements",
+  });
 
   useEffect(() => {
     supabase
@@ -28,6 +35,24 @@ export default function Home() {
       .eq("is_active", true)
       .limit(1)
       .then(({ data }) => setHasActiveEvent(!!(data && data.length > 0)));
+
+    supabase
+      .from("carnaval_settings")
+      .select("setting_key, setting_value")
+      .like("setting_key", "book_event_%")
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const map: Record<string, string> = {};
+          data.forEach((r) => (map[r.setting_key] = r.setting_value));
+          setBookSection({
+            label: map.book_event_label || "BOOK ÉVÉNEMENTIEL",
+            title: map.book_event_title || "Événements, artistes & collaborations",
+            description: map.book_event_description || "",
+            buttonText: map.book_event_button_text || "Voir mes prestations",
+            buttonLink: map.book_event_button_link || "/evenements",
+          });
+        }
+      });
   }, []);
 
   return (
@@ -156,17 +181,17 @@ export default function Home() {
             initial="hidden" whileInView="visible" viewport={{ once: true }}
             variants={fadeUp} custom={0}
           >
-            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">BOOK ÉVÉNEMENTIEL</p>
+            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">{bookSection.label}</p>
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
-              Événements, artistes & collaborations
+              {bookSection.title}
             </h2>
             <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Découvrez mes partenaires, les artistes qui me font confiance et mes prestations événementielles.
+              {bookSection.description}
             </p>
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant px-8">
-              <Link to="/evenements">
+              <Link to={bookSection.buttonLink}>
                 <ArrowRight className="h-4 w-4 mr-2" />
-                Voir mes prestations
+                {bookSection.buttonText}
               </Link>
             </Button>
           </motion.div>

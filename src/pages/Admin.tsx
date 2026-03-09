@@ -24,6 +24,7 @@ import { BookingsCalendar } from "@/components/BookingsCalendar";
 import { EmailTemplateEditor } from "@/components/EmailTemplateEditor";
 import { CarnavalAdmin } from "@/components/CarnavalAdmin";
 import { EventsAdmin } from "@/components/EventsAdmin";
+import { BookEventSectionAdmin } from "@/components/BookEventSectionAdmin";
 
 interface CalendarSetting {
   id: string;
@@ -313,6 +314,10 @@ export const Admin = () => {
                 <CalendarDays className="h-4 w-4 shrink-0" />
                 <span>Événements</span>
               </TabsTrigger>
+              <TabsTrigger value="book-section" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <PartyPopper className="h-4 w-4 shrink-0" />
+                <span>Section BOOK</span>
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -521,6 +526,10 @@ export const Admin = () => {
 
           <TabsContent value="events">
             <EventsAdmin />
+          </TabsContent>
+
+          <TabsContent value="book-section">
+            <BookEventSectionAdmin />
           </TabsContent>
         </Tabs>
       </div>
