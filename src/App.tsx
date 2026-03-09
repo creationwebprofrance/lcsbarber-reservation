@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Simulator from "./pages/Simulator";
 import Carnaval from "./pages/Carnaval";
 import Evenements from "./pages/Evenements";
+import AdminEvenements from "./pages/AdminEvenements";
 import NotFound from "./pages/NotFound";
 import { Auth } from "./pages/Auth";
 import { Admin } from "./pages/Admin";
