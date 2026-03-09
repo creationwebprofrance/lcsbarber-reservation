@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CarnavalAdmin } from "@/components/CarnavalAdmin";
 import { EventsAdmin } from "@/components/EventsAdmin";
 import { BookEventSectionAdmin } from "@/components/BookEventSectionAdmin";
+import { ArtistsAdmin } from "@/components/ArtistsAdmin";
 
 const AdminEvenements = () => {
   const [loading, setLoading] = useState(true);
