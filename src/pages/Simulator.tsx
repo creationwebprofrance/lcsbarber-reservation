@@ -34,6 +34,11 @@ const Simulator = () => {
     checkAuth();
   }, []);
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   if (!isAdmin) return <div className="min-h-screen flex items-center justify-center">Accès refusé</div>;
 
