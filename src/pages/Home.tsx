@@ -20,6 +20,13 @@ const fadeUp = {
 export default function Home() {
   const { user, isAdmin } = useAuth();
   const [hasActiveEvent, setHasActiveEvent] = useState(false);
+  const [bookSection, setBookSection] = useState({
+    label: "BOOK ÉVÉNEMENTIEL",
+    title: "Événements, artistes & collaborations",
+    description: "Découvrez mes partenaires, les artistes qui me font confiance et mes prestations événementielles.",
+    buttonText: "Voir mes prestations",
+    buttonLink: "/evenements",
+  });
 
   useEffect(() => {
     supabase
@@ -28,6 +35,24 @@ export default function Home() {
       .eq("is_active", true)
       .limit(1)
       .then(({ data }) => setHasActiveEvent(!!(data && data.length > 0)));
+
+    supabase
+      .from("carnaval_settings")
+      .select("setting_key, setting_value")
+      .like("setting_key", "book_event_%")
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const map: Record<string, string> = {};
+          data.forEach((r) => (map[r.setting_key] = r.setting_value));
+          setBookSection({
+            label: map.book_event_label || "BOOK ÉVÉNEMENTIEL",
+            title: map.book_event_title || "Événements, artistes & collaborations",
+            description: map.book_event_description || "",
+            buttonText: map.book_event_button_text || "Voir mes prestations",
+            buttonLink: map.book_event_button_link || "/evenements",
+          });
+        }
+      });
   }, []);
 
   return (
