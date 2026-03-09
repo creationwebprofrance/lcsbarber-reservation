@@ -504,17 +504,6 @@ export const Admin = () => {
             <EmailTemplateEditor />
           </TabsContent>
 
-          <TabsContent value="carnaval">
-            <CarnavalAdmin />
-          </TabsContent>
-
-          <TabsContent value="events">
-            <EventsAdmin />
-          </TabsContent>
-
-          <TabsContent value="book-section">
-            <BookEventSectionAdmin />
-          </TabsContent>
         </Tabs>
       </div>
     </div>
