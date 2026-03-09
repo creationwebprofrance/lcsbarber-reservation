@@ -389,7 +389,7 @@ export default function Dashboard() {
       return;
     }
 
-    const booking = recentBookings.find(b => b.id === bookingId);
+    const booking = allBookings.find(b => b.id === bookingId);
     if (!booking) return;
     const oldPrice = booking.total_price;
 

@@ -50,9 +50,15 @@ const Simulator = () => {
             <Calculator className="h-6 w-6" />
             Simulation de prix
           </h1>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>Dashboard</Button>
-            <Button variant="outline" onClick={() => navigate('/admin')}>Administration</Button>
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <Button variant="outline" size="sm" onClick={() => navigate('/')}>Accueil</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/admin')}>Administration</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>Dashboard</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/evenements')}>Événements</Button>
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Déconnexion</span>
+            </Button>
           </div>
         </div>
       </header>
