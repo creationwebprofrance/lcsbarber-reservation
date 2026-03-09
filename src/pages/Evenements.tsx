@@ -32,18 +32,16 @@ interface EventData {
 }
 
 export default function Evenements() {
-  const [activeEvent, setActiveEvent] = useState<EventData | null>(null);
+  const [events, setEvents] = useState<EventData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase
       .from("events")
       .select("*")
-      .eq("is_active", true)
       .order("start_date", { ascending: true })
-      .limit(1)
       .then(({ data }) => {
-        setActiveEvent(data && data.length > 0 ? data[0] as EventData : null);
+        setEvents((data as EventData[]) || []);
         setLoading(false);
       });
   }, []);
