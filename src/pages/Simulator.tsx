@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Calculator } from "lucide-react";
+import { ArrowLeft, Calculator, LogOut } from "lucide-react";
 import { PriceSimulator } from "@/components/PriceSimulator";
 
 const Simulator = () => {
