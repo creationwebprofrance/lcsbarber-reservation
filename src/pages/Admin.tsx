@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Settings, Calendar as CalendarIcon, Users, BarChart, Star, Clock, Euro, Mail, Calculator, PartyPopper, CalendarDays } from "lucide-react";
+import { LogOut, Settings, Calendar as CalendarIcon, Users, Star, Clock, Euro, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
