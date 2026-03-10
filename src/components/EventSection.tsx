@@ -34,12 +34,19 @@ const organizations: Organization[] = [
   { name: "OG Event", logo: ogEventLogo, description: "Rookie 2025 – Événementiel", bgClass: "bg-black", hasGallery: false },
 ];
 
+interface ArtistImage {
+  id: string;
+  image_url: string;
+  display_order: number;
+}
+
 interface Artist {
   id: string;
   name: string;
   description: string | null;
   photo_url: string | null;
   display_order: number;
+  images: ArtistImage[];
 }
 
 export default function EventSection() {
@@ -48,11 +55,25 @@ export default function EventSection() {
   const [artists, setArtists] = useState<Artist[]>([]);
 
   useEffect(() => {
-    supabase
-      .from("artists")
-      .select("*")
-      .order("display_order", { ascending: true })
-      .then(({ data }) => setArtists((data as Artist[]) || []));
+    const load = async () => {
+      const { data: artistsData } = await supabase
+        .from("artists")
+        .select("*")
+        .order("display_order", { ascending: true });
+
+      const { data: imagesData } = await supabase
+        .from("artist_images")
+        .select("*")
+        .order("display_order", { ascending: true });
+
+      setArtists(
+        (artistsData || []).map((a: any) => ({
+          ...a,
+          images: (imagesData || []).filter((img: any) => img.artist_id === a.id),
+        }))
+      );
+    };
+    load();
   }, []);
 
   return (
@@ -159,11 +180,19 @@ export default function EventSection() {
             <DialogTitle className="text-xl">{selectedArtist?.name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {selectedArtist?.photo_url && (
+            {selectedArtist && selectedArtist.images.length > 0 ? (
+              <div className={`grid ${selectedArtist.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+                {selectedArtist.images.map((img, idx) => (
+                  <div key={img.id} className={`rounded-lg overflow-hidden ${idx === 0 && selectedArtist.images.length > 1 ? 'col-span-2 aspect-[4/3]' : 'aspect-square'}`}>
+                    <img src={img.image_url} alt={selectedArtist.name} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            ) : selectedArtist?.photo_url ? (
               <div className="aspect-[4/3] rounded-lg overflow-hidden">
                 <img src={selectedArtist.photo_url} alt={selectedArtist.name} className="w-full h-full object-cover" />
               </div>
-            )}
+            ) : null}
             <p className="text-muted-foreground leading-relaxed">{selectedArtist?.description}</p>
           </div>
         </DialogContent>
