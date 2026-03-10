@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, Clock, Euro } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 import EventSection from "@/components/EventSection";
+import EventBookingCard from "@/components/EventBookingCard";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -29,6 +29,7 @@ interface EventData {
   prix_coupe_barbe: number;
   prix_barbe: number;
   prix_contours: number;
+  excluded_services?: string | null;
 }
 
 export default function Evenements() {
@@ -39,15 +40,13 @@ export default function Evenements() {
     supabase
       .from("events")
       .select("*")
+      .eq("is_active", true)
       .order("start_date", { ascending: true })
       .then(({ data }) => {
         setEvents((data as EventData[]) || []);
         setLoading(false);
       });
   }, []);
-
-  const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,80 +84,8 @@ export default function Evenements() {
               <div className="text-center py-12 text-muted-foreground">Chargement...</div>
             ) : events.length > 0 ? (
               <div className="space-y-6">
-                {events.map((event, idx) => (
-                  <motion.div
-                    key={event.id}
-                    className={`bg-card border rounded-2xl p-8 sm:p-10 relative overflow-hidden ${
-                      event.is_active
-                        ? "border-border/50"
-                        : "border-border/30 opacity-50 grayscale pointer-events-none select-none"
-                    }`}
-                    initial="hidden" whileInView="visible" viewport={{ once: true }}
-                    variants={fadeUp} custom={idx + 1}
-                  >
-                    <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-                    <Badge className={`mb-4 ${
-                      event.is_active
-                        ? "bg-primary/10 text-primary border-primary/20"
-                        : "bg-muted text-muted-foreground border-border"
-                    }`}>
-                      {event.is_active ? "🎉 Actif" : "🔒 Bientôt disponible"}
-                    </Badge>
-                    <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">{event.name}</h3>
-                    {event.description && (
-                      <p className="text-muted-foreground mb-6">{event.description}</p>
-                    )}
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                      <div className="flex items-center gap-3 bg-muted/50 rounded-xl p-4">
-                        <Calendar className="h-5 w-5 text-primary shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Dates</p>
-                          <p className="text-sm font-semibold text-foreground">
-                            {formatDate(event.start_date)} — {formatDate(event.end_date)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 bg-muted/50 rounded-xl p-4">
-                        <Clock className="h-5 w-5 text-primary shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Horaires</p>
-                          <p className="text-sm font-semibold text-foreground">
-                            {event.start_hour.slice(0, 5)} — {event.end_hour.slice(0, 5)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 bg-muted/50 rounded-xl p-4">
-                        <Euro className="h-5 w-5 text-primary shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">À partir de</p>
-                          <p className="text-sm font-semibold text-foreground">
-                            {Math.min(
-                              event.prix_coupe_classique,
-                              event.prix_coupe_barbe,
-                              event.prix_barbe,
-                              event.prix_contours
-                            ).toFixed(0)}€
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Prices grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {[
-                        { label: "Coupe classique", price: event.prix_coupe_classique },
-                        { label: "Coupe + barbe", price: event.prix_coupe_barbe },
-                        { label: "Barbe", price: event.prix_barbe },
-                        { label: "Contours", price: event.prix_contours },
-                      ].map((item) => (
-                        <div key={item.label} className="bg-background border border-border/50 rounded-xl p-4 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
-                          <p className="text-xl font-bold text-foreground">{item.price}€</p>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
+                {events.map((event) => (
+                  <EventBookingCard key={event.id} event={event} />
                 ))}
               </div>
             ) : (
