@@ -55,11 +55,25 @@ export default function EventSection() {
   const [artists, setArtists] = useState<Artist[]>([]);
 
   useEffect(() => {
-    supabase
-      .from("artists")
-      .select("*")
-      .order("display_order", { ascending: true })
-      .then(({ data }) => setArtists((data as Artist[]) || []));
+    const load = async () => {
+      const { data: artistsData } = await supabase
+        .from("artists")
+        .select("*")
+        .order("display_order", { ascending: true });
+
+      const { data: imagesData } = await supabase
+        .from("artist_images")
+        .select("*")
+        .order("display_order", { ascending: true });
+
+      setArtists(
+        (artistsData || []).map((a: any) => ({
+          ...a,
+          images: (imagesData || []).filter((img: any) => img.artist_id === a.id),
+        }))
+      );
+    };
+    load();
   }, []);
 
   return (
