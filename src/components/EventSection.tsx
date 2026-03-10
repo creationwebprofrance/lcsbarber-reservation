@@ -34,12 +34,19 @@ const organizations: Organization[] = [
   { name: "OG Event", logo: ogEventLogo, description: "Rookie 2025 – Événementiel", bgClass: "bg-black", hasGallery: false },
 ];
 
+interface ArtistImage {
+  id: string;
+  image_url: string;
+  display_order: number;
+}
+
 interface Artist {
   id: string;
   name: string;
   description: string | null;
   photo_url: string | null;
   display_order: number;
+  images: ArtistImage[];
 }
 
 export default function EventSection() {
