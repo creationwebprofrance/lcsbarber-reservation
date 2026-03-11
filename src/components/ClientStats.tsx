@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Users, DollarSign, Calendar, Phone, Clock, Save, Pencil } from "lucide-react";
+import { Users, DollarSign, Calendar, Phone, Clock, Save, Merge } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -15,7 +16,7 @@ const ADMIN_EMAIL = "lucas.chipan97@gmail.com";
 
 interface ClientStat {
   key: string;
-  client_email: string;
+  client_emails: string[];
   client_name: string;
   client_phone: string;
   total_bookings: number;
@@ -28,6 +29,11 @@ interface ClientStat {
   dates: string[];
 }
 
+interface DuplicateGroup {
+  name: string;
+  entries: { key: string; email: string; count: number }[];
+}
+
 export const ClientStats = () => {
   const [stats, setStats] = useState<ClientStat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +44,8 @@ export const ClientStats = () => {
   const [editPhone, setEditPhone] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [saving, setSaving] = useState(false);
+  const [duplicates, setDuplicates] = useState<DuplicateGroup[]>([]);
+  const [currentMerge, setCurrentMerge] = useState<DuplicateGroup | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,7 +74,6 @@ export const ClientStats = () => {
 
       bookings?.forEach((booking: any) => {
         const email = booking.client_email;
-        // For admin email, group by client_name; otherwise by email
         const groupKey = email === ADMIN_EMAIL
           ? `name:${booking.client_name?.toLowerCase().trim()}`
           : `email:${email}`;
@@ -74,7 +81,7 @@ export const ClientStats = () => {
         if (!clientMap.has(groupKey)) {
           clientMap.set(groupKey, {
             key: groupKey,
-            client_email: email,
+            client_emails: [email],
             client_name: booking.client_name,
             client_phone: booking.client_phone || "Non renseigné",
             total_bookings: 0,
@@ -92,6 +99,9 @@ export const ClientStats = () => {
         client.total_bookings += 1;
         client.total_spent += Number(booking.total_price);
         client.dates.push(booking.appointment_date);
+        if (!client.client_emails.includes(email)) {
+          client.client_emails.push(email);
+        }
 
         const serviceName = booking.services?.name;
         if (serviceName && !client.services.includes(serviceName)) {
@@ -101,7 +111,6 @@ export const ClientStats = () => {
 
       const statsArray = Array.from(clientMap.values())
         .map(c => {
-          // Calculate average days between cuts
           let avgDays: number | null = null;
           if (c.dates.length >= 2) {
             const sorted = [...c.dates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
@@ -111,17 +120,28 @@ export const ClientStats = () => {
             }
             avgDays = Math.round(totalDiff / (sorted.length - 1));
           }
-          return {
-            ...c,
-            avg_spent: c.total_bookings > 0 ? c.total_spent / c.total_bookings : 0,
-            avg_days_between: avgDays,
-          };
+          return { ...c, avg_spent: c.total_bookings > 0 ? c.total_spent / c.total_bookings : 0, avg_days_between: avgDays };
         })
         .sort((a, b) => b.total_spent - a.total_spent);
 
       setStats(statsArray);
       setTotalClients(statsArray.length);
-      setTotalRevenue(statsArray.reduce((sum, client) => sum + client.total_spent, 0));
+      setTotalRevenue(statsArray.reduce((sum, c) => sum + c.total_spent, 0));
+
+      // Detect duplicates by normalized name across different emails (excluding admin-grouped)
+      const nameMap = new Map<string, { key: string; email: string; count: number }[]>();
+      statsArray.forEach(c => {
+        const norm = c.client_name.toLowerCase().trim();
+        if (!nameMap.has(norm)) nameMap.set(norm, []);
+        nameMap.get(norm)!.push({ key: c.key, email: c.client_emails[0], count: c.total_bookings });
+      });
+      const dupes: DuplicateGroup[] = [];
+      nameMap.forEach((entries, name) => {
+        if (entries.length > 1) {
+          dupes.push({ name, entries });
+        }
+      });
+      setDuplicates(dupes);
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {
@@ -133,7 +153,7 @@ export const ClientStats = () => {
     setSelectedClient(client);
     setEditName(client.client_name);
     setEditPhone(client.client_phone === "Non renseigné" ? "" : client.client_phone);
-    setEditEmail(client.client_email);
+    setEditEmail(client.client_emails[0]);
   };
 
   const handleSave = async () => {
@@ -142,7 +162,6 @@ export const ClientStats = () => {
     try {
       const isAdminGrouped = selectedClient.key.startsWith("name:");
 
-      // Build the update query matching all bookings for this client
       let query = supabase.from('bookings').update({
         client_name: editName.trim(),
         client_phone: editPhone.trim(),
@@ -150,25 +169,19 @@ export const ClientStats = () => {
       });
 
       if (isAdminGrouped) {
-        query = query
-          .eq('client_email', ADMIN_EMAIL)
-          .ilike('client_name', selectedClient.client_name);
+        query = query.eq('client_email', ADMIN_EMAIL).ilike('client_name', selectedClient.client_name);
       } else {
-        query = query.eq('client_email', selectedClient.client_email);
+        query = query.eq('client_email', selectedClient.client_emails[0]);
       }
 
       const { error } = await query;
       if (error) throw error;
 
-      // Also update clients table if exists
-      await supabase
-        .from('clients')
-        .update({
-          name: editName.trim(),
-          phone: editPhone.trim(),
-          email: editEmail.trim(),
-        })
-        .eq('email', selectedClient.client_email);
+      await supabase.from('clients').update({
+        name: editName.trim(),
+        phone: editPhone.trim(),
+        email: editEmail.trim(),
+      }).eq('email', selectedClient.client_emails[0]);
 
       toast({ title: "Succès", description: "Fiche client mise à jour." });
       setSelectedClient(null);
@@ -180,12 +193,60 @@ export const ClientStats = () => {
     }
   };
 
+  const handleMerge = async (group: DuplicateGroup) => {
+    try {
+      // Keep the first email as the main one
+      const mainEntry = group.entries[0];
+      const otherEmails = group.entries.slice(1).map(e => e.email);
+
+      for (const email of otherEmails) {
+        if (email !== mainEntry.email) {
+          await supabase.from('bookings').update({ client_email: mainEntry.email }).eq('client_email', email);
+          await supabase.from('clients').delete().eq('email', email);
+        }
+      }
+
+      toast({ title: "Succès", description: `Les fiches "${group.name}" ont été fusionnées.` });
+      setCurrentMerge(null);
+      loadStats();
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    }
+  };
+
   if (loading) {
     return <div className="p-4">Chargement des statistiques...</div>;
   }
 
   return (
     <div className="space-y-6">
+      {/* Duplicate alert */}
+      {duplicates.length > 0 && (
+        <Card className="border-orange-500/50 bg-orange-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Merge className="h-4 w-4" />
+              Doublons détectés ({duplicates.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {duplicates.map((dup) => (
+              <div key={dup.name} className="flex items-center justify-between p-2 rounded bg-muted/50">
+                <div className="text-sm">
+                  <span className="font-medium capitalize">{dup.name}</span>
+                  <span className="text-muted-foreground ml-2">
+                    ({dup.entries.map(e => `${e.email} — ${e.count} RDV`).join(" / ")})
+                  </span>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => setCurrentMerge(dup)}>
+                  Fusionner
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Summary cards */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -219,107 +280,55 @@ export const ClientStats = () => {
         </Card>
       </div>
 
-      {/* Client cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {stats.map((client) => (
-          <Card key={client.key} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle
-                  className="text-base cursor-pointer hover:underline text-primary"
-                  onClick={() => openClientDialog(client)}
-                >
-                  {client.client_name}
-                </CardTitle>
-                <Pencil
-                  className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-primary"
-                  onClick={() => openClientDialog(client)}
-                />
+      {/* Client list — name only, click to open */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Clients ({stats.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+            {stats.map((client) => (
+              <div
+                key={client.key}
+                className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => openClientDialog(client)}
+              >
+                <span className="font-medium text-primary hover:underline">{client.client_name}</span>
+                <Badge variant="secondary" className="text-xs">{client.total_bookings} RDV</Badge>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="h-3 w-3" />
-                {client.client_phone}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <div className="text-lg font-bold">{client.total_bookings}</div>
-                  <div className="text-xs text-muted-foreground">RDV</div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold">{client.avg_spent.toFixed(0)}€</div>
-                  <div className="text-xs text-muted-foreground">Moy.</div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold">{client.total_spent.toFixed(0)}€</div>
-                  <div className="text-xs text-muted-foreground">Total</div>
-                </div>
-              </div>
+            ))}
+          </div>
+          {stats.length === 0 && (
+            <div className="text-center text-muted-foreground py-8">Aucun client trouvé</div>
+          )}
+        </CardContent>
+      </Card>
 
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Dernière presta.</span>
-                <span className="font-medium">{client.last_service}</span>
-              </div>
-
-              {client.last_date && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Dernier RDV</span>
-                  <span className="font-medium">
-                    {format(new Date(client.last_date), "d MMM yyyy", { locale: fr })}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> Délai moyen
-                </span>
-                <span className="font-medium">
-                  {client.avg_days_between !== null ? `${client.avg_days_between} jours` : "—"}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap gap-1 pt-1">
-                {client.services.map((s) => (
-                  <Badge key={s} variant="secondary" className="text-xs">
-                    {s}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {stats.length === 0 && (
-        <div className="text-center text-muted-foreground py-8">Aucun client trouvé</div>
-      )}
-
-      {/* Edit dialog */}
+      {/* Client detail / edit dialog */}
       <Dialog open={selectedClient !== null} onOpenChange={(open) => !open && setSelectedClient(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Fiche client — {selectedClient?.client_name}</DialogTitle>
           </DialogHeader>
           {selectedClient && (
             <div className="space-y-4">
-              {/* Stats summary */}
+              {/* Stats */}
               <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-muted/50">
                 <div className="text-sm">
-                  <span className="text-muted-foreground">RDV total : </span>
+                  <span className="text-muted-foreground">RDV : </span>
                   <span className="font-semibold">{selectedClient.total_bookings}</span>
                 </div>
                 <div className="text-sm">
-                  <span className="text-muted-foreground">Total dépensé : </span>
+                  <span className="text-muted-foreground">Total : </span>
                   <span className="font-semibold">{selectedClient.total_spent.toFixed(2)}€</span>
                 </div>
                 <div className="text-sm">
                   <span className="text-muted-foreground">Moyenne : </span>
                   <span className="font-semibold">{selectedClient.avg_spent.toFixed(2)}€</span>
                 </div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Délai moyen : </span>
+                <div className="text-sm flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">Délai : </span>
                   <span className="font-semibold">
                     {selectedClient.avg_days_between !== null ? `${selectedClient.avg_days_between} j` : "—"}
                   </span>
@@ -364,6 +373,34 @@ export const ClientStats = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Merge confirmation dialog */}
+      <AlertDialog open={currentMerge !== null} onOpenChange={(open) => !open && setCurrentMerge(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Fusionner les doublons ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {currentMerge && (
+                <>
+                  Les fiches suivantes pour <strong className="capitalize">{currentMerge.name}</strong> seront fusionnées :
+                  <ul className="mt-2 space-y-1 list-disc list-inside">
+                    {currentMerge.entries.map((e) => (
+                      <li key={e.key}>{e.email} ({e.count} RDV)</li>
+                    ))}
+                  </ul>
+                  <p className="mt-2">Toutes les réservations seront regroupées sous l'email <strong>{currentMerge.entries[0].email}</strong>.</p>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={() => currentMerge && handleMerge(currentMerge)}>
+              Fusionner
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
