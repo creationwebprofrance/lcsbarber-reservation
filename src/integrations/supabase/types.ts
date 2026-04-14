@@ -195,14 +195,40 @@ export type Database = {
         }
         Relationships: []
       }
+      client_merges: {
+        Row: {
+          created_at: string
+          id: string
+          merged_email: string
+          original_client_name: string
+          target_email: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          merged_email: string
+          original_client_name: string
+          target_email: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          merged_email?: string
+          original_client_name?: string
+          target_email?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null
           created_at: string
           email: string
           id: string
+          is_blacklisted: boolean
           name: string
           phone: string | null
+          unpaid_amount: number
           updated_at: string
         }
         Insert: {
@@ -210,8 +236,10 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          is_blacklisted?: boolean
           name: string
           phone?: string | null
+          unpaid_amount?: number
           updated_at?: string
         }
         Update: {
@@ -219,8 +247,10 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          is_blacklisted?: boolean
           name?: string
           phone?: string | null
+          unpaid_amount?: number
           updated_at?: string
         }
         Relationships: []
