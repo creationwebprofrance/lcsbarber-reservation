@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6,7 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Users, DollarSign, Calendar, Phone, Clock, Save, Merge } from "lucide-react";
+import { Users, DollarSign, Calendar, Clock, Save, Ban, Undo2, AlertTriangle, Euro } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -27,11 +27,16 @@ interface ClientStat {
   last_date: string;
   avg_days_between: number | null;
   dates: string[];
+  is_blacklisted: boolean;
+  unpaid_amount: number;
 }
 
-interface DuplicateGroup {
-  name: string;
-  entries: { key: string; email: string; count: number }[];
+interface MergeRecord {
+  id: string;
+  merged_email: string;
+  target_email: string;
+  original_client_name: string;
+  created_at: string;
 }
 
 export const ClientStats = () => {
@@ -43,32 +48,45 @@ export const ClientStats = () => {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editEmail, setEditEmail] = useState("");
+  const [editUnpaid, setEditUnpaid] = useState("0");
   const [saving, setSaving] = useState(false);
-  const [duplicates, setDuplicates] = useState<DuplicateGroup[]>([]);
-  const [currentMerge, setCurrentMerge] = useState<DuplicateGroup | null>(null);
+  const [mergeRecords, setMergeRecords] = useState<MergeRecord[]>([]);
+  const [unmergeTarget, setUnmergeTarget] = useState<MergeRecord | null>(null);
+
+  // Drag & drop merge
+  const [draggedClient, setDraggedClient] = useState<ClientStat | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [mergeConfirm, setMergeConfirm] = useState<{ source: ClientStat; target: ClientStat } | null>(null);
+
   const { toast } = useToast();
 
   useEffect(() => {
     loadStats();
+    loadMergeRecords();
   }, []);
+
+  const loadMergeRecords = async () => {
+    const { data } = await supabase
+      .from('client_merges')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setMergeRecords(data || []);
+  };
 
   const loadStats = async () => {
     try {
       const { data: bookings, error } = await supabase
         .from('bookings')
-        .select(`
-          id,
-          client_email,
-          client_name,
-          client_phone,
-          total_price,
-          service_id,
-          appointment_date,
-          services (name)
-        `)
+        .select(`id, client_email, client_name, client_phone, total_price, service_id, appointment_date, services (name)`)
         .order('appointment_date', { ascending: false });
 
       if (error) throw error;
+
+      const { data: clientsData } = await supabase.from('clients').select('email, is_blacklisted, unpaid_amount');
+      const clientInfoMap = new Map<string, { is_blacklisted: boolean; unpaid_amount: number }>();
+      clientsData?.forEach((c: any) => {
+        clientInfoMap.set(c.email, { is_blacklisted: c.is_blacklisted || false, unpaid_amount: Number(c.unpaid_amount) || 0 });
+      });
 
       const clientMap = new Map<string, ClientStat>();
 
@@ -79,6 +97,7 @@ export const ClientStats = () => {
           : `email:${email}`;
 
         if (!clientMap.has(groupKey)) {
+          const info = clientInfoMap.get(email);
           clientMap.set(groupKey, {
             key: groupKey,
             client_emails: [email],
@@ -92,6 +111,8 @@ export const ClientStats = () => {
             last_date: booking.appointment_date,
             avg_days_between: null,
             dates: [],
+            is_blacklisted: info?.is_blacklisted || false,
+            unpaid_amount: info?.unpaid_amount || 0,
           });
         }
 
@@ -102,7 +123,6 @@ export const ClientStats = () => {
         if (!client.client_emails.includes(email)) {
           client.client_emails.push(email);
         }
-
         const serviceName = booking.services?.name;
         if (serviceName && !client.services.includes(serviceName)) {
           client.services.push(serviceName);
@@ -127,21 +147,6 @@ export const ClientStats = () => {
       setStats(statsArray);
       setTotalClients(statsArray.length);
       setTotalRevenue(statsArray.reduce((sum, c) => sum + c.total_spent, 0));
-
-      // Detect duplicates by normalized name across different emails (excluding admin-grouped)
-      const nameMap = new Map<string, { key: string; email: string; count: number }[]>();
-      statsArray.forEach(c => {
-        const norm = c.client_name.toLowerCase().trim();
-        if (!nameMap.has(norm)) nameMap.set(norm, []);
-        nameMap.get(norm)!.push({ key: c.key, email: c.client_emails[0], count: c.total_bookings });
-      });
-      const dupes: DuplicateGroup[] = [];
-      nameMap.forEach((entries, name) => {
-        if (entries.length > 1) {
-          dupes.push({ name, entries });
-        }
-      });
-      setDuplicates(dupes);
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {
@@ -154,6 +159,7 @@ export const ClientStats = () => {
     setEditName(client.client_name);
     setEditPhone(client.client_phone === "Non renseigné" ? "" : client.client_phone);
     setEditEmail(client.client_emails[0]);
+    setEditUnpaid(String(client.unpaid_amount));
   };
 
   const handleSave = async () => {
@@ -161,27 +167,36 @@ export const ClientStats = () => {
     setSaving(true);
     try {
       const isAdminGrouped = selectedClient.key.startsWith("name:");
-
       let query = supabase.from('bookings').update({
         client_name: editName.trim(),
         client_phone: editPhone.trim(),
         client_email: editEmail.trim(),
       });
-
       if (isAdminGrouped) {
         query = query.eq('client_email', ADMIN_EMAIL).ilike('client_name', selectedClient.client_name);
       } else {
         query = query.eq('client_email', selectedClient.client_emails[0]);
       }
-
       const { error } = await query;
       if (error) throw error;
 
-      await supabase.from('clients').update({
-        name: editName.trim(),
-        phone: editPhone.trim(),
-        email: editEmail.trim(),
-      }).eq('email', selectedClient.client_emails[0]);
+      // Upsert client info
+      const { data: existing } = await supabase.from('clients').select('id').eq('email', selectedClient.client_emails[0]).maybeSingle();
+      if (existing) {
+        await supabase.from('clients').update({
+          name: editName.trim(),
+          phone: editPhone.trim(),
+          email: editEmail.trim(),
+          unpaid_amount: Number(editUnpaid) || 0,
+        }).eq('id', existing.id);
+      } else {
+        await supabase.from('clients').insert({
+          name: editName.trim(),
+          phone: editPhone.trim(),
+          email: editEmail.trim(),
+          unpaid_amount: Number(editUnpaid) || 0,
+        });
+      }
 
       toast({ title: "Succès", description: "Fiche client mise à jour." });
       setSelectedClient(null);
@@ -193,22 +208,102 @@ export const ClientStats = () => {
     }
   };
 
-  const handleMerge = async (group: DuplicateGroup) => {
+  const toggleBlacklist = async (client: ClientStat) => {
+    const email = client.client_emails[0];
+    const newVal = !client.is_blacklisted;
+    const { data: existing } = await supabase.from('clients').select('id').eq('email', email).maybeSingle();
+    if (existing) {
+      await supabase.from('clients').update({ is_blacklisted: newVal }).eq('id', existing.id);
+    } else {
+      await supabase.from('clients').insert({ name: client.client_name, email, is_blacklisted: newVal });
+    }
+    toast({ title: newVal ? "Client blacklisté" : "Client retiré de la blacklist" });
+    loadStats();
+    if (selectedClient?.key === client.key) {
+      setSelectedClient({ ...client, is_blacklisted: newVal });
+    }
+  };
+
+  // Drag & drop handlers
+  const handleDragStart = (e: React.DragEvent, client: ClientStat) => {
+    setDraggedClient(client);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, clientKey: string) => {
+    e.preventDefault();
+    if (draggedClient && draggedClient.key !== clientKey) {
+      setDropTarget(clientKey);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDropTarget(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, target: ClientStat) => {
+    e.preventDefault();
+    setDropTarget(null);
+    if (draggedClient && draggedClient.key !== target.key) {
+      setMergeConfirm({ source: draggedClient, target });
+    }
+    setDraggedClient(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedClient(null);
+    setDropTarget(null);
+  };
+
+  const handleMerge = async () => {
+    if (!mergeConfirm) return;
+    const { source, target } = mergeConfirm;
     try {
-      // Keep the first email as the main one
-      const mainEntry = group.entries[0];
-      const otherEmails = group.entries.slice(1).map(e => e.email);
+      const sourceEmail = source.client_emails[0];
+      const targetEmail = target.client_emails[0];
 
-      for (const email of otherEmails) {
-        if (email !== mainEntry.email) {
-          await supabase.from('bookings').update({ client_email: mainEntry.email }).eq('client_email', email);
-          await supabase.from('clients').delete().eq('email', email);
-        }
-      }
+      // Save merge record for unmerge
+      await supabase.from('client_merges').insert({
+        merged_email: sourceEmail,
+        target_email: targetEmail,
+        original_client_name: source.client_name,
+      });
 
-      toast({ title: "Succès", description: `Les fiches "${group.name}" ont été fusionnées.` });
-      setCurrentMerge(null);
+      // Move all bookings from source to target
+      await supabase.from('bookings').update({
+        client_email: targetEmail,
+        client_name: target.client_name,
+      }).eq('client_email', sourceEmail);
+
+      // Delete source client record
+      await supabase.from('clients').delete().eq('email', sourceEmail);
+
+      toast({ title: "Fusionné", description: `"${source.client_name}" fusionné dans "${target.client_name}".` });
+      setMergeConfirm(null);
       loadStats();
+      loadMergeRecords();
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleUnmerge = async () => {
+    if (!unmergeTarget) return;
+    try {
+      // Restore bookings to original email
+      await supabase.from('bookings').update({
+        client_email: unmergeTarget.merged_email,
+        client_name: unmergeTarget.original_client_name,
+      }).eq('client_email', unmergeTarget.target_email)
+        .ilike('client_name', unmergeTarget.original_client_name);
+
+      // Delete merge record
+      await supabase.from('client_merges').delete().eq('id', unmergeTarget.id);
+
+      toast({ title: "Défusionné", description: `"${unmergeTarget.original_client_name}" a été restauré.` });
+      setUnmergeTarget(null);
+      loadStats();
+      loadMergeRecords();
     } catch (error: any) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     }
@@ -220,26 +315,24 @@ export const ClientStats = () => {
 
   return (
     <div className="space-y-6">
-      {/* Duplicate alert */}
-      {duplicates.length > 0 && (
-        <Card className="border-orange-500/50 bg-orange-500/5">
+      {/* Merge history / unmerge */}
+      {mergeRecords.length > 0 && (
+        <Card className="border-blue-500/50 bg-blue-500/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
-              <Merge className="h-4 w-4" />
-              Doublons détectés ({duplicates.length})
+              <Undo2 className="h-4 w-4" />
+              Fusions récentes ({mergeRecords.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {duplicates.map((dup) => (
-              <div key={dup.name} className="flex items-center justify-between p-2 rounded bg-muted/50">
-                <div className="text-sm">
-                  <span className="font-medium capitalize">{dup.name}</span>
-                  <span className="text-muted-foreground ml-2">
-                    ({dup.entries.map(e => `${e.email} — ${e.count} RDV`).join(" / ")})
-                  </span>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => setCurrentMerge(dup)}>
-                  Fusionner
+            {mergeRecords.map((rec) => (
+              <div key={rec.id} className="flex items-center justify-between p-2 rounded bg-muted/50 text-sm">
+                <span>
+                  <strong>{rec.original_client_name}</strong>
+                  <span className="text-muted-foreground"> ({rec.merged_email}) → {rec.target_email}</span>
+                </span>
+                <Button size="sm" variant="outline" onClick={() => setUnmergeTarget(rec)}>
+                  <Undo2 className="h-3 w-3 mr-1" /> Défusionner
                 </Button>
               </div>
             ))}
@@ -280,7 +373,12 @@ export const ClientStats = () => {
         </Card>
       </div>
 
-      {/* Client list — name only, click to open */}
+      {/* Info drag & drop */}
+      <p className="text-sm text-muted-foreground text-center">
+        💡 Glissez-déposez un client sur un autre pour les fusionner
+      </p>
+
+      {/* Client list */}
       <Card>
         <CardHeader>
           <CardTitle>Clients ({stats.length})</CardTitle>
@@ -290,11 +388,35 @@ export const ClientStats = () => {
             {stats.map((client) => (
               <div
                 key={client.key}
-                className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-accent/50 transition-colors"
-                onClick={() => openClientDialog(client)}
+                draggable
+                onDragStart={(e) => handleDragStart(e, client)}
+                onDragOver={(e) => handleDragOver(e, client.key)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, client)}
+                onDragEnd={handleDragEnd}
+                className={`flex items-center justify-between p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-all
+                  ${dropTarget === client.key ? "ring-2 ring-primary bg-primary/10 scale-[1.02]" : ""}
+                  ${client.is_blacklisted ? "bg-destructive/10 border-destructive/30" : "hover:bg-accent/50"}
+                  ${client.unpaid_amount > 0 ? "border-orange-400/50" : ""}
+                `}
               >
-                <span className="font-medium text-primary hover:underline">{client.client_name}</span>
-                <Badge variant="secondary" className="text-xs">{client.total_bookings} RDV</Badge>
+                <div className="flex items-center gap-2 min-w-0">
+                  {client.is_blacklisted && <Ban className="h-4 w-4 text-destructive shrink-0" />}
+                  <span
+                    className="font-medium text-primary hover:underline truncate cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); openClientDialog(client); }}
+                  >
+                    {client.client_name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  {client.unpaid_amount > 0 && (
+                    <Badge variant="outline" className="text-xs border-orange-400 text-orange-600">
+                      {client.unpaid_amount}€ dû
+                    </Badge>
+                  )}
+                  <Badge variant="secondary" className="text-xs">{client.total_bookings} RDV</Badge>
+                </div>
               </div>
             ))}
           </div>
@@ -308,7 +430,10 @@ export const ClientStats = () => {
       <Dialog open={selectedClient !== null} onOpenChange={(open) => !open && setSelectedClient(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Fiche client — {selectedClient?.client_name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedClient?.is_blacklisted && <Ban className="h-5 w-5 text-destructive" />}
+              Fiche client — {selectedClient?.client_name}
+            </DialogTitle>
           </DialogHeader>
           {selectedClient && (
             <div className="space-y-4">
@@ -363,41 +488,77 @@ export const ClientStats = () => {
                   <Label>Email</Label>
                   <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} type="email" />
                 </div>
+                <div>
+                  <Label className="flex items-center gap-1">
+                    <Euro className="h-3 w-3" /> Montant impayé
+                  </Label>
+                  <Input
+                    value={editUnpaid}
+                    onChange={(e) => setEditUnpaid(e.target.value)}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
               </div>
 
-              <Button onClick={handleSave} disabled={saving} className="w-full">
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? "Enregistrement..." : "Enregistrer"}
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={handleSave} disabled={saving} className="flex-1">
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? "Enregistrement..." : "Enregistrer"}
+                </Button>
+                <Button
+                  variant={selectedClient.is_blacklisted ? "outline" : "destructive"}
+                  onClick={() => toggleBlacklist(selectedClient)}
+                >
+                  <Ban className="h-4 w-4 mr-1" />
+                  {selectedClient.is_blacklisted ? "Retirer" : "Blacklist"}
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Merge confirmation dialog */}
-      <AlertDialog open={currentMerge !== null} onOpenChange={(open) => !open && setCurrentMerge(null)}>
+      {/* Merge confirmation */}
+      <AlertDialog open={mergeConfirm !== null} onOpenChange={(open) => !open && setMergeConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Fusionner les doublons ?</AlertDialogTitle>
+            <AlertDialogTitle>Fusionner ces clients ?</AlertDialogTitle>
             <AlertDialogDescription>
-              {currentMerge && (
+              {mergeConfirm && (
                 <>
-                  Les fiches suivantes pour <strong className="capitalize">{currentMerge.name}</strong> seront fusionnées :
-                  <ul className="mt-2 space-y-1 list-disc list-inside">
-                    {currentMerge.entries.map((e) => (
-                      <li key={e.key}>{e.email} ({e.count} RDV)</li>
-                    ))}
-                  </ul>
-                  <p className="mt-2">Toutes les réservations seront regroupées sous l'email <strong>{currentMerge.entries[0].email}</strong>.</p>
+                  <strong>{mergeConfirm.source.client_name}</strong> ({mergeConfirm.source.total_bookings} RDV)
+                  sera fusionné dans <strong>{mergeConfirm.target.client_name}</strong> ({mergeConfirm.target.total_bookings} RDV).
+                  <p className="mt-2 text-sm">Toutes les réservations seront regroupées sous l'email <strong>{mergeConfirm.target.client_emails[0]}</strong>.</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Vous pourrez défusionner ensuite.</p>
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => currentMerge && handleMerge(currentMerge)}>
-              Fusionner
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleMerge}>Fusionner</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Unmerge confirmation */}
+      <AlertDialog open={unmergeTarget !== null} onOpenChange={(open) => !open && setUnmergeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Défusionner ce client ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {unmergeTarget && (
+                <>
+                  <strong>{unmergeTarget.original_client_name}</strong> sera restauré avec l'email <strong>{unmergeTarget.merged_email}</strong>.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUnmerge}>Défusionner</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
