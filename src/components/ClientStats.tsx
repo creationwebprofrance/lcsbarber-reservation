@@ -92,9 +92,7 @@ export const ClientStats = () => {
 
       bookings?.forEach((booking: any) => {
         const email = booking.client_email;
-        const groupKey = email === ADMIN_EMAIL
-          ? `name:${booking.client_name?.toLowerCase().trim()}`
-          : `email:${email}`;
+        const groupKey = `email:${email}`;
 
         if (!clientMap.has(groupKey)) {
           const info = clientInfoMap.get(email);
