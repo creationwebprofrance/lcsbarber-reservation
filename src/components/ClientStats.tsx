@@ -6,13 +6,20 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Users, DollarSign, Calendar, Clock, Save, Ban, Undo2, AlertTriangle, Euro } from "lucide-react";
+import { Users, DollarSign, Calendar, Clock, Save, Ban, Undo2, AlertTriangle, Euro, ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 
-const ADMIN_EMAIL = "lucas.chipan97@gmail.com";
+interface BookingDetail {
+  id: string;
+  appointment_date: string;
+  appointment_time: string;
+  service_name: string;
+  total_price: number;
+  status: string;
+}
 
 interface ClientStat {
   key: string;
@@ -29,6 +36,7 @@ interface ClientStat {
   dates: string[];
   is_blacklisted: boolean;
   unpaid_amount: number;
+  bookings: BookingDetail[];
 }
 
 interface MergeRecord {
@@ -52,6 +60,7 @@ export const ClientStats = () => {
   const [saving, setSaving] = useState(false);
   const [mergeRecords, setMergeRecords] = useState<MergeRecord[]>([]);
   const [unmergeTarget, setUnmergeTarget] = useState<MergeRecord | null>(null);
+  const [showBookings, setShowBookings] = useState(false);
 
   // Drag & drop merge
   const [draggedClient, setDraggedClient] = useState<ClientStat | null>(null);
@@ -77,7 +86,7 @@ export const ClientStats = () => {
     try {
       const { data: bookings, error } = await supabase
         .from('bookings')
-        .select(`id, client_email, client_name, client_phone, total_price, service_id, appointment_date, services (name)`)
+        .select(`id, client_email, client_name, client_phone, total_price, service_id, appointment_date, appointment_time, status, services (name)`)
         .order('appointment_date', { ascending: false });
 
       if (error) throw error;
@@ -92,7 +101,9 @@ export const ClientStats = () => {
 
       bookings?.forEach((booking: any) => {
         const email = booking.client_email;
-        const groupKey = `email:${email}`;
+        const name = booking.client_name?.trim().toLowerCase() || "";
+        // Group by BOTH email AND name
+        const groupKey = `${email}::${name}`;
 
         if (!clientMap.has(groupKey)) {
           const info = clientInfoMap.get(email);
@@ -111,6 +122,7 @@ export const ClientStats = () => {
             dates: [],
             is_blacklisted: info?.is_blacklisted || false,
             unpaid_amount: info?.unpaid_amount || 0,
+            bookings: [],
           });
         }
 
@@ -125,6 +137,14 @@ export const ClientStats = () => {
         if (serviceName && !client.services.includes(serviceName)) {
           client.services.push(serviceName);
         }
+        client.bookings.push({
+          id: booking.id,
+          appointment_date: booking.appointment_date,
+          appointment_time: booking.appointment_time,
+          service_name: booking.services?.name || "—",
+          total_price: Number(booking.total_price),
+          status: booking.status,
+        });
       });
 
       const statsArray = Array.from(clientMap.values())
@@ -158,24 +178,20 @@ export const ClientStats = () => {
     setEditPhone(client.client_phone === "Non renseigné" ? "" : client.client_phone);
     setEditEmail(client.client_emails[0]);
     setEditUnpaid(String(client.unpaid_amount));
+    setShowBookings(false);
   };
 
   const handleSave = async () => {
     if (!selectedClient) return;
     setSaving(true);
     try {
-      const isAdminGrouped = selectedClient.key.startsWith("name:");
-      let query = supabase.from('bookings').update({
+      const { error } = await supabase.from('bookings').update({
         client_name: editName.trim(),
         client_phone: editPhone.trim(),
         client_email: editEmail.trim(),
-      });
-      if (isAdminGrouped) {
-        query = query.eq('client_email', ADMIN_EMAIL).ilike('client_name', selectedClient.client_name);
-      } else {
-        query = query.eq('client_email', selectedClient.client_emails[0]);
-      }
-      const { error } = await query;
+      }).eq('client_email', selectedClient.client_emails[0])
+        .ilike('client_name', selectedClient.client_name);
+
       if (error) throw error;
 
       // Upsert client info
@@ -235,9 +251,7 @@ export const ClientStats = () => {
     }
   };
 
-  const handleDragLeave = () => {
-    setDropTarget(null);
-  };
+  const handleDragLeave = () => setDropTarget(null);
 
   const handleDrop = (e: React.DragEvent, target: ClientStat) => {
     e.preventDefault();
@@ -248,10 +262,7 @@ export const ClientStats = () => {
     setDraggedClient(null);
   };
 
-  const handleDragEnd = () => {
-    setDraggedClient(null);
-    setDropTarget(null);
-  };
+  const handleDragEnd = () => { setDraggedClient(null); setDropTarget(null); };
 
   const handleMerge = async () => {
     if (!mergeConfirm) return;
@@ -260,20 +271,17 @@ export const ClientStats = () => {
       const sourceEmail = source.client_emails[0];
       const targetEmail = target.client_emails[0];
 
-      // Save merge record for unmerge
       await supabase.from('client_merges').insert({
         merged_email: sourceEmail,
         target_email: targetEmail,
         original_client_name: source.client_name,
       });
 
-      // Move all bookings from source to target
       await supabase.from('bookings').update({
         client_email: targetEmail,
         client_name: target.client_name,
       }).eq('client_email', sourceEmail);
 
-      // Delete source client record
       await supabase.from('clients').delete().eq('email', sourceEmail);
 
       toast({ title: "Fusionné", description: `"${source.client_name}" fusionné dans "${target.client_name}".` });
@@ -288,14 +296,12 @@ export const ClientStats = () => {
   const handleUnmerge = async () => {
     if (!unmergeTarget) return;
     try {
-      // Restore bookings to original email
       await supabase.from('bookings').update({
         client_email: unmergeTarget.merged_email,
         client_name: unmergeTarget.original_client_name,
       }).eq('client_email', unmergeTarget.target_email)
         .ilike('client_name', unmergeTarget.original_client_name);
 
-      // Delete merge record
       await supabase.from('client_merges').delete().eq('id', unmergeTarget.id);
 
       toast({ title: "Défusionné", description: `"${unmergeTarget.original_client_name}" a été restauré.` });
@@ -307,13 +313,11 @@ export const ClientStats = () => {
     }
   };
 
-  if (loading) {
-    return <div className="p-4">Chargement des statistiques...</div>;
-  }
+  if (loading) return <div className="p-4">Chargement des statistiques...</div>;
 
   return (
     <div className="space-y-6">
-      {/* Merge history / unmerge */}
+      {/* Merge history */}
       {mergeRecords.length > 0 && (
         <Card className="border-blue-500/50 bg-blue-500/5">
           <CardHeader className="pb-2">
@@ -345,42 +349,31 @@ export const ClientStats = () => {
             <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalClients}</div>
-          </CardContent>
+          <CardContent><div className="text-2xl font-bold">{totalClients}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Chiffre d'affaires</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalRevenue.toFixed(2)}€</div>
-          </CardContent>
+          <CardContent><div className="text-2xl font-bold">{totalRevenue.toFixed(2)}€</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Rendez-vous</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.reduce((sum, c) => sum + c.total_bookings, 0)}
-            </div>
-          </CardContent>
+          <CardContent><div className="text-2xl font-bold">{stats.reduce((sum, c) => sum + c.total_bookings, 0)}</div></CardContent>
         </Card>
       </div>
 
-      {/* Info drag & drop */}
       <p className="text-sm text-muted-foreground text-center">
         💡 Glissez-déposez un client sur un autre pour les fusionner
       </p>
 
       {/* Client list */}
       <Card>
-        <CardHeader>
-          <CardTitle>Clients ({stats.length})</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Clients ({stats.length})</CardTitle></CardHeader>
         <CardContent>
           <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
             {stats.map((client) => (
@@ -424,9 +417,9 @@ export const ClientStats = () => {
         </CardContent>
       </Card>
 
-      {/* Client detail / edit dialog */}
+      {/* Client detail dialog */}
       <Dialog open={selectedClient !== null} onOpenChange={(open) => !open && setSelectedClient(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {selectedClient?.is_blacklisted && <Ban className="h-5 w-5 text-destructive" />}
@@ -472,6 +465,39 @@ export const ClientStats = () => {
                 </div>
               </div>
 
+              {/* Booking history */}
+              <div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-between"
+                  onClick={() => setShowBookings(!showBookings)}
+                >
+                  <span>Historique des RDV ({selectedClient.bookings.length})</span>
+                  {showBookings ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+                {showBookings && (
+                  <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
+                    {selectedClient.bookings.map((b) => (
+                      <div key={b.id} className="flex items-center justify-between p-2 rounded text-sm bg-muted/30 border">
+                        <div className="min-w-0">
+                          <span className="font-medium">{b.service_name}</span>
+                          <span className="text-muted-foreground ml-2">
+                            {format(new Date(b.appointment_date), "d MMM yyyy", { locale: fr })} à {b.appointment_time?.slice(0, 5)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge variant={b.status === "confirmed" ? "default" : b.status === "cancelled" ? "destructive" : "secondary"} className="text-xs">
+                            {b.status}
+                          </Badge>
+                          <span className="font-semibold">{b.total_price.toFixed(2)}€</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Editable fields */}
               <div className="space-y-3">
                 <div>
@@ -490,13 +516,7 @@ export const ClientStats = () => {
                   <Label className="flex items-center gap-1">
                     <Euro className="h-3 w-3" /> Montant impayé
                   </Label>
-                  <Input
-                    value={editUnpaid}
-                    onChange={(e) => setEditUnpaid(e.target.value)}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                  />
+                  <Input value={editUnpaid} onChange={(e) => setEditUnpaid(e.target.value)} type="number" min="0" step="0.01" />
                 </div>
               </div>
 
