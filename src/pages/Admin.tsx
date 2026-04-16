@@ -300,6 +300,10 @@ export const Admin = () => {
                 <Mail className="h-4 w-4 shrink-0" />
                 <span>Emails</span>
               </TabsTrigger>
+              <TabsTrigger value="prestations" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
+                <Scissors className="h-4 w-4 shrink-0" />
+                <span>Prestations</span>
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -500,6 +504,10 @@ export const Admin = () => {
 
           <TabsContent value="emails">
             <EmailTemplateEditor />
+          </TabsContent>
+
+          <TabsContent value="prestations">
+            <PrestationsAdmin />
           </TabsContent>
 
         </Tabs>
