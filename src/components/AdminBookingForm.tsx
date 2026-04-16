@@ -45,6 +45,8 @@ export const AdminBookingForm = ({ onBookingCreated }: AdminBookingFormProps) =>
     client_email: "",
     client_phone: "",
     client_address: "",
+    client_postal_code: "",
+    client_city: "",
     total_price: "",
     notes: "",
     status: "confirmed",
@@ -83,7 +85,7 @@ export const AdminBookingForm = ({ onBookingCreated }: AdminBookingFormProps) =>
         client_name: formData.client_name,
         client_email: formData.client_email,
         client_phone: formData.client_phone,
-        client_address: formData.client_address || null,
+        client_address: `${formData.client_address}, ${formData.client_postal_code} ${formData.client_city}`.trim() || null,
         total_price: parseFloat(formData.total_price),
         notes: formData.notes || null,
         status: formData.status,
@@ -105,6 +107,8 @@ export const AdminBookingForm = ({ onBookingCreated }: AdminBookingFormProps) =>
         client_email: "",
         client_phone: "",
         client_address: "",
+        client_postal_code: "",
+        client_city: "",
         total_price: "",
         notes: "",
         status: "confirmed",
@@ -228,7 +232,33 @@ export const AdminBookingForm = ({ onBookingCreated }: AdminBookingFormProps) =>
               onChange={(e) =>
                 setFormData({ ...formData, client_address: e.target.value })
               }
+              placeholder="Numéro et nom de rue"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="client_postal_code">Code postal</Label>
+              <Input
+                id="client_postal_code"
+                value={formData.client_postal_code}
+                onChange={(e) =>
+                  setFormData({ ...formData, client_postal_code: e.target.value })
+                }
+                placeholder="33000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="client_city">Ville</Label>
+              <Input
+                id="client_city"
+                value={formData.client_city}
+                onChange={(e) =>
+                  setFormData({ ...formData, client_city: e.target.value })
+                }
+                placeholder="Bordeaux"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
