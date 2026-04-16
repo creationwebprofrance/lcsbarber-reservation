@@ -154,7 +154,7 @@ export default function EventSection() {
               >
                 <div className="aspect-[3/4] rounded-xl bg-muted border border-border/50 group-hover:border-primary/40 transition-all duration-300 flex items-center justify-center mb-3 overflow-hidden group-hover:shadow-lg">
                   {artist.photo_url ? (
-                    <img src={artist.photo_url} alt={artist.name} className="w-full h-full object-cover" />
+                    <img src={artist.photo_url} alt={artist.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-xs text-muted-foreground text-center px-3">Photo à venir</span>
                   )}
@@ -184,13 +184,13 @@ export default function EventSection() {
               <div className={`grid ${selectedArtist.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
                 {selectedArtist.images.map((img, idx) => (
                   <div key={img.id} className={`rounded-lg overflow-hidden ${idx === 0 && selectedArtist.images.length > 1 ? 'col-span-2 aspect-[4/3]' : 'aspect-square'}`}>
-                    <img src={img.image_url} alt={selectedArtist.name} className="w-full h-full object-cover" />
+                    <img src={img.image_url} alt={selectedArtist.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
             ) : selectedArtist?.photo_url ? (
               <div className="aspect-[4/3] rounded-lg overflow-hidden">
-                <img src={selectedArtist.photo_url} alt={selectedArtist.name} className="w-full h-full object-cover" />
+                <img src={selectedArtist.photo_url} alt={selectedArtist.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </div>
             ) : null}
             <p className="text-muted-foreground leading-relaxed">{selectedArtist?.description}</p>
