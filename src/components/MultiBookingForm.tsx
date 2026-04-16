@@ -453,7 +453,6 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
             </p>
           )}
         </div>
-        </div>
 
         <div>
           <Label htmlFor="message">Message (optionnel)</Label>
