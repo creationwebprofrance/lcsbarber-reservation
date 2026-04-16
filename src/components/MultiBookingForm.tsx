@@ -42,6 +42,15 @@ const bookingFormSchema = z.object({
     .trim()
     .min(5, "L'adresse doit contenir au moins 5 caractères")
     .max(500, "L'adresse ne peut pas dépasser 500 caractères"),
+  postalCode: z.string()
+    .trim()
+    .min(4, "Le code postal doit contenir au moins 4 caractères")
+    .max(10, "Le code postal ne peut pas dépasser 10 caractères")
+    .regex(/^[0-9\s-]+$/, "Le code postal ne peut contenir que des chiffres"),
+  city: z.string()
+    .trim()
+    .min(2, "La ville doit contenir au moins 2 caractères")
+    .max(100, "La ville ne peut pas dépasser 100 caractères"),
   message: z.string()
     .trim()
     .max(1000, "Le message ne peut pas dépasser 1000 caractères")
@@ -54,6 +63,8 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
     email: "",
     phone: "",
     address: "",
+    postalCode: "",
+    city: "",
     message: "",
   });
 

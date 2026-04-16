@@ -20,6 +20,8 @@ const bookingFormSchema = z.object({
   email: z.string().trim().email("Email invalide").max(255).toLowerCase(),
   phone: z.string().trim().min(10, "Téléphone invalide").max(20).regex(/^[0-9\s+()-]+$/),
   address: z.string().trim().min(5, "Adresse trop courte").max(500),
+  postalCode: z.string().trim().min(4, "Code postal invalide").max(10).regex(/^[0-9\s-]+$/, "Code postal invalide"),
+  city: z.string().trim().min(2, "Ville requise").max(100),
   message: z.string().trim().max(1000).optional(),
 });
 
@@ -129,7 +131,7 @@ export default function EventBookingCard({ event }: { event: EventData }) {
   const [service, setService] = useState<Service | null>(null);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", message: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", postalCode: "", city: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
