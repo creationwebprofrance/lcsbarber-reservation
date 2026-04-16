@@ -110,13 +110,15 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
   } : undefined;
   
 
+  const fullAddress = `${formData.address}, ${formData.postalCode} ${formData.city}`.trim();
+
   // Effet pour calculer les frais de déplacement quand l'adresse change
   useEffect(() => {
     const calculateTravel = async () => {
-      if (formData.address.trim() && mapboxToken.trim()) {
+      if (formData.address.trim() && formData.postalCode.trim() && formData.city.trim() && mapboxToken.trim()) {
         setIsCalculatingTravel(true);
         try {
-          const result = await calculateTravelFees(formData.address, mapboxToken, travelFeeSettings);
+          const result = await calculateTravelFees(fullAddress, mapboxToken, travelFeeSettings);
           setTravelCalculation(result);
         } catch (error) {
           console.error('Erreur calcul déplacement:', error);
@@ -137,7 +139,7 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
     // Délai pour éviter trop de requêtes
     const timeoutId = setTimeout(calculateTravel, 1000);
     return () => clearTimeout(timeoutId);
-  }, [formData.address, mapboxToken, toast, travelFeeSettings?.freeMinutes, travelFeeSettings?.intervalMinutes, travelFeeSettings?.feePerInterval]);
+  }, [fullAddress, mapboxToken, toast, travelFeeSettings?.freeMinutes, travelFeeSettings?.intervalMinutes, travelFeeSettings?.feePerInterval]);
   
   // Calculer le prix total avec supplément horaire, frais de déplacement et frais jour même
   const pricing = calculatePricing(bookingData.service.price, bookingData.time, travelCalculation.fees, hourlySettings, bookingData.date);
