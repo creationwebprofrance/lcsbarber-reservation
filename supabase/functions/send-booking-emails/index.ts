@@ -57,6 +57,10 @@ const handler = async (req: Request): Promise<Response> => {
     }
     
     const booking = validationResult.data;
+    const fullAddress = [booking.clientAddress, booking.clientPostalCode, booking.clientCity].filter(Boolean).join(', ');
+    const addressHtml = booking.clientPostalCode || booking.clientCity 
+      ? `${booking.clientAddress}<br/>${[booking.clientPostalCode, booking.clientCity].filter(Boolean).join(' ')}`
+      : booking.clientAddress;
     console.log("Booking data validated for:", booking.clientName);
 
     // Rate limiting: max 3 emails per hour, 5 per day per client email
