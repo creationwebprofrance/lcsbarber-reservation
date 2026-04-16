@@ -42,6 +42,15 @@ const bookingFormSchema = z.object({
     .trim()
     .min(5, "L'adresse doit contenir au moins 5 caractères")
     .max(500, "L'adresse ne peut pas dépasser 500 caractères"),
+  postalCode: z.string()
+    .trim()
+    .min(4, "Le code postal doit contenir au moins 4 caractères")
+    .max(10, "Le code postal ne peut pas dépasser 10 caractères")
+    .regex(/^[0-9\s-]+$/, "Le code postal ne peut contenir que des chiffres"),
+  city: z.string()
+    .trim()
+    .min(2, "La ville doit contenir au moins 2 caractères")
+    .max(100, "La ville ne peut pas dépasser 100 caractères"),
   message: z.string()
     .trim()
     .max(1000, "Le message ne peut pas dépasser 1000 caractères")
@@ -54,6 +63,8 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
     email: "",
     phone: "",
     address: "",
+    postalCode: "",
+    city: "",
     message: "",
   });
 
@@ -87,12 +98,14 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
   } : undefined;
 
 
+  const fullAddress = `${formData.address}, ${formData.postalCode} ${formData.city}`.trim();
+
   useEffect(() => {
     const calculateTravel = async () => {
-      if (formData.address.trim() && mapboxToken.trim()) {
+      if (formData.address.trim() && formData.postalCode.trim() && formData.city.trim() && mapboxToken.trim()) {
         setIsCalculatingTravel(true);
         try {
-          const result = await calculateTravelFees(formData.address, mapboxToken, travelFeeSettings);
+          const result = await calculateTravelFees(fullAddress, mapboxToken, travelFeeSettings);
           setTravelCalculation(result);
         } catch (error) {
           console.error('Erreur calcul déplacement:', error);
@@ -107,7 +120,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
 
     const timeoutId = setTimeout(calculateTravel, 1000);
     return () => clearTimeout(timeoutId);
-  }, [formData.address, mapboxToken, travelFeeSettings?.freeMinutes, travelFeeSettings?.intervalMinutes, travelFeeSettings?.feePerInterval]);
+  }, [fullAddress, mapboxToken, travelFeeSettings?.freeMinutes, travelFeeSettings?.intervalMinutes, travelFeeSettings?.feePerInterval]);
   
   // Calculate pricing for all items
   const pricingDetails = bookingItems.map(item => {
@@ -180,7 +193,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
           client_name: validatedData.name,
           client_email: validatedData.email,
           client_phone: validatedData.phone,
-          client_address: validatedData.address,
+          client_address: `${validatedData.address}, ${validatedData.postalCode} ${validatedData.city}`,
           total_price: pricing.basePrice + pricing.supplement + pricing.sameDayFee + pricing.sundayFee + 
             (createdBookings.length === 0 ? travelCalculation.fees : 0), // Travel fees only on first booking
           travel_fee: createdBookings.length === 0 ? travelCalculation.fees : 0,
@@ -209,6 +222,8 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
         clientEmail: validatedData.email,
         clientPhone: validatedData.phone,
         clientAddress: validatedData.address,
+        clientPostalCode: validatedData.postalCode,
+        clientCity: validatedData.city,
         serviceName: bookingItems.length > 1 
           ? `${bookingItems.length} rendez-vous:\n${appointmentsList}` 
           : bookingItems[0].service.name,
@@ -395,18 +410,48 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
             value={formData.address}
             onChange={(e) => handleInputChange("address", e.target.value)}
             className={`mt-1 ${errors.address ? "border-destructive" : ""}`}
-            placeholder="Votre adresse complète"
+            placeholder="Numéro et nom de rue"
           />
+          {errors.address && <p className="mt-1 text-sm text-destructive">{errors.address}</p>}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="postalCode">Code postal *</Label>
+            <Input
+              id="postalCode"
+              type="text"
+              value={formData.postalCode}
+              onChange={(e) => handleInputChange("postalCode", e.target.value)}
+              className={`mt-1 ${errors.postalCode ? "border-destructive" : ""}`}
+              placeholder="33000"
+            />
+            {errors.postalCode && <p className="mt-1 text-sm text-destructive">{errors.postalCode}</p>}
+          </div>
+          <div>
+            <Label htmlFor="city">Ville *</Label>
+            <Input
+              id="city"
+              type="text"
+              value={formData.city}
+              onChange={(e) => handleInputChange("city", e.target.value)}
+              className={`mt-1 ${errors.city ? "border-destructive" : ""}`}
+              placeholder="Bordeaux"
+            />
+            {errors.city && <p className="mt-1 text-sm text-destructive">{errors.city}</p>}
+          </div>
+        </div>
+
+        <div>
           {isCalculatingTravel && (
-            <p className="mt-1 text-sm text-blue-600">Calcul des frais de déplacement...</p>
+            <p className="text-sm text-blue-600">Calcul des frais de déplacement...</p>
           )}
           {travelCalculation.fees > 0 && !isCalculatingTravel && (
-            <p className="mt-1 text-sm text-blue-600">
+            <p className="text-sm text-blue-600">
               Frais de déplacement: {travelCalculation.fees}€ 
               ({formatTravelTime(travelCalculation.duration)}, {formatDistance(travelCalculation.distance)})
             </p>
           )}
-          {errors.address && <p className="mt-1 text-sm text-destructive">{errors.address}</p>}
         </div>
 
         <div>

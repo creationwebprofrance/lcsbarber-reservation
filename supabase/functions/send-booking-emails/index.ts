@@ -21,6 +21,8 @@ const bookingEmailSchema = z.object({
   clientEmail: z.string().trim().email().max(255),
   clientPhone: z.string().trim().min(1).max(20),
   clientAddress: z.string().trim().min(1).max(500),
+  clientPostalCode: z.string().trim().max(10).optional(),
+  clientCity: z.string().trim().max(100).optional(),
   serviceName: z.string().trim().min(1).max(200),
   servicePrice: z.number().positive().max(10000),
   appointmentDate: z.string().trim().min(1),
@@ -55,6 +57,10 @@ const handler = async (req: Request): Promise<Response> => {
     }
     
     const booking = validationResult.data;
+    const fullAddress = [booking.clientAddress, booking.clientPostalCode, booking.clientCity].filter(Boolean).join(', ');
+    const addressHtml = booking.clientPostalCode || booking.clientCity 
+      ? `${booking.clientAddress}<br/>${[booking.clientPostalCode, booking.clientCity].filter(Boolean).join(' ')}`
+      : booking.clientAddress;
     console.log("Booking data validated for:", booking.clientName);
 
     // Rate limiting: max 3 emails per hour, 5 per day per client email
@@ -142,7 +148,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         <div class="detail-row">
           <span class="label">📍 Adresse</span>
-          <span class="value">${booking.clientAddress}</span>
+          <span class="value">${addressHtml}</span>
         </div>
         <div class="detail-row">
           <span class="label">💰 Total</span>
@@ -212,7 +218,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         <div class="detail-row">
           <span class="label">📍 Adresse</span>
-          <span class="value">${booking.clientAddress}</span>
+          <span class="value">${addressHtml}</span>
         </div>
         <div class="detail-row">
           <span class="label">💰 Total</span>
@@ -275,7 +281,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         <div class="detail-row">
           <span class="label">📍 Adresse</span>
-          <span class="value">${booking.clientAddress}</span>
+          <span class="value">${addressHtml}</span>
         </div>
         ${booking.travelFee > 0 ? `
         <div class="detail-row">
@@ -349,7 +355,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         <div class="detail-row">
           <span class="label">📍 Adresse</span>
-          <span class="value">${booking.clientAddress}</span>
+          <span class="value">${addressHtml}</span>
         </div>
         ${booking.travelFee > 0 ? `
         <div class="detail-row">

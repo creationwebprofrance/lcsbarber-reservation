@@ -20,6 +20,8 @@ const bookingFormSchema = z.object({
   email: z.string().trim().email("Email invalide").max(255).toLowerCase(),
   phone: z.string().trim().min(10, "Téléphone invalide").max(20).regex(/^[0-9\s+()-]+$/),
   address: z.string().trim().min(5, "Adresse trop courte").max(500),
+  postalCode: z.string().trim().min(4, "Code postal invalide").max(10).regex(/^[0-9\s-]+$/, "Code postal invalide"),
+  city: z.string().trim().min(2, "Ville requise").max(100),
   message: z.string().trim().max(1000).optional(),
 });
 
@@ -129,7 +131,7 @@ export default function EventBookingCard({ event }: { event: EventData }) {
   const [service, setService] = useState<Service | null>(null);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", message: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", postalCode: "", city: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -193,7 +195,7 @@ export default function EventBookingCard({ event }: { event: EventData }) {
           client_name: validated.name,
           client_email: validated.email,
           client_phone: validated.phone,
-          client_address: validated.address,
+          client_address: `${validated.address}, ${validated.postalCode} ${validated.city}`,
           total_price: totalPrice,
           travel_fee: 0,
           notes: `[${event.name}] ${validated.message || ""}`.trim(),
@@ -209,6 +211,8 @@ export default function EventBookingCard({ event }: { event: EventData }) {
           clientEmail: validated.email,
           clientPhone: validated.phone,
           clientAddress: validated.address,
+          clientPostalCode: validated.postalCode,
+          clientCity: validated.city,
           serviceName: `🎉 ${event.name} — ${service.name}`,
           servicePrice: service.price,
           appointmentDate: format(date, "EEEE d MMMM yyyy", { locale: fr }),
@@ -504,8 +508,20 @@ export default function EventBookingCard({ event }: { event: EventData }) {
                 </div>
                 <div>
                   <Label htmlFor="address" className="text-foreground">Adresse *</Label>
-                  <Input id="address" value={formData.address} onChange={(e) => handleInputChange("address", e.target.value)} className={`mt-1 ${errors.address ? "border-destructive" : ""}`} placeholder="Votre adresse" />
+                  <Input id="address" value={formData.address} onChange={(e) => handleInputChange("address", e.target.value)} className={`mt-1 ${errors.address ? "border-destructive" : ""}`} placeholder="Numéro et nom de rue" />
                   {errors.address && <p className="mt-1 text-sm text-destructive">{errors.address}</p>}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="postalCode" className="text-foreground">Code postal *</Label>
+                    <Input id="postalCode" value={formData.postalCode} onChange={(e) => handleInputChange("postalCode", e.target.value)} className={`mt-1 ${errors.postalCode ? "border-destructive" : ""}`} placeholder="33000" />
+                    {errors.postalCode && <p className="mt-1 text-sm text-destructive">{errors.postalCode}</p>}
+                  </div>
+                  <div>
+                    <Label htmlFor="city" className="text-foreground">Ville *</Label>
+                    <Input id="city" value={formData.city} onChange={(e) => handleInputChange("city", e.target.value)} className={`mt-1 ${errors.city ? "border-destructive" : ""}`} placeholder="Bordeaux" />
+                    {errors.city && <p className="mt-1 text-sm text-destructive">{errors.city}</p>}
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="message" className="text-foreground">Message (optionnel)</Label>
@@ -531,7 +547,7 @@ export default function EventBookingCard({ event }: { event: EventData }) {
                 Un email de confirmation t'a été envoyé. À bientôt pour {event.name} !
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button variant="outline" onClick={() => { setIsConfirmed(false); setStep(0); setService(null); setDate(undefined); setTime(null); setFormData({ name: "", email: "", phone: "", address: "", message: "" }); }}>
+                <Button variant="outline" onClick={() => { setIsConfirmed(false); setStep(0); setService(null); setDate(undefined); setTime(null); setFormData({ name: "", email: "", phone: "", address: "", postalCode: "", city: "", message: "" }); }}>
                   Autre réservation
                 </Button>
                 <Button asChild>
