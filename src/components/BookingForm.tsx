@@ -409,19 +409,53 @@ export const BookingForm = ({ bookingData, onSubmit, onBack }: BookingFormProps)
             value={formData.address}
             onChange={(e) => handleInputChange("address", e.target.value)}
             className={`mt-1 ${errors.address ? "border-destructive" : ""}`}
-            placeholder="Votre adresse complète"
+            placeholder="Numéro et nom de rue"
           />
+          {errors.address && (
+            <p className="mt-1 text-sm text-destructive">{errors.address}</p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="postalCode">Code postal *</Label>
+            <Input
+              id="postalCode"
+              type="text"
+              value={formData.postalCode}
+              onChange={(e) => handleInputChange("postalCode", e.target.value)}
+              className={`mt-1 ${errors.postalCode ? "border-destructive" : ""}`}
+              placeholder="33000"
+            />
+            {errors.postalCode && (
+              <p className="mt-1 text-sm text-destructive">{errors.postalCode}</p>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="city">Ville *</Label>
+            <Input
+              id="city"
+              type="text"
+              value={formData.city}
+              onChange={(e) => handleInputChange("city", e.target.value)}
+              className={`mt-1 ${errors.city ? "border-destructive" : ""}`}
+              placeholder="Bordeaux"
+            />
+            {errors.city && (
+              <p className="mt-1 text-sm text-destructive">{errors.city}</p>
+            )}
+          </div>
+        </div>
+
+        <div>
           {isCalculatingTravel && (
-            <p className="mt-1 text-sm text-blue-600">Calcul des frais de déplacement...</p>
+            <p className="text-sm text-blue-600">Calcul des frais de déplacement...</p>
           )}
           {travelCalculation.fees > 0 && !isCalculatingTravel && (
-            <p className="mt-1 text-sm text-blue-600">
+            <p className="text-sm text-blue-600">
               Frais de déplacement: {travelCalculation.fees}€ 
               ({formatTravelTime(travelCalculation.duration)}, {formatDistance(travelCalculation.distance)})
             </p>
-          )}
-          {errors.address && (
-            <p className="mt-1 text-sm text-destructive">{errors.address}</p>
           )}
         </div>
 
