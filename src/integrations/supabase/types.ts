@@ -434,6 +434,39 @@ export type Database = {
           },
         ]
       }
+      prestations: {
+        Row: {
+          amount: number
+          client_name: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          prestation_date: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          prestation_date?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          prestation_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pricing_settings: {
         Row: {
           created_at: string | null
