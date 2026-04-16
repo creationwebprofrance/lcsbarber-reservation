@@ -21,6 +21,8 @@ const bookingEmailSchema = z.object({
   clientEmail: z.string().trim().email().max(255),
   clientPhone: z.string().trim().min(1).max(20),
   clientAddress: z.string().trim().min(1).max(500),
+  clientPostalCode: z.string().trim().max(10).optional(),
+  clientCity: z.string().trim().max(100).optional(),
   serviceName: z.string().trim().min(1).max(200),
   servicePrice: z.number().positive().max(10000),
   appointmentDate: z.string().trim().min(1),
