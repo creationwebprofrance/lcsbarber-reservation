@@ -148,7 +148,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         <div class="detail-row">
           <span class="label">📍 Adresse</span>
-          <span class="value">${booking.clientAddress}</span>
+          <span class="value">${addressHtml}</span>
         </div>
         <div class="detail-row">
           <span class="label">💰 Total</span>
@@ -218,7 +218,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         <div class="detail-row">
           <span class="label">📍 Adresse</span>
-          <span class="value">${booking.clientAddress}</span>
+          <span class="value">${addressHtml}</span>
         </div>
         <div class="detail-row">
           <span class="label">💰 Total</span>
@@ -281,7 +281,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         <div class="detail-row">
           <span class="label">📍 Adresse</span>
-          <span class="value">${booking.clientAddress}</span>
+          <span class="value">${addressHtml}</span>
         </div>
         ${booking.travelFee > 0 ? `
         <div class="detail-row">
@@ -355,7 +355,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         <div class="detail-row">
           <span class="label">📍 Adresse</span>
-          <span class="value">${booking.clientAddress}</span>
+          <span class="value">${addressHtml}</span>
         </div>
         ${booking.travelFee > 0 ? `
         <div class="detail-row">
