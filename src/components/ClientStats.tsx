@@ -6,7 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Users, DollarSign, Calendar, Clock, Save, Ban, Undo2, AlertTriangle, Euro, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, DollarSign, Calendar, Clock, Save, Ban, Undo2, AlertTriangle, Euro, ChevronDown, ChevronUp, Trash2, MapPin, Phone, StickyNote } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -18,7 +18,13 @@ interface BookingDetail {
   appointment_time: string;
   service_name: string;
   total_price: number;
+  travel_fee: number;
   status: string;
+  notes: string | null;
+  client_address: string | null;
+  client_phone: string;
+  client_email: string;
+  deposit_paid: boolean;
 }
 
 interface ClientStat {
@@ -60,7 +66,8 @@ export const ClientStats = () => {
   const [saving, setSaving] = useState(false);
   const [mergeRecords, setMergeRecords] = useState<MergeRecord[]>([]);
   const [unmergeTarget, setUnmergeTarget] = useState<MergeRecord | null>(null);
-  const [showBookings, setShowBookings] = useState(false);
+  const [showBookings, setShowBookings] = useState(true);
+  const [bookingToDelete, setBookingToDelete] = useState<BookingDetail | null>(null);
 
   // Drag & drop merge
   const [draggedClient, setDraggedClient] = useState<ClientStat | null>(null);
@@ -86,7 +93,7 @@ export const ClientStats = () => {
     try {
       const { data: bookings, error } = await supabase
         .from('bookings')
-        .select(`id, client_email, client_name, client_phone, total_price, service_id, appointment_date, appointment_time, status, services (name)`)
+        .select(`id, client_email, client_name, client_phone, client_address, total_price, travel_fee, service_id, appointment_date, appointment_time, status, notes, deposit_paid, services (name)`)
         .order('appointment_date', { ascending: false });
 
       if (error) throw error;
@@ -143,7 +150,13 @@ export const ClientStats = () => {
           appointment_time: booking.appointment_time,
           service_name: booking.services?.name || "—",
           total_price: Number(booking.total_price),
+          travel_fee: Number(booking.travel_fee) || 0,
           status: booking.status,
+          notes: booking.notes,
+          client_address: booking.client_address,
+          client_phone: booking.client_phone || "",
+          client_email: booking.client_email,
+          deposit_paid: !!booking.deposit_paid,
         });
       });
 
@@ -178,7 +191,7 @@ export const ClientStats = () => {
     setEditPhone(client.client_phone === "Non renseigné" ? "" : client.client_phone);
     setEditEmail(client.client_emails[0]);
     setEditUnpaid(String(client.unpaid_amount));
-    setShowBookings(false);
+    setShowBookings(true);
   };
 
   const handleSave = async () => {
@@ -308,6 +321,32 @@ export const ClientStats = () => {
       setUnmergeTarget(null);
       loadStats();
       loadMergeRecords();
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleDeleteBooking = async () => {
+    if (!bookingToDelete) return;
+    try {
+      const { error } = await supabase.from('bookings').delete().eq('id', bookingToDelete.id);
+      if (error) throw error;
+      toast({ title: "Réservation supprimée", description: "Le rendez-vous a été retiré." });
+
+      // Update selected client locally
+      if (selectedClient) {
+        const updatedBookings = selectedClient.bookings.filter(b => b.id !== bookingToDelete.id);
+        const newTotal = updatedBookings.reduce((sum, b) => sum + b.total_price, 0);
+        setSelectedClient({
+          ...selectedClient,
+          bookings: updatedBookings,
+          total_bookings: updatedBookings.length,
+          total_spent: newTotal,
+          avg_spent: updatedBookings.length > 0 ? newTotal / updatedBookings.length : 0,
+        });
+      }
+      setBookingToDelete(null);
+      loadStats();
     } catch (error: any) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     }
@@ -477,23 +516,71 @@ export const ClientStats = () => {
                   {showBookings ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
                 {showBookings && (
-                  <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
+                  <div className="mt-2 space-y-2 max-h-96 overflow-y-auto">
                     {selectedClient.bookings.map((b) => (
-                      <div key={b.id} className="flex items-center justify-between p-2 rounded text-sm bg-muted/30 border">
-                        <div className="min-w-0">
-                          <span className="font-medium">{b.service_name}</span>
-                          <span className="text-muted-foreground ml-2">
-                            {format(new Date(b.appointment_date), "d MMM yyyy", { locale: fr })} à {b.appointment_time?.slice(0, 5)}
-                          </span>
+                      <div key={b.id} className="p-3 rounded-lg text-sm bg-muted/30 border space-y-1.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold">{b.service_name}</div>
+                            <div className="text-muted-foreground text-xs">
+                              {format(new Date(b.appointment_date), "EEEE d MMMM yyyy", { locale: fr })} à {b.appointment_time?.slice(0, 5)}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <Badge variant={b.status === "confirmed" ? "default" : b.status === "cancelled" ? "destructive" : "secondary"} className="text-xs">
+                              {b.status}
+                            </Badge>
+                            <span className="font-semibold">{b.total_price.toFixed(2)}€</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Badge variant={b.status === "confirmed" ? "default" : b.status === "cancelled" ? "destructive" : "secondary"} className="text-xs">
-                            {b.status}
-                          </Badge>
-                          <span className="font-semibold">{b.total_price.toFixed(2)}€</span>
+
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-muted-foreground pt-1 border-t">
+                          {b.travel_fee > 0 && (
+                            <div className="col-span-2">
+                              <span className="text-muted-foreground">Frais déplacement : </span>
+                              <span className="font-medium text-foreground">{b.travel_fee.toFixed(2)}€</span>
+                            </div>
+                          )}
+                          <div className="col-span-2">
+                            <span className="text-muted-foreground">Acompte : </span>
+                            <span className="font-medium text-foreground">{b.deposit_paid ? "Payé" : "Non"}</span>
+                          </div>
+                          {b.client_phone && (
+                            <div className="col-span-2 flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              <span>{b.client_phone}</span>
+                            </div>
+                          )}
+                          {b.client_address && (
+                            <div className="col-span-2 flex items-start gap-1">
+                              <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
+                              <span className="break-words">{b.client_address}</span>
+                            </div>
+                          )}
+                          {b.notes && (
+                            <div className="col-span-2 flex items-start gap-1">
+                              <StickyNote className="h-3 w-3 mt-0.5 shrink-0" />
+                              <span className="break-words italic">{b.notes}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex justify-end pt-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setBookingToDelete(b)}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Retirer ce RDV
+                          </Button>
                         </div>
                       </div>
                     ))}
+                    {selectedClient.bookings.length === 0 && (
+                      <div className="text-center text-muted-foreground py-4 text-sm">Aucune réservation</div>
+                    )}
                   </div>
                 )}
               </div>
@@ -577,6 +664,31 @@ export const ClientStats = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleUnmerge}>Défusionner</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete booking confirmation */}
+      <AlertDialog open={bookingToDelete !== null} onOpenChange={(open) => !open && setBookingToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Retirer cette réservation ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {bookingToDelete && (
+                <>
+                  Le RDV <strong>{bookingToDelete.service_name}</strong> du{" "}
+                  <strong>{format(new Date(bookingToDelete.appointment_date), "d MMMM yyyy", { locale: fr })}</strong>{" "}
+                  à {bookingToDelete.appointment_time?.slice(0, 5)} sera définitivement supprimé.
+                  <p className="mt-2 text-sm text-destructive">Cette action est irréversible.</p>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteBooking} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Supprimer
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
