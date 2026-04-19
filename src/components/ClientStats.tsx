@@ -92,7 +92,7 @@ export const ClientStats = () => {
     try {
       const { data: bookings, error } = await supabase
         .from('bookings')
-        .select(`id, client_email, client_name, client_phone, total_price, service_id, appointment_date, appointment_time, status, services (name)`)
+        .select(`id, client_email, client_name, client_phone, client_address, total_price, travel_fee, service_id, appointment_date, appointment_time, status, notes, deposit_paid, services (name)`)
         .order('appointment_date', { ascending: false });
 
       if (error) throw error;
