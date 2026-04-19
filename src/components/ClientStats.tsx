@@ -326,6 +326,32 @@ export const ClientStats = () => {
     }
   };
 
+  const handleDeleteBooking = async () => {
+    if (!bookingToDelete) return;
+    try {
+      const { error } = await supabase.from('bookings').delete().eq('id', bookingToDelete.id);
+      if (error) throw error;
+      toast({ title: "Réservation supprimée", description: "Le rendez-vous a été retiré." });
+
+      // Update selected client locally
+      if (selectedClient) {
+        const updatedBookings = selectedClient.bookings.filter(b => b.id !== bookingToDelete.id);
+        const newTotal = updatedBookings.reduce((sum, b) => sum + b.total_price, 0);
+        setSelectedClient({
+          ...selectedClient,
+          bookings: updatedBookings,
+          total_bookings: updatedBookings.length,
+          total_spent: newTotal,
+          avg_spent: updatedBookings.length > 0 ? newTotal / updatedBookings.length : 0,
+        });
+      }
+      setBookingToDelete(null);
+      loadStats();
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    }
+  };
+
   if (loading) return <div className="p-4">Chargement des statistiques...</div>;
 
   return (
