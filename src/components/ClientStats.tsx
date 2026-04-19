@@ -18,7 +18,13 @@ interface BookingDetail {
   appointment_time: string;
   service_name: string;
   total_price: number;
+  travel_fee: number;
   status: string;
+  notes: string | null;
+  client_address: string | null;
+  client_phone: string;
+  client_email: string;
+  deposit_paid: boolean;
 }
 
 interface ClientStat {
