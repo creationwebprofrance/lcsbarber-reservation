@@ -191,7 +191,7 @@ export const ClientStats = () => {
     setEditPhone(client.client_phone === "Non renseigné" ? "" : client.client_phone);
     setEditEmail(client.client_emails[0]);
     setEditUnpaid(String(client.unpaid_amount));
-    setShowBookings(false);
+    setShowBookings(true);
   };
 
   const handleSave = async () => {
