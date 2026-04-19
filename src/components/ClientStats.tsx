@@ -667,6 +667,31 @@ export const ClientStats = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Delete booking confirmation */}
+      <AlertDialog open={bookingToDelete !== null} onOpenChange={(open) => !open && setBookingToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Retirer cette réservation ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {bookingToDelete && (
+                <>
+                  Le RDV <strong>{bookingToDelete.service_name}</strong> du{" "}
+                  <strong>{format(new Date(bookingToDelete.appointment_date), "d MMMM yyyy", { locale: fr })}</strong>{" "}
+                  à {bookingToDelete.appointment_time?.slice(0, 5)} sera définitivement supprimé.
+                  <p className="mt-2 text-sm text-destructive">Cette action est irréversible.</p>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteBooking} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
