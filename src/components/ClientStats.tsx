@@ -149,7 +149,13 @@ export const ClientStats = () => {
           appointment_time: booking.appointment_time,
           service_name: booking.services?.name || "—",
           total_price: Number(booking.total_price),
+          travel_fee: Number(booking.travel_fee) || 0,
           status: booking.status,
+          notes: booking.notes,
+          client_address: booking.client_address,
+          client_phone: booking.client_phone || "",
+          client_email: booking.client_email,
+          deposit_paid: !!booking.deposit_paid,
         });
       });
 
