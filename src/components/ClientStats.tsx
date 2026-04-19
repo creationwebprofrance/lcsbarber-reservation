@@ -516,23 +516,71 @@ export const ClientStats = () => {
                   {showBookings ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
                 {showBookings && (
-                  <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
+                  <div className="mt-2 space-y-2 max-h-96 overflow-y-auto">
                     {selectedClient.bookings.map((b) => (
-                      <div key={b.id} className="flex items-center justify-between p-2 rounded text-sm bg-muted/30 border">
-                        <div className="min-w-0">
-                          <span className="font-medium">{b.service_name}</span>
-                          <span className="text-muted-foreground ml-2">
-                            {format(new Date(b.appointment_date), "d MMM yyyy", { locale: fr })} à {b.appointment_time?.slice(0, 5)}
-                          </span>
+                      <div key={b.id} className="p-3 rounded-lg text-sm bg-muted/30 border space-y-1.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold">{b.service_name}</div>
+                            <div className="text-muted-foreground text-xs">
+                              {format(new Date(b.appointment_date), "EEEE d MMMM yyyy", { locale: fr })} à {b.appointment_time?.slice(0, 5)}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <Badge variant={b.status === "confirmed" ? "default" : b.status === "cancelled" ? "destructive" : "secondary"} className="text-xs">
+                              {b.status}
+                            </Badge>
+                            <span className="font-semibold">{b.total_price.toFixed(2)}€</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Badge variant={b.status === "confirmed" ? "default" : b.status === "cancelled" ? "destructive" : "secondary"} className="text-xs">
-                            {b.status}
-                          </Badge>
-                          <span className="font-semibold">{b.total_price.toFixed(2)}€</span>
+
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-muted-foreground pt-1 border-t">
+                          {b.travel_fee > 0 && (
+                            <div className="col-span-2">
+                              <span className="text-muted-foreground">Frais déplacement : </span>
+                              <span className="font-medium text-foreground">{b.travel_fee.toFixed(2)}€</span>
+                            </div>
+                          )}
+                          <div className="col-span-2">
+                            <span className="text-muted-foreground">Acompte : </span>
+                            <span className="font-medium text-foreground">{b.deposit_paid ? "Payé" : "Non"}</span>
+                          </div>
+                          {b.client_phone && (
+                            <div className="col-span-2 flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              <span>{b.client_phone}</span>
+                            </div>
+                          )}
+                          {b.client_address && (
+                            <div className="col-span-2 flex items-start gap-1">
+                              <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
+                              <span className="break-words">{b.client_address}</span>
+                            </div>
+                          )}
+                          {b.notes && (
+                            <div className="col-span-2 flex items-start gap-1">
+                              <StickyNote className="h-3 w-3 mt-0.5 shrink-0" />
+                              <span className="break-words italic">{b.notes}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex justify-end pt-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setBookingToDelete(b)}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Retirer ce RDV
+                          </Button>
                         </div>
                       </div>
                     ))}
+                    {selectedClient.bookings.length === 0 && (
+                      <div className="text-center text-muted-foreground py-4 text-sm">Aucune réservation</div>
+                    )}
                   </div>
                 )}
               </div>
