@@ -66,7 +66,8 @@ export const ClientStats = () => {
   const [saving, setSaving] = useState(false);
   const [mergeRecords, setMergeRecords] = useState<MergeRecord[]>([]);
   const [unmergeTarget, setUnmergeTarget] = useState<MergeRecord | null>(null);
-  const [showBookings, setShowBookings] = useState(false);
+  const [showBookings, setShowBookings] = useState(true);
+  const [bookingToDelete, setBookingToDelete] = useState<BookingDetail | null>(null);
 
   // Drag & drop merge
   const [draggedClient, setDraggedClient] = useState<ClientStat | null>(null);
