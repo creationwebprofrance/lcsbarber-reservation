@@ -15,7 +15,7 @@ const bookingSchema = z.object({
   client_name: z.string().min(2).max(100),
   client_email: z.string().email().max(255),
   client_phone: z.string().min(10).max(20),
-  client_address: z.string().min(5).max(500),
+  client_address: z.string().max(500).optional().default(''),
   total_price: z.number().positive(),
   travel_fee: z.number().min(0).optional().default(0),
   notes: z.string().max(1000).optional().nullable(),

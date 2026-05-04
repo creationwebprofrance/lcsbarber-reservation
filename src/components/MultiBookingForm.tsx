@@ -193,7 +193,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
           client_name: validatedData.name,
           client_email: validatedData.email,
           client_phone: validatedData.phone,
-          client_address: `${validatedData.address}, ${validatedData.postalCode} ${validatedData.city}`,
+          client_address: [validatedData.address, [validatedData.postalCode, validatedData.city].filter(Boolean).join(' ')].filter(Boolean).join(', '),
           total_price: pricing.basePrice + pricing.supplement + pricing.sameDayFee + pricing.sundayFee + 
             (createdBookings.length === 0 ? travelCalculation.fees : 0), // Travel fees only on first booking
           travel_fee: createdBookings.length === 0 ? travelCalculation.fees : 0,
