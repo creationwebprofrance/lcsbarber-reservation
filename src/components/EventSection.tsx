@@ -49,6 +49,13 @@ interface Artist {
   images: ArtistImage[];
 }
 
+// Append Supabase Storage image transform params for smaller thumbnails
+const thumbUrl = (url: string, width = 300) => {
+  if (!url) return url;
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}width=${width}&resize=contain`;
+};
+
 export default function EventSection() {
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
@@ -154,7 +161,7 @@ export default function EventSection() {
               >
                 <div className="aspect-[3/4] rounded-xl bg-muted border border-border/50 group-hover:border-primary/40 transition-all duration-300 flex items-center justify-center mb-3 overflow-hidden group-hover:shadow-lg">
                   {artist.photo_url ? (
-                    <img src={artist.photo_url} alt={artist.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                    <img src={thumbUrl(artist.photo_url, 300)} alt={artist.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-xs text-muted-foreground text-center px-3">Photo à venir</span>
                   )}
