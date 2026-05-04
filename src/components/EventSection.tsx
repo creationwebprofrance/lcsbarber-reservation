@@ -104,7 +104,7 @@ export default function EventSection() {
                 initial="hidden" whileInView="visible" viewport={{ once: true }}
                 variants={fadeUp} custom={i}
               >
-                <img src={org.logo} alt={org.name} className="max-h-20 sm:max-h-24 w-auto object-contain group-hover:scale-105 transition-transform" />
+                <img src={org.logo} alt={org.name} loading="lazy" decoding="async" width={96} height={96} className="max-h-20 sm:max-h-24 w-auto object-contain group-hover:scale-105 transition-transform" />
               </motion.button>
             ))}
           </div>
