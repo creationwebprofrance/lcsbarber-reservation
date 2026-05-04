@@ -120,8 +120,9 @@ export const TimeSlotSelector = ({
           const end = override.end_time!.substring(0, 5);
           
           const startHour = parseInt(start.split(':')[0]);
-          const startMin = parseInt(start.split(':')[1]);
-          const endHour = parseInt(end.split(':')[0]);
+          let endHour = parseInt(end.split(':')[0]);
+          // Traiter minuit (00:00) comme 24 pour générer les créneaux jusqu'à minuit
+          if (endHour === 0) endHour = 24;
           
           // Générer des créneaux toutes les heures
           for (let hour = startHour; hour < endHour; hour++) {
@@ -135,7 +136,8 @@ export const TimeSlotSelector = ({
           const end = slot.end_time.substring(0, 5);
           
           const startHour = parseInt(start.split(':')[0]);
-          const endHour = parseInt(end.split(':')[0]);
+          let endHour = parseInt(end.split(':')[0]);
+          if (endHour === 0) endHour = 24;
           
           for (let hour = startHour; hour < endHour; hour++) {
             slots.push(`${hour.toString().padStart(2, '0')}:00`);
