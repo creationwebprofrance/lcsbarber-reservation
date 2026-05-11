@@ -111,9 +111,14 @@ serve(async (req: Request): Promise<Response> => {
             : `Bonjour ${booking.client_name},\n\nVotre rendez-vous approche ! Dans 2 heures chez LCS Style ⭐`;
 
           // Email au barbier (toujours envoyé)
+          const barberEmail = Deno.env.get("BARBER_EMAIL");
+          if (!barberEmail) {
+            console.error("BARBER_EMAIL secret missing, skipping barber notification");
+            continue;
+          }
           await resend.emails.send({
             from: "LCS Style <onboarding@resend.dev>",
-            to: ["lucas.chipan97@gmail.com"],
+            to: [barberEmail],
             subject: `${type === 'tomorrow' ? 'Demain' : 'Dans 2h'} : RDV avec ${booking.client_name}`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
