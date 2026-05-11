@@ -228,8 +228,11 @@ const handler = async (req: Request): Promise<Response> => {
       emailSubject = templateData.subject;
     }
 
-    // Toujours envoyer à l'adresse fixe du barbier
-    const barberEmail = Deno.env.get("BARBER_EMAIL") || "lucas.chipan97@gmail.com";
+    // Envoi à l'adresse du barbier (configurée via secret BARBER_EMAIL)
+    const barberEmail = Deno.env.get("BARBER_EMAIL");
+    if (!barberEmail) {
+      throw new Error("BARBER_EMAIL secret is required");
+    }
     
     // Envoyer au barbier (toujours réussi)
     const barberEmailResponse = await resend.emails.send({

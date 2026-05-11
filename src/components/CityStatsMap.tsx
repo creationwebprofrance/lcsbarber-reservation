@@ -166,10 +166,12 @@ export function CityStatsMap({ cityStats, onCityUpdated }: CityStatsMapProps) {
 
     try {
       // Update all bookings with the old city name to the new city name
+      // Escape SQL LIKE wildcards in user input to avoid unintended matches
+      const escapedCity = oldCity.replace(/[\\%_]/g, "\\$&");
       const { error } = await supabase
         .from("bookings")
         .update({ client_address: newCityName })
-        .ilike("client_address", `%${oldCity}%`);
+        .ilike("client_address", `%${escapedCity}%`);
 
       if (error) throw error;
 
