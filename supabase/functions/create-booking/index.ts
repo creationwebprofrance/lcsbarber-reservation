@@ -72,14 +72,15 @@ serve(async (req) => {
       );
     }
     
-    // Check if the time slot is already booked
+    // Check if the time slot is already booked by ANOTHER client
     const { data: existingBooking } = await supabase
       .from('bookings')
-      .select('id')
+      .select('id, client_email')
       .eq('appointment_date', validatedData.appointment_date)
       .eq('appointment_time', validatedData.appointment_time)
       .in('status', ['confirmed', 'pending'])
-      .single();
+      .neq('client_email', validatedData.client_email)
+      .maybeSingle();
     
     if (existingBooking) {
       return new Response(
