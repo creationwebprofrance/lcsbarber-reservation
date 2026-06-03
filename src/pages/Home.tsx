@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Settings, BarChart, LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight, Calculator, PartyPopper } from "lucide-react";
 import { motion } from "framer-motion";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
+import veryBadCampAsset from "@/assets/very-bad-camp.png.asset.json";
 import BarberPole3D from "@/components/BarberPole3D";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -151,12 +152,24 @@ export default function Home() {
                   </a>
                 </Button>
                 {hasActiveEvent ? (
-                  <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold w-full sm:w-auto">
-                    <Link to="/evenements">
-                      <PartyPopper className="h-4 w-4 mr-2" />
-                      Prochain événement
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex-1 sm:flex-none">
+                      <Link to="/evenements">
+                        <PartyPopper className="h-4 w-4 mr-2" />
+                        Prochain événement
+                      </Link>
+                    </Button>
+                    <Link to="/evenements" className="relative shrink-0 group">
+                      <img
+                        src={veryBadCampAsset.url}
+                        alt="Very Bad Camp — événement en cours"
+                        className="h-14 sm:h-16 w-auto drop-shadow-[0_0_12px_rgba(0,153,255,0.35)] transition-transform group-hover:scale-105"
+                      />
+                      <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full shadow-md animate-pulse">
+                        En cours
+                      </span>
                     </Link>
-                  </Button>
+                  </div>
                 ) : (
                   <Button size="lg" disabled className="opacity-50 cursor-not-allowed w-full sm:w-auto">
                     <PartyPopper className="h-4 w-4 mr-2" />
