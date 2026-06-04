@@ -77,8 +77,14 @@ export const BookingsCalendar = () => {
     setSelectedDateBookings(filtered);
   };
 
+  const isEventBooking = (b: Booking) => !!b.notes && /^\s*\[/.test(b.notes);
+
   const getBookingDates = () => {
-    return bookings.map(booking => new Date(booking.appointment_date));
+    return bookings.filter(b => !isEventBooking(b)).map(b => new Date(b.appointment_date));
+  };
+
+  const getEventBookingDates = () => {
+    return bookings.filter(isEventBooking).map(b => new Date(b.appointment_date));
   };
 
   const getStatusColor = (status: string) => {
@@ -130,6 +136,7 @@ export const BookingsCalendar = () => {
             className="rounded-md border"
             modifiers={{
               booked: getBookingDates(),
+              event: getEventBookingDates(),
             }}
             modifiersStyles={{
               booked: {
@@ -137,13 +144,22 @@ export const BookingsCalendar = () => {
                 backgroundColor: 'hsl(var(--primary))',
                 color: 'white',
               },
+              event: {
+                fontWeight: 'bold',
+                backgroundColor: '#F97316',
+                color: 'white',
+              },
             }}
           />
           <div className="mt-4 p-4 bg-muted rounded-lg">
             <p className="text-sm font-medium mb-2">Légende</p>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm mb-1">
               <div className="w-4 h-4 rounded bg-primary"></div>
-              <span className="text-muted-foreground">Jours avec réservations</span>
+              <span className="text-muted-foreground">Réservations classiques</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-4 h-4 rounded" style={{ backgroundColor: '#F97316' }}></div>
+              <span className="text-muted-foreground">Réservations événement</span>
             </div>
           </div>
         </CardContent>
@@ -165,11 +181,23 @@ export const BookingsCalendar = () => {
                 Aucune réservation pour cette date
               </div>
             ) : (
-              selectedDateBookings.map((booking) => (
-                <div key={booking.id} className="border rounded-lg p-4 space-y-3">
+              selectedDateBookings.map((booking) => {
+                const isEvent = isEventBooking(booking);
+                const eventLabel = isEvent ? (booking.notes?.match(/^\s*\[([^\]]+)\]/)?.[1] ?? 'Événement') : null;
+                return (
+                <div
+                  key={booking.id}
+                  className="border rounded-lg p-4 space-y-3"
+                  style={isEvent ? { borderLeft: '4px solid #F97316', backgroundColor: 'rgba(249,115,22,0.05)' } : undefined}
+                >
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-semibold text-lg">{booking.services.name}</h3>
+                      {isEvent && (
+                        <span className="inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded" style={{ backgroundColor: '#F97316', color: 'white' }}>
+                          🎉 {eventLabel}
+                        </span>
+                      )}
                       <div className="flex items-center gap-2 mt-1">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">{booking.appointment_time}</span>
@@ -227,7 +255,9 @@ export const BookingsCalendar = () => {
                     </div>
                   )}
                 </div>
-              ))
+                );
+              })
+
             )}
           </div>
         </CardContent>

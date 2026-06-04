@@ -20,7 +20,7 @@ const bookingEmailSchema = z.object({
   clientName: z.string().trim().min(1).max(100),
   clientEmail: z.string().trim().email().max(255),
   clientPhone: z.string().trim().min(1).max(20),
-  clientAddress: z.string().trim().min(1).max(500),
+  clientAddress: z.string().trim().max(500).optional().default(""),
   clientPostalCode: z.string().trim().max(10).optional(),
   clientCity: z.string().trim().max(100).optional(),
   serviceName: z.string().trim().min(1).max(200),
@@ -57,10 +57,14 @@ const handler = async (req: Request): Promise<Response> => {
     }
     
     const booking = validationResult.data;
-    const fullAddress = [booking.clientAddress, booking.clientPostalCode, booking.clientCity].filter(Boolean).join(', ');
-    const addressHtml = booking.clientPostalCode || booking.clientCity 
-      ? `${booking.clientAddress}<br/>${[booking.clientPostalCode, booking.clientCity].filter(Boolean).join(' ')}`
-      : booking.clientAddress;
+    const hasAddress = !!(booking.clientAddress && booking.clientAddress.trim().length > 0);
+    const fullAddress = hasAddress ? [booking.clientAddress, booking.clientPostalCode, booking.clientCity].filter(Boolean).join(', ') : '';
+    const addressHtml = hasAddress
+      ? (booking.clientPostalCode || booking.clientCity
+        ? `${booking.clientAddress}<br/>${[booking.clientPostalCode, booking.clientCity].filter(Boolean).join(' ')}`
+        : booking.clientAddress)
+      : '';
+    const addressRow = hasAddress ? `<div class="detail-row"><span class="label">📍 Adresse</span><span class="value">${addressHtml}</span></div>` : '';
     console.log("Booking data validated for:", booking.clientName);
 
     // Rate limiting: max 3 emails per hour, 5 per day per client email
@@ -146,10 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
           <span class="label">✂️ Prestation</span>
           <span class="value">${booking.serviceName.replace('🎭 Carnaval — ', '')}</span>
         </div>
-        <div class="detail-row">
-          <span class="label">📍 Adresse</span>
-          <span class="value">${addressHtml}</span>
-        </div>
+        ${addressRow}
         <div class="detail-row">
           <span class="label">💰 Total</span>
           <span class="value total">${booking.totalPrice}€</span>
@@ -216,10 +217,7 @@ const handler = async (req: Request): Promise<Response> => {
           <span class="label">✂️ Prestation</span>
           <span class="value">${booking.serviceName} (${booking.servicePrice}€)</span>
         </div>
-        <div class="detail-row">
-          <span class="label">📍 Adresse</span>
-          <span class="value">${addressHtml}</span>
-        </div>
+        ${addressRow}
         <div class="detail-row">
           <span class="label">💰 Total</span>
           <span class="value total">${booking.totalPrice}€</span>
@@ -279,10 +277,7 @@ const handler = async (req: Request): Promise<Response> => {
           <span class="label">✂️ Prestation</span>
           <span class="value">${booking.serviceName}</span>
         </div>
-        <div class="detail-row">
-          <span class="label">📍 Adresse</span>
-          <span class="value">${addressHtml}</span>
-        </div>
+        ${addressRow}
         ${booking.travelFee > 0 ? `
         <div class="detail-row">
           <span class="label">🚗 Frais déplacement</span>
@@ -353,10 +348,7 @@ const handler = async (req: Request): Promise<Response> => {
           <span class="label">✂️ Prestation</span>
           <span class="value">${booking.serviceName} (${booking.servicePrice}€)</span>
         </div>
-        <div class="detail-row">
-          <span class="label">📍 Adresse</span>
-          <span class="value">${addressHtml}</span>
-        </div>
+        ${addressRow}
         ${booking.travelFee > 0 ? `
         <div class="detail-row">
           <span class="label">🚗 Frais déplacement</span>
