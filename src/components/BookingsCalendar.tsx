@@ -255,7 +255,9 @@ export const BookingsCalendar = () => {
                     </div>
                   )}
                 </div>
-              ))
+                );
+              })
+
             )}
           </div>
         </CardContent>
