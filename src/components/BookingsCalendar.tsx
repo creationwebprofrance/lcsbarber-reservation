@@ -181,11 +181,23 @@ export const BookingsCalendar = () => {
                 Aucune réservation pour cette date
               </div>
             ) : (
-              selectedDateBookings.map((booking) => (
-                <div key={booking.id} className="border rounded-lg p-4 space-y-3">
+              selectedDateBookings.map((booking) => {
+                const isEvent = isEventBooking(booking);
+                const eventLabel = isEvent ? (booking.notes?.match(/^\s*\[([^\]]+)\]/)?.[1] ?? 'Événement') : null;
+                return (
+                <div
+                  key={booking.id}
+                  className="border rounded-lg p-4 space-y-3"
+                  style={isEvent ? { borderLeft: '4px solid #F97316', backgroundColor: 'rgba(249,115,22,0.05)' } : undefined}
+                >
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-semibold text-lg">{booking.services.name}</h3>
+                      {isEvent && (
+                        <span className="inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded" style={{ backgroundColor: '#F97316', color: 'white' }}>
+                          🎉 {eventLabel}
+                        </span>
+                      )}
                       <div className="flex items-center gap-2 mt-1">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">{booking.appointment_time}</span>
