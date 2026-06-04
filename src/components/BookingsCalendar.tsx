@@ -77,8 +77,14 @@ export const BookingsCalendar = () => {
     setSelectedDateBookings(filtered);
   };
 
+  const isEventBooking = (b: Booking) => !!b.notes && /^\s*\[/.test(b.notes);
+
   const getBookingDates = () => {
-    return bookings.map(booking => new Date(booking.appointment_date));
+    return bookings.filter(b => !isEventBooking(b)).map(b => new Date(b.appointment_date));
+  };
+
+  const getEventBookingDates = () => {
+    return bookings.filter(isEventBooking).map(b => new Date(b.appointment_date));
   };
 
   const getStatusColor = (status: string) => {
