@@ -277,10 +277,7 @@ const handler = async (req: Request): Promise<Response> => {
           <span class="label">✂️ Prestation</span>
           <span class="value">${booking.serviceName}</span>
         </div>
-        <div class="detail-row">
-          <span class="label">📍 Adresse</span>
-          <span class="value">${addressHtml}</span>
-        </div>
+        ${addressRow}
         ${booking.travelFee > 0 ? `
         <div class="detail-row">
           <span class="label">🚗 Frais déplacement</span>
