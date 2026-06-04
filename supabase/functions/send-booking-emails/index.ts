@@ -150,10 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
           <span class="label">✂️ Prestation</span>
           <span class="value">${booking.serviceName.replace('🎭 Carnaval — ', '')}</span>
         </div>
-        <div class="detail-row">
-          <span class="label">📍 Adresse</span>
-          <span class="value">${addressHtml}</span>
-        </div>
+        ${addressRow}
         <div class="detail-row">
           <span class="label">💰 Total</span>
           <span class="value total">${booking.totalPrice}€</span>
