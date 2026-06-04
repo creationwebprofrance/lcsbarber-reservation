@@ -136,6 +136,7 @@ export const BookingsCalendar = () => {
             className="rounded-md border"
             modifiers={{
               booked: getBookingDates(),
+              event: getEventBookingDates(),
             }}
             modifiersStyles={{
               booked: {
@@ -143,13 +144,22 @@ export const BookingsCalendar = () => {
                 backgroundColor: 'hsl(var(--primary))',
                 color: 'white',
               },
+              event: {
+                fontWeight: 'bold',
+                backgroundColor: '#F97316',
+                color: 'white',
+              },
             }}
           />
           <div className="mt-4 p-4 bg-muted rounded-lg">
             <p className="text-sm font-medium mb-2">Légende</p>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm mb-1">
               <div className="w-4 h-4 rounded bg-primary"></div>
-              <span className="text-muted-foreground">Jours avec réservations</span>
+              <span className="text-muted-foreground">Réservations classiques</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-4 h-4 rounded" style={{ backgroundColor: '#F97316' }}></div>
+              <span className="text-muted-foreground">Réservations événement</span>
             </div>
           </div>
         </CardContent>
