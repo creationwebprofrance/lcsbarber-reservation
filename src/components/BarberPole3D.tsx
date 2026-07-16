@@ -12,14 +12,14 @@ function useBarberTexture() {
     canvas.height = size;
     const ctx = canvas.getContext("2d")!;
 
-    // White base
-    ctx.fillStyle = "#FFFFFF";
+    // Cream base
+    ctx.fillStyle = "#F4F1EA";
     ctx.fillRect(0, 0, size, size);
 
     // Draw diagonal stripes that tile perfectly
     // The key: stripes must connect at top and bottom edges
     const stripeWidth = 60;
-    const colors = ["#FF4433", "#FFFFFF", "#0099FF", "#FFFFFF"];
+    const colors = ["#0B0B0B", "#F4F1EA", "#C58B52", "#F4F1EA"];
     const patternWidth = stripeWidth * colors.length; // 240
     // shift must be exact multiple of patternWidth for seamless tiling
     const shift = patternWidth * 2; // 480
@@ -78,9 +78,9 @@ function Pole() {
   const capMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: "#C0C0C0",
-        metalness: 0.95,
-        roughness: 0.1,
+        color: "#C58B52",
+        metalness: 0.9,
+        roughness: 0.25,
       }),
     []
   );
@@ -88,9 +88,9 @@ function Pole() {
   const baseMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: "#1a1a1a",
-        metalness: 0.5,
-        roughness: 0.3,
+        color: "#0B0B0B",
+        metalness: 0.6,
+        roughness: 0.35,
       }),
     []
   );
@@ -168,8 +168,8 @@ export default function BarberPole3D() {
         <ambientLight intensity={0.6} />
         <directionalLight position={[3, 5, 5]} intensity={1.2} />
         <directionalLight position={[-3, -2, 3]} intensity={0.4} />
-        <pointLight position={[0, 3, 2]} intensity={0.5} color="#0099FF" />
-        <pointLight position={[0, -3, 2]} intensity={0.3} color="#FF4433" />
+        <pointLight position={[0, 3, 2]} intensity={0.6} color="#C58B52" />
+        <pointLight position={[0, -3, 2]} intensity={0.3} color="#F4F1EA" />
         <Suspense fallback={null}>
           <Pole />
           <Environment preset="studio" />
