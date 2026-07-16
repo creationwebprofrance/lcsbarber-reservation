@@ -77,6 +77,12 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        display: ['Syne', 'system-ui', 'sans-serif'],
+        heading: ['Syne', 'system-ui', 'sans-serif'],
+        stencil: ['"Bebas Neue"', 'Oswald', 'sans-serif'],
+        body: ['Manrope', 'system-ui', 'sans-serif'],
+      },
       keyframes: {
         "accordion-down": {
           from: {

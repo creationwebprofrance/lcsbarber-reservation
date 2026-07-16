@@ -2,63 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Bebas+Neue&family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    /* LCS Barber — Modern barbershop, cool & clean */
-    --background: 220 16% 7%;
-    --foreground: 0 0% 95%;
+    /* LCS Style — Premium barber, bronze on deep black */
+    --background: 0 0% 4%;              /* #0B0B0B */
+    --foreground: 40 30% 94%;           /* #F4F1EA */
 
-    --card: 220 14% 10%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 9%;                    /* #171717 */
+    --card-foreground: 40 30% 94%;
 
-    --popover: 220 14% 10%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 40 30% 94%;
 
-    /* Bleu barber pole */
-    --primary: 210 100% 55%;
-    --primary-foreground: 0 0% 100%;
+    /* Bronze / copper */
+    --primary: 26 47% 55%;              /* #C58B52 */
+    --primary-foreground: 0 0% 6%;
 
-    --secondary: 220 12% 15%;
-    --secondary-foreground: 0 0% 92%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 40 20% 90%;
 
-    --muted: 220 10% 16%;
-    --muted-foreground: 220 8% 52%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 0 0% 72%;       /* #B8B8B8 */
 
-    /* Rouge barber pole */
-    --accent: 4 80% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 26 47% 55%;
+    --accent-foreground: 0 0% 6%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 40 30% 94%;
 
-    --border: 220 10% 16%;
-    --input: 220 12% 14%;
-    --ring: 210 100% 55%;
+    --border: 0 0% 16%;
+    --input: 0 0% 12%;
+    --ring: 26 47% 55%;
 
-    --success: 152 60% 45%;
-    --success-foreground: 0 0% 98%;
+    --success: 152 45% 48%;
+    --success-foreground: 0 0% 6%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(210 100% 55%), hsl(210 100% 65%));
-    --gradient-secondary: linear-gradient(135deg, hsl(220 16% 7%), hsl(220 12% 15%));
-    --gradient-card: linear-gradient(160deg, hsl(220 14% 11%) 0%, hsl(220 14% 8%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(220 16% 7% / 0.2) 0%, hsl(220 16% 7% / 0.7) 50%, hsl(220 16% 7%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(26 47% 55%), hsl(26 55% 62%));
+    --gradient-secondary: linear-gradient(180deg, hsl(0 0% 4%), hsl(0 0% 7%));
+    --gradient-card: linear-gradient(160deg, hsl(0 0% 10%) 0%, hsl(0 0% 7%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(0 0% 4% / 0.2) 0%, hsl(0 0% 4% / 0.75) 55%, hsl(0 0% 4%) 100%);
 
-    --shadow-elegant: 0 12px 40px -10px hsl(210 100% 55% / 0.2);
-    --shadow-glow: 0 0 50px hsl(210 100% 55% / 0.1);
-    --shadow-card: 0 4px 24px -2px hsl(0 0% 0% / 0.5);
+    --shadow-elegant: 0 20px 50px -20px hsl(26 47% 55% / 0.35);
+    --shadow-glow: 0 0 60px hsl(26 47% 55% / 0.15);
+    --shadow-card: 0 2px 20px -4px hsl(0 0% 0% / 0.6);
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: 220 14% 10%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 210 100% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 12% 15%;
-    --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-border: 220 10% 16%;
-    --sidebar-ring: 210 100% 55%;
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 40 30% 94%;
+    --sidebar-primary: 26 47% 55%;
+    --sidebar-primary-foreground: 0 0% 6%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 40 20% 90%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 26 47% 55%;
   }
 }
 
@@ -69,35 +68,67 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'DM Sans', system-ui, sans-serif;
+    font-family: 'Manrope', system-ui, sans-serif;
+    font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: 'Syne', system-ui, sans-serif;
     font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .font-display {
+    font-family: 'Bebas Neue', 'Syne', sans-serif;
+    letter-spacing: 0.04em;
+  }
+
+  .font-body {
+    font-family: 'Manrope', system-ui, sans-serif;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.4);
+    color: hsl(var(--foreground));
   }
 }
 
 @layer components {
   .stripe-line {
-    height: 3px;
+    height: 1px;
     background: linear-gradient(
       90deg,
       transparent 0%,
-      hsl(210 100% 55%) 20%,
-      hsl(0 0% 95%) 50%,
-      hsl(4 80% 55%) 80%,
+      hsl(var(--border)) 20%,
+      hsl(var(--primary) / 0.6) 50%,
+      hsl(var(--border)) 80%,
       transparent 100%
     );
-    opacity: 0.6;
   }
 
   .text-accent-gradient {
-    background: linear-gradient(135deg, hsl(210 100% 60%), hsl(4 80% 55%));
+    background: linear-gradient(135deg, hsl(26 55% 65%), hsl(26 47% 48%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
