@@ -227,50 +227,6 @@ export default function Home() {
 
       <div className="stripe-line" />
 
-      {/* Services */}
-      <section id="services" className="py-20 sm:py-28">
-        <div className="max-w-6xl mx-auto px-5">
-          <motion.div
-            className="mb-14"
-            initial="hidden" whileInView="visible" viewport={{ once: true }}
-            variants={fadeUp} custom={0}
-          >
-            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">CE QUE JE FAIS</p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-              Des coupes qui parlent<br className="hidden sm:block" /> pour vous.
-            </h2>
-          </motion.div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[
-              { icon: Scissors, title: "Coupes Afro", desc: "Dégradé, taper, fade, box cut, waves — je maîtrise tous les styles.", tag: "Spécialité" },
-              { icon: Scissors, title: "Coupes Européennes", desc: "Undercut, pompadour, crew cut, textured crop — toujours propre.", tag: "Classique" },
-              { icon: Star, title: "Barbe & Finitions", desc: "Taille de barbe, rasage, tracé net — le souci du détail.", tag: "Détails" },
-            ].map((s, i) => (
-              <motion.div
-                key={s.title}
-                className="bg-card border border-border/50 rounded-xl p-7 hover:border-primary/30 transition-all duration-300 group"
-                initial="hidden" whileInView="visible" viewport={{ once: true }}
-                variants={fadeUp} custom={i}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <s.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-accent bg-accent/10 px-2.5 py-1 rounded-full">
-                    {s.tag}
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-2">{s.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div className="stripe-line" />
-
       {/* Quick stats */}
       <section className="py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-5">
