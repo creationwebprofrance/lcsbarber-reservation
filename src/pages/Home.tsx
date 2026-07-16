@@ -120,20 +120,28 @@ export default function Home() {
           <div className="flex flex-col-reverse lg:flex-row items-center gap-2 sm:gap-4 lg:gap-6">
             {/* Left: text content */}
             <div className="flex-1 text-center lg:text-left">
+              <motion.p
+                className="font-stencil text-primary text-sm sm:text-base mb-4 tracking-[0.25em]"
+                initial="hidden" animate="visible" variants={fadeUp} custom={0}
+              >
+                LCS STYLE — BARBER ATELIER
+              </motion.p>
               <motion.h1
-                className="text-3xl sm:text-5xl md:text-7xl font-bold text-foreground mb-3 sm:mb-4 leading-tight"
+                className="text-4xl sm:text-6xl md:text-7xl font-bold text-foreground mb-5 sm:mb-6 leading-[0.95] tracking-tight"
                 initial="hidden" animate="visible" variants={fadeUp} custom={1}
               >
-                Lcsbarber s'occupe<br />
-                <span className="text-primary">de ton style.</span>
+                Ton style.<br />
+                Ton créneau.<br />
+                <span className="text-accent-gradient">Ta coupe.</span>
               </motion.h1>
 
               <motion.p
-                className="text-sm sm:text-lg text-muted-foreground max-w-md mb-5 sm:mb-8 mx-auto lg:mx-0"
+                className="text-sm sm:text-lg text-muted-foreground max-w-md mb-6 sm:mb-9 mx-auto lg:mx-0 leading-relaxed"
                 initial="hidden" animate="visible" variants={fadeUp} custom={2}
               >
-                Coupes afro & européennes. Service pro, ambiance cool. À domicile uniquement.
+                Coupes afro & européennes, barbe soignée. Réserve ton créneau en quelques secondes — je viens chez toi.
               </motion.p>
+
 
               <motion.div
                 className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
