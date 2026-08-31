@@ -12,8 +12,10 @@ import Evenements from "./pages/Evenements";
 import AdminEvenements from "./pages/AdminEvenements";
 import NotFound from "./pages/NotFound";
 import { Auth } from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import { Admin } from "./pages/Admin";
 import { AuthProvider } from "./hooks/useAuth";
+import RequireAuth from "./components/RequireAuth";
 import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
@@ -28,8 +30,9 @@ const App = () => (
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/reservation" element={<Reservation />} />
+            <Route path="/reservation" element={<RequireAuth><Reservation /></RequireAuth>} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/simulator" element={<Simulator />} />
