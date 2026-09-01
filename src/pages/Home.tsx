@@ -80,6 +80,7 @@ export default function Home() {
                 Réserver
               </Link>
             </Button>
+            {user && <UserMenu />}
           </nav>
         </div>
       </header>
