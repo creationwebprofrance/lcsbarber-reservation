@@ -177,6 +177,35 @@ export const ClientStats = () => {
         });
       });
 
+      // Comptes sans aucune réservation : on les ajoute quand même à la liste
+      const bookedEmails = new Set(
+        Array.from(clientMap.values()).flatMap(c => c.client_emails.map(e => (e || "").trim().toLowerCase()))
+      );
+      profileMap.forEach((p, email) => {
+        if (bookedEmails.has(email)) return;
+        const info = clientInfoMap.get(p.email);
+        clientMap.set(`account::${email}`, {
+          key: `account::${email}`,
+          client_emails: [p.email],
+          client_name: p.full_name || p.email.split("@")[0],
+          client_phone: "Non renseigné",
+          total_bookings: 0,
+          total_spent: 0,
+          avg_spent: 0,
+          services: [],
+          last_service: "—",
+          last_date: "",
+          avg_days_between: null,
+          dates: [],
+          is_blacklisted: info?.is_blacklisted || false,
+          unpaid_amount: info?.unpaid_amount || 0,
+          bookings: [],
+          account_user_id: p.user_id,
+          account_role: p.role,
+          account_created_at: p.created_at,
+        });
+      });
+
       const statsArray = Array.from(clientMap.values())
         .map(c => {
           let avgDays: number | null = null;
