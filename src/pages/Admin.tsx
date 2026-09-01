@@ -320,10 +320,6 @@ export const Admin = () => {
             <CalendarSlotsManager />
           </TabsContent>
 
-          <TabsContent value="users">
-            <UserManagement />
-          </TabsContent>
-
           <TabsContent value="calendar" className="space-y-8">
             {/* Horaires hebdomadaires */}
             <Card>
