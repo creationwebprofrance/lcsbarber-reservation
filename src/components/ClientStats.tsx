@@ -401,6 +401,49 @@ export const ClientStats = () => {
     }
   };
 
+  // Suppression du compte utilisateur lié à l'email du client
+  const handleDeleteAccount = async () => {
+    if (!accountToDelete?.account_user_id) return;
+    setDeletingAccount(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Non authentifié");
+
+      const response = await fetch(
+        `https://qgtbedvpxpadpqxrkzzx.supabase.co/functions/v1/delete-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ userId: accountToDelete.account_user_id }),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Erreur lors de la suppression");
+
+      toast({ title: "Compte supprimé", description: "Le compte utilisateur a été supprimé." });
+      setAccountToDelete(null);
+      setSelectedClient(null);
+      loadStats();
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
+  const filteredStats = stats.filter((c) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      c.client_name.toLowerCase().includes(q) ||
+      c.client_emails.some((e) => (e || "").toLowerCase().includes(q)) ||
+      c.client_phone.toLowerCase().includes(q)
+    );
+  });
+
   if (loading) return <div className="p-4">Chargement des statistiques...</div>;
 
   return (
