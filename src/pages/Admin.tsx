@@ -285,13 +285,9 @@ export const Admin = () => {
                 <CalendarIcon className="h-4 w-4 shrink-0" />
                 <span>Exceptions</span>
               </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
-                <Users className="h-4 w-4 shrink-0" />
-                <span>Utilisateurs</span>
-              </TabsTrigger>
               <TabsTrigger value="clients" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
                 <Users className="h-4 w-4 shrink-0" />
-                <span>Clients</span>
+                <span>Clients &amp; utilisateurs</span>
               </TabsTrigger>
               <TabsTrigger value="reviews" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
                 <Star className="h-4 w-4 shrink-0" />
