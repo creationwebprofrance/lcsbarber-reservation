@@ -98,7 +98,7 @@ export default function Home() {
                 className="font-stencil text-primary text-sm sm:text-base mb-4 tracking-[0.25em]"
                 initial="hidden" animate="visible" variants={fadeUp} custom={0}
               >
-                LCS STYLE — BARBER ATELIER
+                LCS BARBER — BARBER ATELIER
               </motion.p>
               <motion.h1
                 className="text-4xl sm:text-6xl md:text-7xl font-bold text-foreground mb-5 sm:mb-6 leading-[0.95] tracking-tight"
