@@ -175,27 +175,58 @@ export default function Home() {
       {/* Barber stripe divider */}
       <div className="stripe-line" />
 
-      {/* BOOK Événementiel CTA - moved above services */}
+      {/* Catalogue : coupes & prestations événementielles */}
       <section className="py-16 sm:py-20">
-        <div className="max-w-4xl mx-auto px-5 text-center">
+        <div className="max-w-5xl mx-auto px-5">
           <motion.div
+            className="text-center mb-10"
             initial="hidden" whileInView="visible" viewport={{ once: true }}
             variants={fadeUp} custom={0}
           >
-            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">{bookSection.label}</p>
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
-              {bookSection.title}
+            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">CATALOGUE</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+              Mes coupes & mes prestations
             </h2>
-            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              {bookSection.description}
-            </p>
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant px-8">
-              <Link to={bookSection.buttonLink}>
-                <ArrowRight className="h-4 w-4 mr-2" />
-                {bookSection.buttonText}
-              </Link>
-            </Button>
           </motion.div>
+
+          <div className="grid sm:grid-cols-2 gap-5">
+            <motion.div
+              className="bg-card border border-border/50 rounded-2xl p-7 flex flex-col"
+              initial="hidden" whileInView="visible" viewport={{ once: true }}
+              variants={fadeUp} custom={1}
+            >
+              <Scissors className="h-6 w-6 text-primary mb-4" />
+              <h3 className="text-xl font-bold text-foreground mb-2">Catalogue de coupes</h3>
+              <p className="text-sm text-muted-foreground mb-6 flex-1">
+                Découvre mes réalisations — fades, afro, européennes, barbe soignée — et choisis
+                ton style avant de réserver.
+              </p>
+              <Button asChild className="w-full font-semibold">
+                <Link to="/catalogue">
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  Voir le catalogue
+                </Link>
+              </Button>
+            </motion.div>
+
+            <motion.div
+              className="bg-card border border-border/50 rounded-2xl p-7 flex flex-col"
+              initial="hidden" whileInView="visible" viewport={{ once: true }}
+              variants={fadeUp} custom={2}
+            >
+              <PartyPopper className="h-6 w-6 text-primary mb-4" />
+              <h3 className="text-xl font-bold text-foreground mb-2">{bookSection.title}</h3>
+              <p className="text-sm text-muted-foreground mb-6 flex-1">
+                {bookSection.description}
+              </p>
+              <Button asChild variant="outline" className="w-full font-semibold border-border/60">
+                <Link to={bookSection.buttonLink}>
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  {bookSection.buttonText}
+                </Link>
+              </Button>
+            </motion.div>
+          </div>
         </div>
       </section>
 
