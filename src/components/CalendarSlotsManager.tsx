@@ -391,8 +391,11 @@ export const CalendarSlotsManager = () => {
                   <div className="space-y-2">
                     {getSlotsForDay(selectedDay).map((slot: any, idx) => (
                       <div key={idx} className="flex items-center justify-between p-2 bg-primary/10 rounded">
-                        <span className="text-sm">
+                        <span className="text-sm flex items-center gap-2">
                           {slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}
+                          <Badge variant="outline" className="text-xs">
+                            {slotModeLabels[slot.mode || 'both']}
+                          </Badge>
                         </span>
                         {slot.isOverride && (
                           <Button 
@@ -441,6 +444,16 @@ export const CalendarSlotsManager = () => {
                     onChange={(e) => setNewSlot(prev => ({ ...prev, end_time: e.target.value }))}
                   />
                 </div>
+                <Select value={newSlot.mode} onValueChange={(v) => setNewSlot(prev => ({ ...prev, mode: v as typeof prev.mode }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Type de prestation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="both">Les deux</SelectItem>
+                    <SelectItem value="domicile">🏠 À côté du domicile</SelectItem>
+                    <SelectItem value="deplacement">🚗 En déplacement</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button onClick={addSlotForDate} className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter
