@@ -232,138 +232,195 @@ const handler = async (req: Request): Promise<Response> => {
 
     } else {
       // ========== EMAIL STANDARD ==========
-      clientSubject = `✅ Rendez-vous confirmé - ${booking.appointmentDate} à ${booking.appointmentTime}`;
-      adminSubject = `🆕 Nouveau RDV: ${booking.clientName} - ${booking.appointmentDate} à ${booking.appointmentTime}`;
+      clientSubject = `✅ Rendez-vous confirmé — ${booking.appointmentDate} à ${booking.appointmentTime}`;
+      adminSubject = `🆕 Nouveau RDV — ${booking.clientName} — ${booking.appointmentDate} à ${booking.appointmentTime}`;
+
+      const remainingAmount = booking.depositAmount !== undefined && booking.depositAmount > 0
+        ? booking.totalPrice - booking.depositAmount
+        : booking.totalPrice;
+      const depositRow = booking.depositAmount !== undefined && booking.depositAmount > 0
+        ? `<tr><td style="padding:10px 0;border-bottom:1px solid #2A2A2A;"><span style="color:#A1A1A1;font-size:13px;">Acompte versé</span></td><td style="padding:10px 0;border-bottom:1px solid #2A2A2A;text-align:right;"><span style="color:#F4F1EA;font-weight:600;">${booking.depositAmount}€</span></td></tr><tr><td style="padding:10px 0;"><span style="color:#A1A1A1;font-size:13px;">Reste à payer</span></td><td style="padding:10px 0;text-align:right;"><span style="color:#C58B52;font-weight:700;">${remainingAmount}€</span></td></tr>`
+        : '';
 
       clientEmailHtml = `
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmation de votre rendez-vous — LCS Style</title>
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #0099FF, #FF4433); padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-    .header h1 { color: white; margin: 0; font-size: 24px; }
-    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-    .booking-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0099FF; }
-    .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-    .detail-row:last-child { border-bottom: none; }
-    .label { font-weight: bold; color: #555; }
-    .value { color: #333; }
-    .total { font-size: 20px; color: #0099FF; font-weight: bold; }
-    .footer { text-align: center; padding: 20px; color: #888; font-size: 12px; }
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap');
+    body { margin:0; padding:0; background-color:#0B0B0B; color:#F4F1EA; font-family:'Manrope',Arial,Helvetica,sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
+    .wrapper { width:100%; max-width:600px; margin:0 auto; background-color:#0B0B0B; }
+    .header { background:linear-gradient(135deg,#0B0B0B 0%,#1A1A1A 100%); padding:48px 32px 40px; text-align:center; border-bottom:2px solid #C58B52; }
+    .brand { font-family:'Syne',Arial,Helvetica,sans-serif; font-size:28px; font-weight:700; color:#F4F1EA; letter-spacing:2px; margin:0 0 8px; }
+    .brand span { color:#C58B52; }
+    .tagline { color:#A1A1A1; font-size:12px; letter-spacing:3px; text-transform:uppercase; margin:0; }
+    .hero-title { font-family:'Syne',Arial,Helvetica,sans-serif; font-size:22px; font-weight:600; color:#F4F1EA; margin:24px 0 0; }
+    .content { padding:40px 32px; background-color:#111111; }
+    .greeting { font-size:18px; font-weight:600; margin:0 0 8px; color:#F4F1EA; }
+    .intro { color:#A1A1A1; margin:0 0 28px; font-size:15px; }
+    .card { background-color:#0B0B0B; border:1px solid #2A2A2A; border-radius:12px; padding:24px; margin:0 0 24px; }
+    .card-title { font-family:'Syne',Arial,Helvetica,sans-serif; font-size:14px; color:#C58B52; letter-spacing:2px; text-transform:uppercase; margin:0 0 20px; }
+    .detail-row { width:100%; }
+    .detail-row td { padding:12px 0; border-bottom:1px solid #1F1F1F; vertical-align:top; }
+    .detail-row:last-child td { border-bottom:none; }
+    .label { color:#A1A1A1; font-size:13px; font-weight:500; }
+    .value { color:#F4F1EA; font-size:14px; font-weight:600; text-align:right; }
+    .total-row td { padding-top:16px; border-top:2px solid #C58B52; border-bottom:none; }
+    .total-label { color:#C58B52; font-family:'Syne',Arial,Helvetica,sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+    .total-value { color:#C58B52; font-family:'Syne',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; text-align:right; }
+    .info-box { background-color:#1A1A1A; border-left:3px solid #C58B52; border-radius:0 8px 8px 0; padding:20px; margin:24px 0; }
+    .info-box h3 { font-family:'Syne',Arial,Helvetica,sans-serif; font-size:14px; color:#C58B52; margin:0 0 12px; }
+    .info-box ul { margin:0; padding-left:18px; color:#A1A1A1; font-size:14px; }
+    .info-box li { margin-bottom:6px; }
+    .message-box { background-color:#1A1A1A; border-radius:8px; padding:16px; margin:24px 0; }
+    .message-box strong { color:#C58B52; font-size:12px; text-transform:uppercase; letter-spacing:1px; }
+    .message-box p { color:#F4F1EA; margin:8px 0 0; font-size:14px; }
+    .footer { background-color:#0B0B0B; padding:32px; text-align:center; border-top:1px solid #1F1F1F; }
+    .footer-brand { font-family:'Syne',Arial,Helvetica,sans-serif; font-size:16px; font-weight:700; color:#F4F1EA; margin:0 0 8px; }
+    .footer-brand span { color:#C58B52; }
+    .footer-text { color:#666; font-size:12px; margin:0; line-height:1.8; }
+    .signature { color:#F4F1EA; font-size:15px; margin:0 0 4px; }
+    .signature-name { color:#C58B52; font-weight:700; }
+    @media only screen and (max-width: 480px) {
+      .header { padding:36px 24px 32px; }
+      .content { padding:28px 20px; }
+      .card { padding:18px; }
+      .brand { font-size:24px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>✅ Rendez-vous Confirmé</h1>
-    </div>
-    <div class="content">
-      <p>Bonjour <strong>${booking.clientName}</strong>,</p>
-      <p>Votre rendez-vous a été confirmé avec succès !</p>
-      
-      <div class="booking-details">
-        <div class="detail-row">
-          <span class="label">📅 Date</span>
-          <span class="value">${booking.appointmentDate}</span>
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#0B0B0B;">
+    <tr><td align="center" style="padding:24px 12px;">
+      <div class="wrapper">
+        <div class="header">
+          <p class="brand">LCS <span>STYLE</span></p>
+          <p class="tagline">Barber Atelier — À domicile</p>
+          <p class="hero-title">Rendez-vous confirmé</p>
         </div>
-        <div class="detail-row">
-          <span class="label">🕐 Heure</span>
-          <span class="value">${booking.appointmentTime}</span>
+
+        <div class="content">
+          <p class="greeting">Bonjour ${booking.clientName},</p>
+          <p class="intro">Ton rendez-vous est bien enregistré. Retrouve tous les détails ci-dessous.</p>
+
+          <div class="card">
+            <p class="card-title">Détails du rendez-vous</p>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr class="detail-row"><td class="label">Prestation</td><td class="value">${booking.serviceName}</td></tr>
+              <tr class="detail-row"><td class="label">Date</td><td class="value">${booking.appointmentDate}</td></tr>
+              <tr class="detail-row"><td class="label">Heure</td><td class="value">${booking.appointmentTime}</td></tr>
+              ${addressRow ? `<tr class="detail-row"><td class="label">Adresse</td><td class="value">${addressHtml}</td></tr>` : ''}
+              <tr class="detail-row"><td class="label">Prix de la prestation</td><td class="value">${booking.servicePrice}€</td></tr>
+              ${booking.travelFee > 0 ? `<tr class="detail-row"><td class="label">Frais de déplacement</td><td class="value">${booking.travelFee}€</td></tr>` : ''}
+              <tr class="total-row"><td class="total-label">Total</td><td class="total-value">${booking.totalPrice}€</td></tr>
+              ${depositRow}
+            </table>
+          </div>
+
+          <div class="info-box">
+            <h3>Informations importantes</h3>
+            <ul>
+              <li>Merci d'être ponctuel à ton rendez-vous.</li>
+              <li>En cas d'empêchement, préviens-moi au minimum 24h à l'avance.</li>
+              ${booking.depositAmount !== undefined && booking.depositAmount > 0 ? `<li>Le solde de <strong style="color:#F4F1EA;">${remainingAmount}€</strong> sera à régler sur place.</li>` : '<li>Le règlement se fera sur place le jour du rendez-vous.</li>'}
+            </ul>
+          </div>
+
+          ${booking.message ? `<div class="message-box"><strong>Ton message</strong><p>${booking.message}</p></div>` : ''}
+
+          <p class="signature">À très bientôt,<br><span class="signature-name">Lucas — LCS Style</span></p>
         </div>
-        <div class="detail-row">
-          <span class="label">✂️ Prestation</span>
-          <span class="value">${booking.serviceName}</span>
-        </div>
-        ${addressRow}
-        ${booking.travelFee > 0 ? `
-        <div class="detail-row">
-          <span class="label">🚗 Frais déplacement</span>
-          <span class="value">${booking.travelFee}€</span>
-        </div>
-        ` : ''}
-        <div class="detail-row">
-          <span class="label">💰 Total</span>
-          <span class="value total">${booking.totalPrice}€</span>
+
+        <div class="footer">
+          <p class="footer-brand">LCS <span>STYLE</span></p>
+          <p class="footer-text">Coiffure à domicile — Prestations sur mesure<br>lcsbarber.com</p>
         </div>
       </div>
-      
-      ${booking.message ? `<p><strong>Message:</strong> ${booking.message}</p>` : ''}
-      
-      <p>À très bientôt !</p>
-    </div>
-    <div class="footer">
-      <p>LCS Style - Coiffure à domicile</p>
-    </div>
-  </div>
+    </td></tr>
+  </table>
 </body>
 </html>`;
 
       adminEmailHtml = `
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nouveau rendez-vous — LCS Style</title>
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #0099FF, #FF4433); padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-    .header h1 { color: white; margin: 0; font-size: 24px; }
-    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-    .booking-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #FF4433; }
-    .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-    .detail-row:last-child { border-bottom: none; }
-    .label { font-weight: bold; color: #555; }
-    .value { color: #333; }
-    .total { font-size: 20px; color: #FF4433; font-weight: bold; }
-    .client-info { background: #e8f4ff; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap');
+    body { margin:0; padding:0; background-color:#0B0B0B; color:#F4F1EA; font-family:'Manrope',Arial,Helvetica,sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
+    .wrapper { width:100%; max-width:600px; margin:0 auto; background-color:#0B0B0B; }
+    .header { background:linear-gradient(135deg,#0B0B0B 0%,#1A1A1A 100%); padding:40px 32px; text-align:center; border-bottom:2px solid #C58B52; }
+    .brand { font-family:'Syne',Arial,Helvetica,sans-serif; font-size:26px; font-weight:700; color:#F4F1EA; letter-spacing:2px; margin:0 0 6px; }
+    .brand span { color:#C58B52; }
+    .hero-title { font-family:'Syne',Arial,Helvetica,sans-serif; font-size:20px; font-weight:600; color:#F4F1EA; margin:18px 0 0; }
+    .content { padding:36px 32px; background-color:#111111; }
+    .card { background-color:#0B0B0B; border:1px solid #2A2A2A; border-radius:12px; padding:22px; margin:0 0 20px; }
+    .card-title { font-family:'Syne',Arial,Helvetica,sans-serif; font-size:13px; color:#C58B52; letter-spacing:2px; text-transform:uppercase; margin:0 0 16px; }
+    .client-row { margin-bottom:10px; color:#F4F1EA; font-size:14px; }
+    .client-row strong { color:#A1A1A1; font-weight:500; }
+    .detail-row { width:100%; }
+    .detail-row td { padding:10px 0; border-bottom:1px solid #1F1F1F; vertical-align:top; }
+    .detail-row:last-child td { border-bottom:none; }
+    .label { color:#A1A1A1; font-size:13px; font-weight:500; }
+    .value { color:#F4F1EA; font-size:14px; font-weight:600; text-align:right; }
+    .total-row td { padding-top:14px; border-top:2px solid #C58B52; border-bottom:none; }
+    .total-label { color:#C58B52; font-family:'Syne',Arial,Helvetica,sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+    .total-value { color:#C58B52; font-family:'Syne',Arial,Helvetica,sans-serif; font-size:22px; font-weight:700; text-align:right; }
+    .message-box { background-color:#1A1A1A; border-radius:8px; padding:16px; margin:20px 0 0; }
+    .message-box strong { color:#C58B52; font-size:12px; text-transform:uppercase; letter-spacing:1px; }
+    .message-box p { color:#F4F1EA; margin:8px 0 0; font-size:14px; }
+    .footer { background-color:#0B0B0B; padding:24px 32px; text-align:center; border-top:1px solid #1F1F1F; }
+    .footer-text { color:#666; font-size:12px; margin:0; }
+    @media only screen and (max-width: 480px) {
+      .content { padding:24px 20px; }
+      .card { padding:16px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🆕 Nouveau Rendez-vous</h1>
-    </div>
-    <div class="content">
-      <p>Un nouveau rendez-vous vient d'être confirmé !</p>
-      
-      <div class="client-info">
-        <p><strong>👤 Client:</strong> ${booking.clientName}</p>
-        <p><strong>📧 Email:</strong> ${booking.clientEmail}</p>
-        <p><strong>📱 Téléphone:</strong> ${booking.clientPhone}</p>
-      </div>
-      
-      <div class="booking-details">
-        <div class="detail-row">
-          <span class="label">📅 Date</span>
-          <span class="value">${booking.appointmentDate}</span>
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#0B0B0B;">
+    <tr><td align="center" style="padding:24px 12px;">
+      <div class="wrapper">
+        <div class="header">
+          <p class="brand">LCS <span>STYLE</span></p>
+          <p class="hero-title">Nouveau rendez-vous confirmé</p>
         </div>
-        <div class="detail-row">
-          <span class="label">🕐 Heure</span>
-          <span class="value">${booking.appointmentTime}</span>
+
+        <div class="content">
+          <div class="card">
+            <p class="card-title">Client</p>
+            <p class="client-row"><strong>Nom :</strong> ${booking.clientName}</p>
+            <p class="client-row"><strong>Email :</strong> ${booking.clientEmail}</p>
+            <p class="client-row"><strong>Téléphone :</strong> ${booking.clientPhone}</p>
+          </div>
+
+          <div class="card">
+            <p class="card-title">Rendez-vous</p>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr class="detail-row"><td class="label">Date</td><td class="value">${booking.appointmentDate}</td></tr>
+              <tr class="detail-row"><td class="label">Heure</td><td class="value">${booking.appointmentTime}</td></tr>
+              <tr class="detail-row"><td class="label">Prestation</td><td class="value">${booking.serviceName} (${booking.servicePrice}€)</td></tr>
+              ${addressRow ? `<tr class="detail-row"><td class="label">Adresse</td><td class="value">${addressHtml}</td></tr>` : ''}
+              ${booking.travelFee > 0 ? `<tr class="detail-row"><td class="label">Frais de déplacement</td><td class="value">${booking.travelFee}€</td></tr>` : ''}
+              <tr class="total-row"><td class="total-label">Total</td><td class="total-value">${booking.totalPrice}€</td></tr>
+            </table>
+          </div>
+
+          ${booking.message ? `<div class="message-box"><strong>Message du client</strong><p>${booking.message}</p></div>` : ''}
         </div>
-        <div class="detail-row">
-          <span class="label">✂️ Prestation</span>
-          <span class="value">${booking.serviceName} (${booking.servicePrice}€)</span>
-        </div>
-        ${addressRow}
-        ${booking.travelFee > 0 ? `
-        <div class="detail-row">
-          <span class="label">🚗 Frais déplacement</span>
-          <span class="value">${booking.travelFee}€</span>
-        </div>
-        ` : ''}
-        <div class="detail-row">
-          <span class="label">💰 Total</span>
-          <span class="value total">${booking.totalPrice}€</span>
+
+        <div class="footer">
+          <p class="footer-text">Notification admin — LCS Style</p>
         </div>
       </div>
-      
-      ${booking.message ? `<p><strong>📝 Message du client:</strong> ${booking.message}</p>` : ''}
-    </div>
-  </div>
+    </td></tr>
+  </table>
 </body>
 </html>`;
     }
