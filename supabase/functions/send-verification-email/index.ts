@@ -73,7 +73,7 @@ const getFallbackTemplate = (data: VerificationEmailRequest) => `
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Vérifiez votre rendez-vous - LCS Style</title>
+  <title>Vérifiez votre rendez-vous - LCS Barber</title>
   <style>
     body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -88,13 +88,13 @@ const getFallbackTemplate = (data: VerificationEmailRequest) => `
 <body>
   <div class="container">
     <div class="header">
-      <h1>✂️ LCS Style</h1>
+      <h1>✂️ LCS Barber</h1>
       <h2>Vérification de votre rendez-vous</h2>
     </div>
     <div class="content">
       <p>Bonjour <strong>${data.clientName}</strong>,</p>
       
-      <p>Merci d'avoir réservé un rendez-vous avec LCS Style !</p>
+      <p>Merci d'avoir réservé un rendez-vous avec LCS Barber !</p>
       
       <div class="verification-box">
         <h3>🔐 Confirmez votre email</h3>
@@ -147,7 +147,7 @@ const getFallbackTemplate = (data: VerificationEmailRequest) => `
       
       <div style="margin-top: 30px; text-align: center; color: #666; font-size: 14px;">
         <p>Vous n'avez pas demandé ce rendez-vous ?<br>Vous pouvez ignorer cet email en toute sécurité.</p>
-        <p><strong>LCS Style</strong></p>
+        <p><strong>LCS Barber</strong></p>
       </div>
     </div>
   </div>
@@ -211,7 +211,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Fetch email template from database
     let htmlContent: string;
-    let emailSubject = "🔐 Confirmez votre rendez-vous - LCS Style";
+    let emailSubject = "🔐 Confirmez votre rendez-vous - LCS Barber";
     
     const { data: templateData, error: templateError } = await supabase
       .from("email_templates")
@@ -236,7 +236,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Envoyer au barbier (toujours réussi)
     const barberEmailResponse = await resend.emails.send({
-      from: "LCS Style <noreply@lookware.fr>",
+      from: "LCS Barber <noreply@lookware.fr>",
       to: [barberEmail],
       subject: `📋 [COPIE] ${emailSubject}`,
       html: htmlContent,
@@ -248,7 +248,7 @@ const handler = async (req: Request): Promise<Response> => {
     let clientEmailResponse;
     try {
       clientEmailResponse = await resend.emails.send({
-        from: "LCS Style <noreply@lookware.fr>",
+        from: "LCS Barber <noreply@lookware.fr>",
         to: [data.clientEmail],
         subject: emailSubject,
         html: htmlContent,

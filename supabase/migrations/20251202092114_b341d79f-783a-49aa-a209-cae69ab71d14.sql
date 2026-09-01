@@ -35,12 +35,12 @@ CREATE TRIGGER update_email_templates_updated_at
 INSERT INTO public.email_templates (template_type, subject, html_content)
 VALUES (
   'booking_confirmation_client',
-  '✂️ Confirmation de votre rendez-vous - LCS Style',
+  '✂️ Confirmation de votre rendez-vous - LCS Barber',
   '<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Confirmation de votre rendez-vous - LCS Style</title>
+  <title>Confirmation de votre rendez-vous - LCS Barber</title>
   <style>
     body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -55,7 +55,7 @@ VALUES (
 <body>
   <div class="container">
     <div class="header">
-      <h1>✂️ LCS Style</h1>
+      <h1>✂️ LCS Barber</h1>
       <h2>Confirmation de votre rendez-vous</h2>
     </div>
     <div class="content">
@@ -128,7 +128,7 @@ VALUES (
       
       <div class="footer">
         <p>Merci de votre confiance ! 🙏</p>
-        <p><strong>LCS Style</strong><br>
+        <p><strong>LCS Barber</strong><br>
         📞 Contactez-nous si vous avez des questions</p>
       </div>
     </div>

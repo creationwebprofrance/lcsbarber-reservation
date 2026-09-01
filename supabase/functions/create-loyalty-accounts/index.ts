@@ -22,7 +22,7 @@ const isEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 const buildHtml = (name: string, link: string) => `
   <div style="font-family: Helvetica, Arial, sans-serif; background:#0B0B0B; padding:32px; color:#F4F1EA;">
     <div style="max-width:560px; margin:0 auto; background:#141414; border:1px solid #262626; border-radius:16px; padding:32px;">
-      <p style="letter-spacing:.25em; font-size:12px; color:#C58B52; margin:0 0 12px;">LCS STYLE — BARBER ATELIER</p>
+      <p style="letter-spacing:.25em; font-size:12px; color:#C58B52; margin:0 0 12px;">LCS BARBER — BARBER ATELIER</p>
       <h1 style="font-size:26px; margin:0 0 16px; color:#F4F1EA;">Ton compte fidélité est créé ${name ? "— " + name : ""} 👊</h1>
       <p style="line-height:1.6; color:#CFC9BE; margin:0 0 14px;">
         C'est Lucas, de LCS Barber. Je viens de créer ton <strong>compte de fidélité client</strong> :
@@ -154,7 +154,7 @@ serve(async (req) => {
 
         const name = escapeHtml((names.get(email) || "").trim());
         const { error: sendErr } = await resend.emails.send({
-          from: "LCS Style <noreply@lookware.fr>",
+          from: "LCS Barber <noreply@lookware.fr>",
           to: [email],
           subject: "Ton compte fidélité LCS Barber est créé 👊",
           html: buildHtml(name, link),
