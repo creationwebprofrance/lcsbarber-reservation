@@ -18,7 +18,6 @@ import { ClientStats } from "@/components/ClientStats";
 import { ReviewsList } from "@/components/ReviewsList";
 import { TimeSlotsManager } from "@/components/TimeSlotsManager";
 import { CalendarSlotsManager } from "@/components/CalendarSlotsManager";
-import { UserManagement } from "@/components/UserManagement";
 import { PricingSettings } from "@/components/PricingSettings";
 import { BookingsCalendar } from "@/components/BookingsCalendar";
 import { EmailTemplateEditor } from "@/components/EmailTemplateEditor";
