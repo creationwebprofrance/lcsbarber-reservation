@@ -932,6 +932,12 @@ export const ClientStats = () => {
                 </div>
                 <div>
                   <Label className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> Adresse
+                  </Label>
+                  <Input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} placeholder="Adresse du client" />
+                </div>
+                <div>
+                  <Label className="flex items-center gap-1">
                     <Euro className="h-3 w-3" /> Montant impayé
                   </Label>
                   <Input value={editUnpaid} onChange={(e) => setEditUnpaid(e.target.value)} type="number" min="0" step="0.01" />
