@@ -16,7 +16,7 @@ interface TimeSlot {
   start_time: string;
   end_time: string;
   is_available: boolean;
-  mode: 'both' | 'domicile' | 'deplacement';
+  mode: string;
 }
 
 const modeLabels: Record<string, string> = {

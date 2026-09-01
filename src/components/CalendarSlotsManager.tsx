@@ -24,7 +24,7 @@ interface TimeSlot {
   start_time: string;
   end_time: string;
   is_available: boolean;
-  mode: 'both' | 'domicile' | 'deplacement';
+  mode: string;
 }
 
 const slotModeLabels: Record<string, string> = {
@@ -40,7 +40,7 @@ interface DateOverride {
   end_time: string | null;
   is_available: boolean;
   reason: string | null;
-  mode: 'both' | 'domicile' | 'deplacement';
+  mode: string;
 }
 
 interface Booking {

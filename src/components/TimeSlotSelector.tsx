@@ -22,7 +22,7 @@ interface TimeSlot {
   start_time: string;
   end_time: string;
   is_available: boolean;
-  mode?: 'both' | 'domicile' | 'deplacement';
+  mode?: string;
 }
 
 const matchesMode = (slotMode: string | null | undefined, mode?: 'domicile' | 'deplacement') =>
