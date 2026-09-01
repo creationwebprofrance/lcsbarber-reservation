@@ -833,6 +833,33 @@ export const ClientStats = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Delete account confirmation */}
+      <AlertDialog open={accountToDelete !== null} onOpenChange={(open) => !open && setAccountToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce compte utilisateur ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {accountToDelete && (
+                <>
+                  Le compte de <strong>{accountToDelete.client_name}</strong> ({accountToDelete.client_emails[0]}) sera supprimé.
+                  <p className="mt-2 text-sm text-destructive">Cette action est irréversible.</p>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingAccount}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={deletingAccount}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingAccount ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
