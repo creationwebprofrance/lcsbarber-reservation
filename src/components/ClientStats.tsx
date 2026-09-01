@@ -502,12 +502,19 @@ export const ClientStats = () => {
         💡 Glissez-déposez un client sur un autre pour les fusionner
       </p>
 
-      {/* Client list */}
+      {/* Clients & comptes utilisateurs */}
       <Card>
-        <CardHeader><CardTitle>Clients ({stats.length})</CardTitle></CardHeader>
+        <CardHeader className="space-y-3">
+          <CardTitle>Clients &amp; comptes ({filteredStats.length})</CardTitle>
+          <Input
+            placeholder="Rechercher par email, nom ou téléphone…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </CardHeader>
         <CardContent>
           <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-            {stats.map((client) => (
+            {filteredStats.map((client) => (
               <div
                 key={client.key}
                 draggable
@@ -516,33 +523,45 @@ export const ClientStats = () => {
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, client)}
                 onDragEnd={handleDragEnd}
-                className={`flex items-center justify-between p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-all
+                className={`flex items-center justify-between gap-2 p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-all
                   ${dropTarget === client.key ? "ring-2 ring-primary bg-primary/10 scale-[1.02]" : ""}
                   ${client.is_blacklisted ? "bg-destructive/10 border-destructive/30" : "hover:bg-accent/50"}
                   ${client.unpaid_amount > 0 ? "border-orange-400/50" : ""}
                 `}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  {client.is_blacklisted && <Ban className="h-4 w-4 text-destructive shrink-0" />}
-                  <span
-                    className="font-medium text-primary hover:underline truncate cursor-pointer"
-                    onClick={(e) => { e.stopPropagation(); openClientDialog(client); }}
-                  >
-                    {client.client_name}
-                  </span>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {client.is_blacklisted && <Ban className="h-4 w-4 text-destructive shrink-0" />}
+                    <span
+                      className="font-medium text-primary hover:underline truncate cursor-pointer"
+                      onClick={(e) => { e.stopPropagation(); openClientDialog(client); }}
+                    >
+                      {client.client_name}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">{client.client_emails[0]}</div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <div className="flex items-center gap-1">
+                    {client.account_user_id ? (
+                      <Badge variant="outline" className="text-[10px] border-primary/50 text-primary">
+                        {client.account_role === "admin" ? "Admin" : "Compte"}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] text-muted-foreground">Sans compte</Badge>
+                    )}
+                    <Badge variant="secondary" className="text-xs">{client.total_bookings} RDV</Badge>
+                  </div>
                   {client.unpaid_amount > 0 && (
                     <Badge variant="outline" className="text-xs border-orange-400 text-orange-600">
                       {client.unpaid_amount}€ dû
                     </Badge>
                   )}
-                  <Badge variant="secondary" className="text-xs">{client.total_bookings} RDV</Badge>
                 </div>
               </div>
             ))}
           </div>
-          {stats.length === 0 && (
+          {filteredStats.length === 0 && (
             <div className="text-center text-muted-foreground py-8">Aucun client trouvé</div>
           )}
         </CardContent>
