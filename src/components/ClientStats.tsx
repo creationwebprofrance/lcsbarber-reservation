@@ -81,6 +81,13 @@ export const ClientStats = () => {
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [mergeConfirm, setMergeConfirm] = useState<{ source: ClientStat; target: ClientStat } | null>(null);
 
+  // Sélection multiple pour fusion
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+  const [multiMergeOpen, setMultiMergeOpen] = useState(false);
+  const [multiTargetKey, setMultiTargetKey] = useState<string | null>(null);
+  const [mergingMulti, setMergingMulti] = useState(false);
+
+
   const { toast } = useToast();
 
   useEffect(() => {
