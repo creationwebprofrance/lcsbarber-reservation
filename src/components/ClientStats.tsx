@@ -87,6 +87,11 @@ export const ClientStats = () => {
   const [multiTargetKey, setMultiTargetKey] = useState<string | null>(null);
   const [mergingMulti, setMergingMulti] = useState(false);
 
+  // Comptes de fidélité
+  const [loyaltyRunning, setLoyaltyRunning] = useState(false);
+  const [loyaltyConfirm, setLoyaltyConfirm] = useState(false);
+
+
 
   const { toast } = useToast();
 
