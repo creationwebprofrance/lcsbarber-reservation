@@ -14,6 +14,7 @@ interface TimeSlotSelectorProps {
   onBack: () => void;
   hideSupplements?: boolean;
   customSlots?: string[];
+  mode?: 'domicile' | 'deplacement';
 }
 
 interface TimeSlot {
@@ -21,7 +22,11 @@ interface TimeSlot {
   start_time: string;
   end_time: string;
   is_available: boolean;
+  mode?: string;
 }
+
+const matchesMode = (slotMode: string | null | undefined, mode?: 'domicile' | 'deplacement') =>
+  !mode || !slotMode || slotMode === 'both' || slotMode === mode;
 
 export const TimeSlotSelector = ({
   selectedDate,
@@ -30,6 +35,7 @@ export const TimeSlotSelector = ({
   onBack,
   hideSupplements = false,
   customSlots,
+  mode,
 }: TimeSlotSelectorProps) => {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
@@ -42,7 +48,7 @@ export const TimeSlotSelector = ({
     } else {
       loadAvailableSlots();
     }
-  }, [selectedDate, customSlots]);
+  }, [selectedDate, customSlots, mode]);
 
   const loadBookedSlotsOnly = async () => {
     setLoading(true);
@@ -110,8 +116,8 @@ export const TimeSlotSelector = ({
         return;
       }
 
-      // Récupérer les créneaux des exceptions avec horaires
-      const overrideSlots = dateOverrides?.filter(o => o.is_available && o.start_time && o.end_time) || [];
+      // Récupérer les créneaux des exceptions avec horaires (filtrés par mode)
+      const overrideSlots = dateOverrides?.filter(o => o.is_available && o.start_time && o.end_time && matchesMode(o.mode, mode)) || [];
 
       if (overrideSlots.length > 0) {
         // Utiliser les horaires des exceptions
@@ -130,8 +136,8 @@ export const TimeSlotSelector = ({
           }
         });
       } else {
-        // Utiliser les créneaux réguliers
-        timeSlots?.forEach((slot: TimeSlot) => {
+        // Utiliser les créneaux réguliers (filtrés par mode)
+        timeSlots?.filter((slot: TimeSlot) => matchesMode(slot.mode, mode)).forEach((slot: TimeSlot) => {
           const start = slot.start_time.substring(0, 5);
           const end = slot.end_time.substring(0, 5);
           

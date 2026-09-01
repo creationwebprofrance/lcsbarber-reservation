@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -15,7 +16,14 @@ interface TimeSlot {
   start_time: string;
   end_time: string;
   is_available: boolean;
+  mode: string;
 }
+
+const modeLabels: Record<string, string> = {
+  both: 'Les deux',
+  domicile: 'À côté du domicile',
+  deplacement: 'En déplacement',
+};
 
 const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
@@ -25,7 +33,8 @@ export const TimeSlotsManager = () => {
   const [newSlot, setNewSlot] = useState({
     start_time: '09:00',
     end_time: '12:00',
-    is_available: true
+    is_available: true,
+    mode: 'both' as 'both' | 'domicile' | 'deplacement'
   });
   const { toast } = useToast();
 
@@ -55,7 +64,8 @@ export const TimeSlotsManager = () => {
         day_of_week: selectedDay,
         start_time: newSlot.start_time,
         end_time: newSlot.end_time,
-        is_available: newSlot.is_available
+        is_available: newSlot.is_available,
+        mode: newSlot.mode
       });
 
     if (error) {
@@ -159,6 +169,20 @@ export const TimeSlotsManager = () => {
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label>Type de prestation</Label>
+            <Select value={newSlot.mode} onValueChange={(v) => setNewSlot(prev => ({ ...prev, mode: v as typeof prev.mode }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="both">Les deux</SelectItem>
+                <SelectItem value="domicile">À côté du domicile</SelectItem>
+                <SelectItem value="deplacement">En déplacement</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Heure de début</Label>
@@ -206,6 +230,9 @@ export const TimeSlotsManager = () => {
                         <span className={slot.is_available ? '' : 'text-muted-foreground line-through'}>
                           {slot.start_time} - {slot.end_time}
                         </span>
+                        <Badge variant={slot.mode === 'both' ? 'secondary' : 'outline'} className="text-xs">
+                          {modeLabels[slot.mode] || 'Les deux'}
+                        </Badge>
                       </div>
                       <Button
                         variant="destructive"

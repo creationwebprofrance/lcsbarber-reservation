@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TimeSlot {
   id: string;
@@ -23,7 +24,14 @@ interface TimeSlot {
   start_time: string;
   end_time: string;
   is_available: boolean;
+  mode: string;
 }
+
+const slotModeLabels: Record<string, string> = {
+  both: 'Les deux',
+  domicile: '🏠 Domicile',
+  deplacement: '🚗 Déplacement',
+};
 
 interface DateOverride {
   id: string;
@@ -32,6 +40,7 @@ interface DateOverride {
   end_time: string | null;
   is_available: boolean;
   reason: string | null;
+  mode: string;
 }
 
 interface Booking {
@@ -55,7 +64,7 @@ export const CalendarSlotsManager = () => {
   );
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newSlot, setNewSlot] = useState({ start_time: '09:00', end_time: '10:00' });
+  const [newSlot, setNewSlot] = useState({ start_time: '09:00', end_time: '10:00', mode: 'both' as 'both' | 'domicile' | 'deplacement' });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -117,6 +126,7 @@ export const CalendarSlotsManager = () => {
         start_time: o.start_time!, 
         end_time: o.end_time!, 
         is_available: true,
+        mode: o.mode || 'both',
         isOverride: true 
       }));
     
@@ -199,7 +209,8 @@ export const CalendarSlotsManager = () => {
         date: dateStr,
         start_time: newSlot.start_time,
         end_time: newSlot.end_time,
-        is_available: true
+        is_available: true,
+        mode: newSlot.mode
       });
       
     if (error) {
@@ -217,7 +228,7 @@ export const CalendarSlotsManager = () => {
     
     toast({ title: "Créneau ajouté" });
     loadDateOverrides();
-    setNewSlot({ start_time: '09:00', end_time: '10:00' });
+    setNewSlot({ start_time: '09:00', end_time: '10:00', mode: 'both' });
   };
 
   const removeOverride = async (overrideId: string) => {
@@ -300,12 +311,15 @@ export const CalendarSlotsManager = () => {
                 ) : (
                   <>
                     {/* Time slots */}
-                    {slots.map((slot, idx) => (
+                    {slots.map((slot: any, idx) => (
                       <div 
                         key={idx} 
-                        className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5"
+                        className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 flex items-center justify-between gap-1"
                       >
-                        {slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}
+                        <span>{slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}</span>
+                        {slot.mode && slot.mode !== 'both' && (
+                          <span>{slot.mode === 'domicile' ? '🏠' : '🚗'}</span>
+                        )}
                       </div>
                     ))}
                     
@@ -377,8 +391,11 @@ export const CalendarSlotsManager = () => {
                   <div className="space-y-2">
                     {getSlotsForDay(selectedDay).map((slot: any, idx) => (
                       <div key={idx} className="flex items-center justify-between p-2 bg-primary/10 rounded">
-                        <span className="text-sm">
+                        <span className="text-sm flex items-center gap-2">
                           {slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}
+                          <Badge variant="outline" className="text-xs">
+                            {slotModeLabels[slot.mode || 'both']}
+                          </Badge>
                         </span>
                         {slot.isOverride && (
                           <Button 
@@ -427,6 +444,16 @@ export const CalendarSlotsManager = () => {
                     onChange={(e) => setNewSlot(prev => ({ ...prev, end_time: e.target.value }))}
                   />
                 </div>
+                <Select value={newSlot.mode} onValueChange={(v) => setNewSlot(prev => ({ ...prev, mode: v as typeof prev.mode }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Type de prestation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="both">Les deux</SelectItem>
+                    <SelectItem value="domicile">🏠 À côté du domicile</SelectItem>
+                    <SelectItem value="deplacement">🚗 En déplacement</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button onClick={addSlotForDate} className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter
