@@ -135,12 +135,19 @@ export const ClientStats = () => {
       const clientMap = new Map<string, ClientStat>();
       const ADMIN_EMAIL = "lucas.chipan97@gmail.com";
 
+      const isGroupedAddress = (address: string | null) => {
+        if (!address) return false;
+        const normalized = address.trim().toLowerCase();
+        return normalized.includes("louvres") || normalized.includes("4 square de banyuls");
+      };
+
       bookings?.forEach((booking: any) => {
         const email = booking.client_email;
         const normalizedEmail = (email || "").trim().toLowerCase();
-        // Pour l'admin, chaque réservation est affichée individuellement (pas de groupement)
+        // Pour l'admin et les adresses hors Louvres, chaque réservation est affichée individuellement
         const isAdminBooking = normalizedEmail === ADMIN_EMAIL;
-        const groupKey = isAdminBooking ? `admin-${booking.id}` : normalizedEmail;
+        const shouldGroup = isGroupedAddress(booking.client_address) && !isAdminBooking;
+        const groupKey = isAdminBooking || !shouldGroup ? `single-${booking.id}` : normalizedEmail;
 
         if (!clientMap.has(groupKey)) {
           const info = clientInfoMap.get(email);
