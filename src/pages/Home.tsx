@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
-import { Settings, BarChart, LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight, Calculator, PartyPopper } from "lucide-react";
+import { LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight, PartyPopper } from "lucide-react";
 import { motion } from "framer-motion";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 import veryBadCampAsset from "@/assets/very-bad-camp.png.asset.json";
 import BarberPole3D from "@/components/BarberPole3D";
+import { UserMenu } from "@/components/UserMenu";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -19,7 +20,7 @@ const fadeUp = {
 };
 
 export default function Home() {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const [hasActiveEvent, setHasActiveEvent] = useState(false);
   const [bookSection, setBookSection] = useState({
     label: "BOOK ÉVÉNEMENTIEL",
@@ -65,34 +66,6 @@ export default function Home() {
             <img src={lcsBarberLogo} alt="LCS Barber" className="h-20 sm:h-24" />
           </Link>
           <nav className="flex items-center gap-2 sm:gap-3">
-            {user && isAdmin && (
-              <>
-                <Button asChild variant="ghost" size="sm" className="text-xs">
-                  <Link to="/dashboard">
-                    <BarChart className="h-4 w-4 sm:mr-1.5" />
-                    <span className="hidden sm:inline">Dashboard</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="ghost" size="sm" className="text-xs">
-                  <Link to="/admin">
-                    <Settings className="h-4 w-4 sm:mr-1.5" />
-                    <span className="hidden sm:inline">Admin</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="ghost" size="sm" className="text-xs">
-                  <Link to="/simulator">
-                    <Calculator className="h-4 w-4 sm:mr-1.5" />
-                    <span className="hidden sm:inline">Simulation</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="ghost" size="sm" className="text-xs">
-                  <Link to="/admin-evenements">
-                    <PartyPopper className="h-4 w-4 sm:mr-1.5" />
-                    <span className="hidden sm:inline">Événements</span>
-                  </Link>
-                </Button>
-              </>
-            )}
             {!user && (
               <Button asChild variant="ghost" size="sm" className="text-xs">
                 <Link to="/auth">
@@ -107,6 +80,7 @@ export default function Home() {
                 Réserver
               </Link>
             </Button>
+            {user && <UserMenu />}
           </nav>
         </div>
       </header>
