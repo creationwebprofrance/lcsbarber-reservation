@@ -16,7 +16,13 @@ interface EmailTemplate {
   html_content: string;
 }
 
+const TEMPLATE_TYPES = [
+  { key: "booking_confirmation_client", label: "Confirmation de réservation" },
+  { key: "welcome_client", label: "Bienvenue nouveau client" },
+] as const;
+
 export const EmailTemplateEditor = () => {
+  const [templateType, setTemplateType] = useState<string>(TEMPLATE_TYPES[0].key);
   const [template, setTemplate] = useState<EmailTemplate | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -25,15 +31,16 @@ export const EmailTemplateEditor = () => {
 
   useEffect(() => {
     loadTemplate();
-  }, []);
+  }, [templateType]);
 
   const loadTemplate = async () => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('email_templates')
         .select('*')
-        .eq('template_type', 'booking_confirmation_client')
-        .single();
+        .eq('template_type', templateType)
+        .maybeSingle();
 
       if (error) throw error;
       setTemplate(data);
@@ -48,6 +55,7 @@ export const EmailTemplateEditor = () => {
       setLoading(false);
     }
   };
+
 
   const handleSave = async () => {
     if (!template) return;
