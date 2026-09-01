@@ -187,9 +187,10 @@ export const ClientStats = () => {
       profileMap.forEach((p, email) => {
         if (bookedEmails.has(email)) return;
         const info = clientInfoMap.get(p.email);
-        clientMap.set(`account::${email}`, {
-          key: `account::${email}`,
+        clientMap.set(email, {
+          key: email,
           client_emails: [p.email],
+
           client_name: p.full_name || p.email.split("@")[0],
           client_phone: "Non renseigné",
           total_bookings: 0,
