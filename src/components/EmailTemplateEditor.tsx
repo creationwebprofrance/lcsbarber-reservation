@@ -193,8 +193,11 @@ export const EmailTemplateEditor = () => {
                 className="font-mono text-sm min-h-[400px]"
               />
               <p className="text-xs text-muted-foreground">
-                Variables disponibles : {"{{"} clientName {"}}"}, {"{{"} clientEmail {"}}"}, {"{{"} serviceName {"}}"}, {"{{"} appointmentDate {"}}"}, {"{{"} appointmentTime {"}}"}, {"{{"} totalPrice {"}}"}, {"{{"} travelFee {"}}"}, {"{{"} depositAmount {"}}"}, {"{{"} remainingAmount {"}}"}, {"{{"} message {"}}"}
+                {templateType === "welcome_client"
+                  ? <>Variables disponibles : {"{{"} clientName {"}}"}, {"{{"} clientEmail {"}}"}</>
+                  : <>Variables disponibles : {"{{"} clientName {"}}"}, {"{{"} clientEmail {"}}"}, {"{{"} serviceName {"}}"}, {"{{"} appointmentDate {"}}"}, {"{{"} appointmentTime {"}}"}, {"{{"} totalPrice {"}}"}, {"{{"} travelFee {"}}"}, {"{{"} depositAmount {"}}"}, {"{{"} remainingAmount {"}}"}, {"{{"} message {"}}"}</>}
               </p>
+
             </div>
 
             <Button onClick={handleSave} disabled={saving} className="w-full">
