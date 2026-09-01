@@ -116,8 +116,8 @@ export const TimeSlotSelector = ({
         return;
       }
 
-      // Récupérer les créneaux des exceptions avec horaires
-      const overrideSlots = dateOverrides?.filter(o => o.is_available && o.start_time && o.end_time) || [];
+      // Récupérer les créneaux des exceptions avec horaires (filtrés par mode)
+      const overrideSlots = dateOverrides?.filter(o => o.is_available && o.start_time && o.end_time && matchesMode(o.mode, mode)) || [];
 
       if (overrideSlots.length > 0) {
         // Utiliser les horaires des exceptions
@@ -136,8 +136,8 @@ export const TimeSlotSelector = ({
           }
         });
       } else {
-        // Utiliser les créneaux réguliers
-        timeSlots?.forEach((slot: TimeSlot) => {
+        // Utiliser les créneaux réguliers (filtrés par mode)
+        timeSlots?.filter((slot: TimeSlot) => matchesMode(slot.mode, mode)).forEach((slot: TimeSlot) => {
           const start = slot.start_time.substring(0, 5);
           const end = slot.end_time.substring(0, 5);
           
