@@ -368,6 +368,7 @@ export const BookingTool = () => {
                   selectedDate={currentSelection.date}
                   onDateSelect={handleDateSelect}
                   onBack={() => setCurrentStep(1)}
+                  mode={mode ?? undefined}
                 />
               )}
 
@@ -384,6 +385,7 @@ export const BookingTool = () => {
                       selectedTime={currentSelection.time}
                       onTimeSelect={handleTimeSelect}
                       onBack={() => setCurrentStep(2)}
+                      mode={mode ?? undefined}
                     />
                   )}
                 </>

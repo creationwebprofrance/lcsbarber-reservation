@@ -3,25 +3,64 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { fr } from "date-fns/locale";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DatePickerProps {
   selectedDate: Date | null;
   onDateSelect: (date: Date) => void;
   onBack?: () => void;
+  mode?: 'domicile' | 'deplacement';
 }
 
-export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerProps) => {
+const matchesMode = (slotMode: string | null | undefined, mode?: 'domicile' | 'deplacement') =>
+  !mode || !slotMode || slotMode === 'both' || slotMode === mode;
+
+export const DatePicker = ({ selectedDate, onDateSelect, onBack, mode }: DatePickerProps) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const [month, setMonth] = useState(today);
+  const [weeklySlots, setWeeklySlots] = useState<any[]>([]);
+  const [overrides, setOverrides] = useState<any[]>([]);
 
   const maxDate = new Date();
   maxDate.setMonth(maxDate.getMonth() + 3);
 
+  useEffect(() => {
+    const load = async () => {
+      const [{ data: cs }, { data: dov }] = await Promise.all([
+        supabase.from('calendar_settings').select('day_of_week, is_available, mode'),
+        supabase.from('date_overrides').select('date, start_time, end_time, is_available, mode'),
+      ]);
+      setWeeklySlots(cs || []);
+      setOverrides(dov || []);
+    };
+    load();
+  }, []);
+
   const isDateDisabled = (date: Date) => {
     return date < today;
+  };
+
+  const isAvailableDay = (date: Date) => {
+    if (date < today) return false;
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const dayOverrides = overrides.filter(o => o.date === dateStr);
+
+    // Jour bloqué par une exception sans horaires
+    if (dayOverrides.some(o => !o.is_available && !o.start_time)) return false;
+
+    // Exceptions avec horaires pour ce mode
+    const overrideSlots = dayOverrides.filter(o => o.is_available && o.start_time && o.end_time && matchesMode(o.mode, mode));
+    if (dayOverrides.some(o => o.is_available && o.start_time)) {
+      return overrideSlots.length > 0;
+    }
+
+    // Créneaux hebdomadaires
+    const dayOfWeek = date.getDay();
+    return weeklySlots.some(s => s.day_of_week === dayOfWeek && s.is_available && matchesMode(s.mode, mode));
   };
 
   return (
@@ -57,6 +96,10 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerPro
             onMonthChange={setMonth}
             locale={fr}
             className="pointer-events-auto"
+            modifiers={{ available: isAvailableDay }}
+            modifiersClassNames={{
+              available: "bg-primary/15 text-primary font-bold border border-primary/40",
+            }}
             classNames={{
               months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
               month: "space-y-2 sm:space-y-4",
@@ -80,11 +123,15 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack }: DatePickerPro
               day_hidden: "invisible",
             }}
           />
+          <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <div className="h-3 w-3 rounded bg-primary/15 border border-primary/40"></div>
+            <span>Jour disponible</span>
+          </div>
         </Card>
       </div>
 
       <p className="mt-4 text-center text-sm text-muted-foreground">
-        Réservation possible jusqu'à 3 mois à l'avance • Tous les jours disponibles
+        Réservation possible jusqu'à 3 mois à l'avance • Les jours en bronze sont disponibles
       </p>
     </div>
   );
