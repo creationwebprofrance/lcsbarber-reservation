@@ -238,7 +238,7 @@ export const BookingTool = () => {
               : bookingItems.length > 0
               ? `${bookingItems.length} rendez-vous sélectionné${bookingItems.length > 1 ? 's' : ''} - Ajoutez-en d'autres ou continuez`
               : mode === "domicile"
-              ? "À domicile (chez le coiffeur) — tarifs réduits, sans frais de déplacement"
+              ? "À côté du domicile — tarifs réduits, sans frais de déplacement"
               : "En déplacement — je me déplace chez vous"
             }
           </p>
@@ -247,7 +247,7 @@ export const BookingTool = () => {
           </p>
         </div>
 
-        {/* Choix du mode : à domicile ou en déplacement */}
+        {/* Choix du mode : à côté du domicile ou en déplacement */}
         {mode === null && !isConfirmed && (
           <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto">
             <Card
@@ -258,9 +258,9 @@ export const BookingTool = () => {
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                   <Home className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold mb-1">À domicile</h3>
+                <h3 className="text-lg font-semibold mb-1">À côté du domicile</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Chez le coiffeur (95) — réservation instantanée, sans formulaire
+                  À côté du domicile (95) — réservation instantanée, sans formulaire
                 </p>
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>Contours : <span className="text-primary font-semibold">10€</span></p>
@@ -408,7 +408,7 @@ export const BookingTool = () => {
                   <p className="mb-6 text-muted-foreground">
                     {mode === "domicile" ? (
                       <>
-                        Ton rendez-vous à domicile a été enregistré
+                        Ton rendez-vous à côté du domicile a été enregistré
                         {currentSelection.service && currentSelection.date && currentSelection.time && (
                           <>
                             <br />
