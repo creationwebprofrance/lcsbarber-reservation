@@ -1,22 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, Settings, Calendar as CalendarIcon, Users, Star, Clock, Euro, Mail, Scissors, Image as ImageIcon } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientStats } from "@/components/ClientStats";
 import { ReviewsList } from "@/components/ReviewsList";
-import { TimeSlotsManager } from "@/components/TimeSlotsManager";
 import { CalendarSlotsManager } from "@/components/CalendarSlotsManager";
 import { PricingSettings } from "@/components/PricingSettings";
 import { BookingsCalendar } from "@/components/BookingsCalendar";
@@ -24,38 +14,11 @@ import { EmailTemplateEditor } from "@/components/EmailTemplateEditor";
 import { PrestationsAdmin } from "@/components/PrestationsAdmin";
 import { CatalogueAdmin } from "@/components/CatalogueAdmin";
 
-interface CalendarSetting {
-  id: string;
-  day_of_week: number;
-  start_time: string;
-  end_time: string;
-  is_available: boolean;
-}
-
-interface DateOverride {
-  id: string;
-  date: string;
-  start_time?: string;
-  end_time?: string;
-  is_available: boolean;
-  reason?: string;
-}
-
-const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-
 export const Admin = () => {
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [calendarSettings, setCalendarSettings] = useState<CalendarSetting[]>([]);
-  const [dateOverrides, setDateOverrides] = useState<DateOverride[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [overrideForm, setOverrideForm] = useState({
-    start_time: '',
-    end_time: '',
-    is_available: false,
-    reason: ''
-  });
+  
   
   const navigate = useNavigate();
   const { toast } = useToast();
