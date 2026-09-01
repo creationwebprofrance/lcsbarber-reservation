@@ -53,8 +53,8 @@ export function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to="/reservation">
-            <Calendar className="h-4 w-4 mr-2" /> Mes réservations
+          <Link to="/mes-rendez-vous">
+            <Calendar className="h-4 w-4 mr-2" /> Mes rendez-vous
           </Link>
         </DropdownMenuItem>
         {isAdmin && (
