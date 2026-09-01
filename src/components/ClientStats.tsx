@@ -67,6 +67,7 @@ export const ClientStats = () => {
   const [editPhone, setEditPhone] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editUnpaid, setEditUnpaid] = useState("0");
+  const [editAddress, setEditAddress] = useState("");
   const [saving, setSaving] = useState(false);
   const [mergeRecords, setMergeRecords] = useState<MergeRecord[]>([]);
   const [unmergeTarget, setUnmergeTarget] = useState<MergeRecord | null>(null);
@@ -263,6 +264,7 @@ export const ClientStats = () => {
     setEditPhone(client.client_phone === "Non renseigné" ? "" : client.client_phone);
     setEditEmail(client.client_emails[0]);
     setEditUnpaid(String(client.unpaid_amount));
+    setEditAddress(client.bookings.find(b => b.client_address)?.client_address || "");
     setShowBookings(true);
   };
 
