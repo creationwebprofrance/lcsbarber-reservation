@@ -87,6 +87,11 @@ export const ClientStats = () => {
   const [multiTargetKey, setMultiTargetKey] = useState<string | null>(null);
   const [mergingMulti, setMergingMulti] = useState(false);
 
+  // Comptes de fidélité
+  const [loyaltyRunning, setLoyaltyRunning] = useState(false);
+  const [loyaltyConfirm, setLoyaltyConfirm] = useState(false);
+
+
 
   const { toast } = useToast();
 
@@ -484,7 +489,29 @@ export const ClientStats = () => {
     }
   };
 
+  // Création des comptes de fidélité + email à tous les clients
+  const handleCreateLoyaltyAccounts = async () => {
+    setLoyaltyRunning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-loyalty-accounts", {
+        body: {},
+      });
+      if (error) throw error;
+      toast({
+        title: "Comptes fidélité",
+        description: `${data.created} compte(s) créé(s), ${data.emailed} email(s) envoyé(s)${data.failed?.length ? `, ${data.failed.length} échec(s)` : ""}.`,
+      });
+      setLoyaltyConfirm(false);
+      loadStats();
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } finally {
+      setLoyaltyRunning(false);
+    }
+  };
+
   const filteredStats = stats.filter((c) => {
+
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
@@ -547,6 +574,40 @@ export const ClientStats = () => {
           <CardContent><div className="text-2xl font-bold">{stats.reduce((sum, c) => sum + c.total_bookings, 0)}</div></CardContent>
         </Card>
       </div>
+
+      <Card className="border-primary/40 bg-primary/5">
+        <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
+          <div>
+            <p className="font-medium">Comptes de fidélité client</p>
+            <p className="text-sm text-muted-foreground">
+              Crée un compte pour chaque email client connu et envoie l'email d'activation.
+            </p>
+          </div>
+          <Button onClick={() => setLoyaltyConfirm(true)} disabled={loyaltyRunning}>
+            {loyaltyRunning ? "Envoi en cours…" : "Créer les comptes & envoyer l'email"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={loyaltyConfirm} onOpenChange={setLoyaltyConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Envoyer à tous les clients ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Un compte de fidélité sera créé pour chaque email client sans compte, et un email
+              d'activation sera envoyé à toutes les adresses connues.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loyaltyRunning}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleCreateLoyaltyAccounts(); }} disabled={loyaltyRunning}>
+              {loyaltyRunning ? "En cours…" : "Confirmer l'envoi"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
 
       <p className="text-sm text-muted-foreground text-center">
         💡 Chaque client est identifié par son email — cochez plusieurs fiches pour les fusionner
