@@ -29,7 +29,7 @@ export const Auth = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  const redirectTo = (location.state as { from?: string } | null)?.from ?? "/reservation";
+  const redirectTo = (location.state as { from?: string } | null)?.from ?? "/";
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
