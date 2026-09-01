@@ -801,8 +801,20 @@ export const ClientStats = () => {
                   {showBookings ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
                 {showBookings && (
-                  <div className="mt-2 space-y-2 max-h-96 overflow-y-auto">
-                    {selectedClient.bookings.map((b) => (
+                  <div className="mt-2 space-y-4 max-h-96 overflow-y-auto">
+                    {Object.entries(
+                      selectedClient.bookings.reduce<Record<string, BookingDetail[]>>((acc, b) => {
+                        const mail = (b.client_email || "Email inconnu").trim().toLowerCase();
+                        (acc[mail] = acc[mail] || []).push(b);
+                        return acc;
+                      }, {})
+                    ).map(([mail, mailBookings]) => (
+                      <div key={mail} className="space-y-2">
+                        <div className="flex items-center gap-2 sticky top-0 bg-background/95 py-1">
+                          <Badge variant="outline" className="text-[10px] font-mono break-all">{mail}</Badge>
+                          <span className="text-[10px] text-muted-foreground">{mailBookings.length} RDV</span>
+                        </div>
+                        {mailBookings.map((b) => (
                       <div key={b.id} className="p-3 rounded-lg text-sm bg-muted/30 border space-y-1.5">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
