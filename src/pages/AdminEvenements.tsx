@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, LogOut } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CarnavalAdmin } from "@/components/CarnavalAdmin";
 import { EventsAdmin } from "@/components/EventsAdmin";
 import { BookEventSectionAdmin } from "@/components/BookEventSectionAdmin";
 import { ArtistsAdmin } from "@/components/ArtistsAdmin";
@@ -68,17 +67,12 @@ const AdminEvenements = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="carnaval" className="space-y-6">
+        <Tabs defaultValue="events" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="carnaval">🎭 Carnaval</TabsTrigger>
             <TabsTrigger value="events">📅 Événements</TabsTrigger>
             <TabsTrigger value="artists">🎤 Artistes</TabsTrigger>
             <TabsTrigger value="book-section">📖 Section BOOK</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="carnaval">
-            <CarnavalAdmin />
-          </TabsContent>
 
           <TabsContent value="events">
             <EventsAdmin />
