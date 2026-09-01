@@ -622,7 +622,7 @@ export const ClientStats = () => {
 
 
       <p className="text-sm text-muted-foreground text-center">
-        💡 Chaque client est identifié par son email — cochez plusieurs fiches pour les fusionner
+        💡 Chaque client est identifié par son email — cochez plusieurs fiches pour les fusionner. Les réservations de lucas.chipan97@gmail.com sont affichées individuellement.
       </p>
 
       {/* Barre de fusion multiple */}
