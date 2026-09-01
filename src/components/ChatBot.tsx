@@ -191,6 +191,21 @@ function BotAvatar({
   );
 }
 
+type Message = { role: "user" | "assistant"; content: string };
+
+const SUGGESTIONS = [
+  "Comment réserver ?",
+  "Quels sont tes tarifs ?",
+  "J'ai oublié mon mot de passe",
+  "Aucun créneau ne s'affiche",
+];
+
+const GREETING: Message = {
+  role: "assistant",
+  content:
+    "Salut ! Moi c'est Léo, l'assistant de LCS Barber. Une question sur les prestations, les tarifs ou ta réservation ? Je suis là.",
+};
+
 
 export default function ChatBot() {
   const [open, setOpen] = useState(false);
