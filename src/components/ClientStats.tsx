@@ -127,6 +127,7 @@ export const ClientStats = () => {
 
         if (!clientMap.has(groupKey)) {
           const info = clientInfoMap.get(email);
+          const profile = profileMap.get((email || "").trim().toLowerCase());
           clientMap.set(groupKey, {
             key: groupKey,
             client_emails: [email],
@@ -143,6 +144,9 @@ export const ClientStats = () => {
             is_blacklisted: info?.is_blacklisted || false,
             unpaid_amount: info?.unpaid_amount || 0,
             bookings: [],
+            account_user_id: profile?.user_id || null,
+            account_role: profile?.role || null,
+            account_created_at: profile?.created_at || null,
           });
         }
 
