@@ -108,6 +108,15 @@ export const ClientStats = () => {
         clientInfoMap.set(c.email, { is_blacklisted: c.is_blacklisted || false, unpaid_amount: Number(c.unpaid_amount) || 0 });
       });
 
+      // Comptes utilisateurs — identifiés par leur email
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, email, full_name, role, created_at');
+      const profileMap = new Map<string, any>();
+      profilesData?.forEach((p: any) => {
+        if (p.email) profileMap.set(p.email.trim().toLowerCase(), p);
+      });
+
       const clientMap = new Map<string, ClientStat>();
 
       bookings?.forEach((booking: any) => {
