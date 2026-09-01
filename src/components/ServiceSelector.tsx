@@ -15,9 +15,11 @@ interface ServiceSelectorProps {
   selectedService: Service | null;
   onServiceSelect: (service: Service) => void;
   onBack?: () => void;
+  domicileMode?: boolean;
+  domicileServices?: Record<string, { label: string; price: number }>;
 }
 
-export const ServiceSelector = ({ selectedService, onServiceSelect, onBack }: ServiceSelectorProps) => {
+export const ServiceSelector = ({ selectedService, onServiceSelect, onBack, domicileMode, domicileServices }: ServiceSelectorProps) => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
