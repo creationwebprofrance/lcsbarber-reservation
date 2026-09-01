@@ -133,15 +133,18 @@ export const ClientStats = () => {
       });
 
       const clientMap = new Map<string, ClientStat>();
+      const ADMIN_EMAIL = "lucas.chipan97@gmail.com";
 
       bookings?.forEach((booking: any) => {
         const email = booking.client_email;
-        // Un client = un email (identification unique par email)
-        const groupKey = (email || "").trim().toLowerCase();
+        const normalizedEmail = (email || "").trim().toLowerCase();
+        // Pour l'admin, chaque réservation est affichée individuellement (pas de groupement)
+        const isAdminBooking = normalizedEmail === ADMIN_EMAIL;
+        const groupKey = isAdminBooking ? `admin-${booking.id}` : normalizedEmail;
 
         if (!clientMap.has(groupKey)) {
           const info = clientInfoMap.get(email);
-          const profile = profileMap.get(groupKey);
+          const profile = profileMap.get(normalizedEmail);
           clientMap.set(groupKey, {
             key: groupKey,
             client_emails: [email],
@@ -260,14 +263,23 @@ export const ClientStats = () => {
     if (!selectedClient) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from('bookings').update({
+      const isAdminBooking = selectedClient.key.startsWith("admin-");
+      const updatePayload = {
         client_name: editName.trim(),
         client_phone: editPhone.trim(),
         client_email: editEmail.trim(),
-      }).eq('client_email', selectedClient.client_emails[0])
-        .ilike('client_name', selectedClient.client_name);
+      };
 
-      if (error) throw error;
+      const query = supabase.from('bookings').update(updatePayload);
+      if (isAdminBooking && selectedClient.bookings.length === 1) {
+        // Pour les réservations admin affichées individuellement, on ne modifie que ce RDV
+        const { error } = await query.eq('id', selectedClient.bookings[0].id);
+        if (error) throw error;
+      } else {
+        const { error } = await query.eq('client_email', selectedClient.client_emails[0])
+          .ilike('client_name', selectedClient.client_name);
+        if (error) throw error;
+      }
 
       // Upsert client info
       const { data: existing } = await supabase.from('clients').select('id').eq('email', selectedClient.client_emails[0]).maybeSingle();
@@ -610,7 +622,7 @@ export const ClientStats = () => {
 
 
       <p className="text-sm text-muted-foreground text-center">
-        💡 Chaque client est identifié par son email — cochez plusieurs fiches pour les fusionner
+        💡 Chaque client est identifié par son email — cochez plusieurs fiches pour les fusionner. Les réservations de lucas.chipan97@gmail.com sont affichées individuellement.
       </p>
 
       {/* Barre de fusion multiple */}
