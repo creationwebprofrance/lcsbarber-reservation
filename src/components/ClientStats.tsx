@@ -270,7 +270,7 @@ export const ClientStats = () => {
     if (!selectedClient) return;
     setSaving(true);
     try {
-      const isAdminBooking = selectedClient.key.startsWith("admin-");
+      const isAdminBooking = selectedClient.key.startsWith("single-");
       const updatePayload = {
         client_name: editName.trim(),
         client_phone: editPhone.trim(),
