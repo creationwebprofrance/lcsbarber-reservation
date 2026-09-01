@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TimeSlot {
   id: string;
@@ -310,12 +311,15 @@ export const CalendarSlotsManager = () => {
                 ) : (
                   <>
                     {/* Time slots */}
-                    {slots.map((slot, idx) => (
+                    {slots.map((slot: any, idx) => (
                       <div 
                         key={idx} 
-                        className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5"
+                        className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 flex items-center justify-between gap-1"
                       >
-                        {slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}
+                        <span>{slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}</span>
+                        {slot.mode && slot.mode !== 'both' && (
+                          <span>{slot.mode === 'domicile' ? '🏠' : '🚗'}</span>
+                        )}
                       </div>
                     ))}
                     
