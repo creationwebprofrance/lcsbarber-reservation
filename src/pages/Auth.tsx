@@ -182,13 +182,22 @@ export const Auth = () => {
             </form>
 
             <div className="text-center">
-              <button
-                type="button"
-                className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                onClick={() => setMode(mode === "forgot" ? "signin" : "forgot")}
-              >
-                {mode === "forgot" ? "Retour à la connexion" : "Mot de passe oublié ?"}
-              </button>
+              {mode === "forgot" ? (
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  onClick={() => setMode("signin")}
+                >
+                  Retour à la connexion
+                </button>
+              ) : (
+                <Link
+                  to="/mot-de-passe-oublie"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Mot de passe oublié ?
+                </Link>
+              )}
             </div>
           </CardContent>
         </Card>
