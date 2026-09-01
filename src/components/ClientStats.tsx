@@ -581,54 +581,56 @@ export const ClientStats = () => {
 
   return (
     <div className="space-y-6">
-      {/* Merge history */}
+      {/* Merge history — volet dépliant */}
       {mergeRecords.length > 0 && (
-        <Card className="border-blue-500/50 bg-blue-500/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Undo2 className="h-4 w-4" />
-              Fusions récentes ({mergeRecords.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {(() => {
-              // Regrouper les fusions par client cible pour une lecture claire
-              const grouped = new Map<string, typeof mergeRecords>();
-              mergeRecords.forEach((rec) => {
-                const key = (rec.target_email || "").trim().toLowerCase();
-                const list = grouped.get(key) || [];
-                list.push(rec);
-                grouped.set(key, list);
-              });
-              return Array.from(grouped.entries()).map(([target, records]) => (
-                <div key={target} className="rounded-lg border bg-background p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <GitMerge className="h-4 w-4 text-blue-500 shrink-0" />
-                      <span className="font-semibold truncate">{records[0].target_email}</span>
-                      <Badge variant="secondary" className="shrink-0">
-                        {records.length} compte{records.length > 1 ? "s" : ""} fusionné{records.length > 1 ? "s" : ""}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="divide-y rounded-md border bg-muted/30">
-                    {records.map((rec) => (
-                      <div key={rec.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="font-medium truncate">{rec.original_client_name}</span>
-                          <span className="text-muted-foreground truncate">{rec.merged_email}</span>
-                        </div>
-                        <Button size="sm" variant="ghost" className="shrink-0 h-7 px-2" onClick={() => setUnmergeTarget(rec)}>
-                          <Undo2 className="h-3 w-3 mr-1" /> Défusionner
-                        </Button>
+        <Accordion type="single" collapsible className="rounded-xl border border-blue-500/30 bg-blue-500/5 px-4">
+          <AccordionItem value="merges" className="border-none">
+            <AccordionTrigger className="text-sm hover:no-underline py-3">
+              <span className="flex items-center gap-2">
+                <GitMerge className="h-4 w-4 text-blue-500" />
+                Fusions ({mergeRecords.length})
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="pb-4">
+              <div className="space-y-3">
+                {(() => {
+                  // Regrouper les fusions par client cible pour une lecture claire
+                  const grouped = new Map<string, typeof mergeRecords>();
+                  mergeRecords.forEach((rec) => {
+                    const key = (rec.target_email || "").trim().toLowerCase();
+                    const list = grouped.get(key) || [];
+                    list.push(rec);
+                    grouped.set(key, list);
+                  });
+                  return Array.from(grouped.entries()).map(([target, records]) => (
+                    <div key={target} className="rounded-lg border bg-background p-3 space-y-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <GitMerge className="h-4 w-4 text-blue-500 shrink-0" />
+                        <span className="font-semibold truncate">{records[0].target_email}</span>
+                        <Badge variant="secondary" className="shrink-0">
+                          {records.length} compte{records.length > 1 ? "s" : ""} fusionné{records.length > 1 ? "s" : ""}
+                        </Badge>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ));
-            })()}
-          </CardContent>
-        </Card>
+                      <div className="divide-y rounded-md border bg-muted/30">
+                        {records.map((rec) => (
+                          <div key={rec.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="font-medium truncate">{rec.original_client_name}</span>
+                              <span className="text-muted-foreground truncate">{rec.merged_email}</span>
+                            </div>
+                            <Button size="sm" variant="ghost" className="shrink-0 h-7 px-2" onClick={() => setUnmergeTarget(rec)}>
+                              <Undo2 className="h-3 w-3 mr-1" /> Défusionner
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       )}
 
       {/* Summary cards */}
