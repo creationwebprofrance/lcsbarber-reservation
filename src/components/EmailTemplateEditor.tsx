@@ -111,31 +111,60 @@ export const EmailTemplateEditor = () => {
       .replace(/\{\{message\}\}/g, "");
   };
 
+  const selector = (
+    <div className="space-y-2">
+      <Label>Type d'email</Label>
+      <div className="flex flex-wrap gap-2">
+        {TEMPLATE_TYPES.map((t) => (
+          <Button
+            key={t.key}
+            type="button"
+            size="sm"
+            variant={templateType === t.key ? "default" : "outline"}
+            onClick={() => setTemplateType(t.key)}
+          >
+            {t.label}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <Card className="p-6 space-y-6">
+        {selector}
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Card>
     );
   }
 
   if (!template) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 space-y-6">
+        {selector}
         <p className="text-muted-foreground">Aucun template trouvé</p>
       </Card>
     );
   }
 
+  const current = TEMPLATE_TYPES.find((t) => t.key === templateType);
+
   return (
     <Card className="p-6">
       <div className="space-y-6">
+        {selector}
         <div>
-          <h3 className="text-lg font-semibold mb-4">Email de confirmation client</h3>
-          <p className="text-sm text-muted-foreground mb-6">
-            Personnalisez le contenu de l'email de confirmation envoyé aux clients après validation de leur réservation.
+          <h3 className="text-lg font-semibold mb-2">{current?.label}</h3>
+          <p className="text-sm text-muted-foreground">
+            {templateType === "welcome_client"
+              ? "Personnalisez l'email de bienvenue envoyé automatiquement aux nouveaux clients lors de leur première connexion."
+              : "Personnalisez le contenu de l'email de confirmation envoyé aux clients après validation de leur réservation."}
           </p>
         </div>
+
 
         <Tabs defaultValue="edit" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
