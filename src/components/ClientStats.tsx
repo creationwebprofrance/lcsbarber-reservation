@@ -263,14 +263,23 @@ export const ClientStats = () => {
     if (!selectedClient) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from('bookings').update({
+      const isAdminBooking = selectedClient.key.startsWith("admin-");
+      const updatePayload = {
         client_name: editName.trim(),
         client_phone: editPhone.trim(),
         client_email: editEmail.trim(),
-      }).eq('client_email', selectedClient.client_emails[0])
-        .ilike('client_name', selectedClient.client_name);
+      };
 
-      if (error) throw error;
+      const query = supabase.from('bookings').update(updatePayload);
+      if (isAdminBooking && selectedClient.bookings.length === 1) {
+        // Pour les réservations admin affichées individuellement, on ne modifie que ce RDV
+        await query.eq('id', selectedClient.bookings[0].id);
+      } else {
+        await query.eq('client_email', selectedClient.client_emails[0])
+          .ilike('client_name', selectedClient.client_name);
+      }
+
+      if (isAdminBooking) {
 
       // Upsert client info
       const { data: existing } = await supabase.from('clients').select('id').eq('email', selectedClient.client_emails[0]).maybeSingle();
