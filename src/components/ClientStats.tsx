@@ -133,15 +133,18 @@ export const ClientStats = () => {
       });
 
       const clientMap = new Map<string, ClientStat>();
+      const ADMIN_EMAIL = "lucas.chipan97@gmail.com";
 
       bookings?.forEach((booking: any) => {
         const email = booking.client_email;
-        // Un client = un email (identification unique par email)
-        const groupKey = (email || "").trim().toLowerCase();
+        const normalizedEmail = (email || "").trim().toLowerCase();
+        // Pour l'admin, chaque réservation est affichée individuellement (pas de groupement)
+        const isAdminBooking = normalizedEmail === ADMIN_EMAIL;
+        const groupKey = isAdminBooking ? `admin-${booking.id}` : normalizedEmail;
 
         if (!clientMap.has(groupKey)) {
           const info = clientInfoMap.get(email);
-          const profile = profileMap.get(groupKey);
+          const profile = profileMap.get(normalizedEmail);
           clientMap.set(groupKey, {
             key: groupKey,
             client_emails: [email],
