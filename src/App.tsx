@@ -15,6 +15,7 @@ import AdminEvenements from "./pages/AdminEvenements";
 import NotFound from "./pages/NotFound";
 import { Auth } from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
 import { Admin } from "./pages/Admin";
 import { AuthProvider } from "./hooks/useAuth";
 import RequireAuth from "./components/RequireAuth";
@@ -35,6 +36,8 @@ const App = () => (
             <Route path="/reservation" element={<RequireAuth><Reservation /></RequireAuth>} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/simulator" element={<Simulator />} />
