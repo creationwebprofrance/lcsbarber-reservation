@@ -94,7 +94,7 @@ export const Auth = () => {
           <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Accueil
           </Link>
-          <img src={lcsBarberLogo} alt="LCS Style" className="h-9" />
+          <img src={lcsBarberLogo} alt="LCS Barber" className="h-9" />
         </div>
 
         <Card className="border-border/60">

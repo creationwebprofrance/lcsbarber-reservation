@@ -103,12 +103,12 @@ serve(async (req: Request): Promise<Response> => {
           const formattedTime = booking.appointment_time;
 
           const subject = type === 'tomorrow' 
-            ? '📅 Rappel : Votre rendez-vous demain chez LCS Style ⭐'
-            : '⏰ Rappel : Votre rendez-vous dans 2 heures chez LCS Style ⭐';
+            ? '📅 Rappel : Votre rendez-vous demain chez LCS Barber ⭐'
+            : '⏰ Rappel : Votre rendez-vous dans 2 heures chez LCS Barber ⭐';
 
           const message = type === 'tomorrow'
-            ? `Bonjour ${booking.client_name},\n\nNous vous rappelons votre rendez-vous demain chez LCS Style ⭐`
-            : `Bonjour ${booking.client_name},\n\nVotre rendez-vous approche ! Dans 2 heures chez LCS Style ⭐`;
+            ? `Bonjour ${booking.client_name},\n\nNous vous rappelons votre rendez-vous demain chez LCS Barber ⭐`
+            : `Bonjour ${booking.client_name},\n\nVotre rendez-vous approche ! Dans 2 heures chez LCS Barber ⭐`;
 
           // Email au barbier (toujours envoyé)
           const barberEmail = Deno.env.get("BARBER_EMAIL");
@@ -117,7 +117,7 @@ serve(async (req: Request): Promise<Response> => {
             continue;
           }
           await resend.emails.send({
-            from: "LCS Style <onboarding@resend.dev>",
+            from: "LCS Barber <onboarding@resend.dev>",
             to: [barberEmail],
             subject: `${type === 'tomorrow' ? 'Demain' : 'Dans 2h'} : RDV avec ${booking.client_name}`,
             html: `
@@ -140,7 +140,7 @@ serve(async (req: Request): Promise<Response> => {
           // Tenter d'envoyer au client (peut échouer en mode test)
           try {
             await resend.emails.send({
-              from: "LCS Style <onboarding@resend.dev>",
+              from: "LCS Barber <onboarding@resend.dev>",
               to: [booking.client_email],
               subject: subject,
               html: `
@@ -157,7 +157,7 @@ serve(async (req: Request): Promise<Response> => {
                   </div>
 
                   <p>À très bientôt !</p>
-                  <p style="color: #666; font-size: 14px;">LCS Style ⭐</p>
+                  <p style="color: #666; font-size: 14px;">LCS Barber ⭐</p>
                 </div>
               `,
             });

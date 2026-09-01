@@ -64,7 +64,7 @@ const handler = async (req: Request): Promise<Response> => {
       <p>À très bientôt !</p>
     </div>
     <div class="footer">
-      <p>LCS Style - Coiffure à domicile</p>
+      <p>LCS Barber - Coiffure à domicile</p>
     </div>
   </div>
 </body>
@@ -73,7 +73,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send to client
     try {
       await resend.emails.send({
-        from: "LCS Style <noreply@lookware.fr>",
+        from: "LCS Barber <noreply@lookware.fr>",
         to: [clientEmail],
         subject: `💈 Modification de tarif - ${serviceName || 'Votre réservation'}`,
         html: clientHtml,
@@ -89,7 +89,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (barberEmail) {
       try {
         await resend.emails.send({
-          from: "LCS Style <noreply@lookware.fr>",
+          from: "LCS Barber <noreply@lookware.fr>",
           to: [barberEmail],
           subject: `💈 Tarif modifié - ${clientName} (${oldPrice}€ → ${newPrice}€)`,
           html: `

@@ -163,7 +163,7 @@ const handler = async (req: Request): Promise<Response> => {
       <p>Prépare-toi pour le Carnaval ! À très bientôt 🎉</p>
     </div>
     <div class="footer">
-      <p>🎭 LCS Style — Carnaval de Bordeaux 2026</p>
+      <p>🎭 LCS Barber — Carnaval de Bordeaux 2026</p>
     </div>
   </div>
 </body>
@@ -248,7 +248,7 @@ const handler = async (req: Request): Promise<Response> => {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirmation de votre rendez-vous — LCS Style</title>
+  <title>Confirmation de votre rendez-vous — LCS Barber</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap');
     body { margin:0; padding:0; background-color:#0B0B0B; color:#F4F1EA; font-family:'Manrope',Arial,Helvetica,sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
@@ -331,7 +331,7 @@ const handler = async (req: Request): Promise<Response> => {
 
           ${booking.message ? `<div class="message-box"><strong>Ton message</strong><p>${booking.message}</p></div>` : ''}
 
-          <p class="signature">À très bientôt,<br><span class="signature-name">Lucas — LCS Style</span></p>
+          <p class="signature">À très bientôt,<br><span class="signature-name">Lucas — LCS Barber</span></p>
         </div>
 
         <div class="footer">
@@ -350,7 +350,7 @@ const handler = async (req: Request): Promise<Response> => {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nouveau rendez-vous — LCS Style</title>
+  <title>Nouveau rendez-vous — LCS Barber</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap');
     body { margin:0; padding:0; background-color:#0B0B0B; color:#F4F1EA; font-family:'Manrope',Arial,Helvetica,sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
@@ -416,7 +416,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
 
         <div class="footer">
-          <p class="footer-text">Notification admin — LCS Style</p>
+          <p class="footer-text">Notification admin — LCS Barber</p>
         </div>
       </div>
     </td></tr>
@@ -428,7 +428,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email to client
     console.log("Sending email to client:", booking.clientEmail);
     const clientEmailResponse = await resend.emails.send({
-      from: "LCS Style <noreply@lookware.fr>",
+      from: "LCS Barber <noreply@lookware.fr>",
       to: [booking.clientEmail],
       subject: clientSubject,
       html: clientEmailHtml,
@@ -439,7 +439,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (barberEmail) {
       console.log("Sending email to admin:", barberEmail);
       const adminEmailResponse = await resend.emails.send({
-        from: "LCS Style <noreply@lookware.fr>",
+        from: "LCS Barber <noreply@lookware.fr>",
         to: [barberEmail],
         subject: adminSubject,
         html: adminEmailHtml,

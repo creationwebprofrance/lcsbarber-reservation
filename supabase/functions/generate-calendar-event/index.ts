@@ -54,7 +54,7 @@ serve(async (req: Request): Promise<Response> => {
     const icsContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//LCS Style//Booking//FR',
+      'PRODID:-//LCS Barber//Booking//FR',
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
       'BEGIN:VEVENT',
