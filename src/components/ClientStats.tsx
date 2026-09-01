@@ -874,6 +874,8 @@ export const ClientStats = () => {
                           </Button>
                         </div>
                       </div>
+                        ))}
+                      </div>
                     ))}
                     {selectedClient.bookings.length === 0 && (
                       <div className="text-center text-muted-foreground py-4 text-sm">Aucune réservation</div>
