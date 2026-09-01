@@ -23,7 +23,14 @@ interface TimeSlot {
   start_time: string;
   end_time: string;
   is_available: boolean;
+  mode: 'both' | 'domicile' | 'deplacement';
 }
+
+const slotModeLabels: Record<string, string> = {
+  both: 'Les deux',
+  domicile: '🏠 Domicile',
+  deplacement: '🚗 Déplacement',
+};
 
 interface DateOverride {
   id: string;

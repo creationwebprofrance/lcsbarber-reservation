@@ -15,7 +15,14 @@ interface TimeSlot {
   start_time: string;
   end_time: string;
   is_available: boolean;
+  mode: 'both' | 'domicile' | 'deplacement';
 }
+
+const modeLabels: Record<string, string> = {
+  both: 'Les deux',
+  domicile: 'À côté du domicile',
+  deplacement: 'En déplacement',
+};
 
 const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
