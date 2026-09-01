@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
-import { Settings, BarChart, LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight, Calculator, PartyPopper } from "lucide-react";
+import { LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight, PartyPopper } from "lucide-react";
 import { motion } from "framer-motion";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 import veryBadCampAsset from "@/assets/very-bad-camp.png.asset.json";
 import BarberPole3D from "@/components/BarberPole3D";
+import { UserMenu } from "@/components/UserMenu";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -19,7 +20,7 @@ const fadeUp = {
 };
 
 export default function Home() {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const [hasActiveEvent, setHasActiveEvent] = useState(false);
   const [bookSection, setBookSection] = useState({
     label: "BOOK ÉVÉNEMENTIEL",
