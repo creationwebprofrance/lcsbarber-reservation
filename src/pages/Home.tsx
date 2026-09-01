@@ -121,12 +121,18 @@ export default function Home() {
                 className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
                 initial="hidden" animate="visible" variants={fadeUp} custom={3}
               >
-                <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant w-full sm:w-auto">
-                  <Link to="/reservation">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Prendre rendez-vous
-                  </Link>
-                </Button>
+                <div className="flex flex-col gap-2 w-full sm:w-auto">
+                  <span className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">
+                    <Clock className="h-3 w-3 text-primary" />
+                    De 10h à 20h (frais hors horaire)
+                  </span>
+                  <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant w-full sm:w-auto">
+                    <Link to="/reservation">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Prendre rendez-vous
+                    </Link>
+                  </Button>
+                </div>
                 <Button asChild size="lg" variant="outline" className="border-border/60 hover:bg-card w-full sm:w-auto">
                   <a href="#services">
                     Mes services
