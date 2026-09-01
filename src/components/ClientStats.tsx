@@ -81,6 +81,13 @@ export const ClientStats = () => {
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [mergeConfirm, setMergeConfirm] = useState<{ source: ClientStat; target: ClientStat } | null>(null);
 
+  // Sélection multiple pour fusion
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+  const [multiMergeOpen, setMultiMergeOpen] = useState(false);
+  const [multiTargetKey, setMultiTargetKey] = useState<string | null>(null);
+  const [mergingMulti, setMergingMulti] = useState(false);
+
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -124,16 +131,16 @@ export const ClientStats = () => {
 
       bookings?.forEach((booking: any) => {
         const email = booking.client_email;
-        const name = booking.client_name?.trim().toLowerCase() || "";
-        // Group by BOTH email AND name
-        const groupKey = `${email}::${name}`;
+        // Un client = un email (identification unique par email)
+        const groupKey = (email || "").trim().toLowerCase();
 
         if (!clientMap.has(groupKey)) {
           const info = clientInfoMap.get(email);
-          const profile = profileMap.get((email || "").trim().toLowerCase());
+          const profile = profileMap.get(groupKey);
           clientMap.set(groupKey, {
             key: groupKey,
             client_emails: [email],
+
             client_name: booking.client_name,
             client_phone: booking.client_phone || "Non renseigné",
             total_bookings: 0,
@@ -187,9 +194,10 @@ export const ClientStats = () => {
       profileMap.forEach((p, email) => {
         if (bookedEmails.has(email)) return;
         const info = clientInfoMap.get(p.email);
-        clientMap.set(`account::${email}`, {
-          key: `account::${email}`,
+        clientMap.set(email, {
+          key: email,
           client_emails: [p.email],
+
           client_name: p.full_name || p.email.split("@")[0],
           client_phone: "Non renseigné",
           total_bookings: 0,
@@ -355,6 +363,48 @@ export const ClientStats = () => {
     }
   };
 
+  const toggleSelect = (key: string) => {
+    setSelectedKeys((prev) => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
+
+  const handleMultiMerge = async () => {
+    const selected = stats.filter(c => selectedKeys.includes(c.key));
+    const target = selected.find(c => c.key === multiTargetKey);
+    if (!target || selected.length < 2) return;
+    setMergingMulti(true);
+    try {
+      const targetEmail = target.client_emails[0];
+      for (const source of selected) {
+        if (source.key === target.key) continue;
+        const sourceEmail = source.client_emails[0];
+        await supabase.from('client_merges').insert({
+          merged_email: sourceEmail,
+          target_email: targetEmail,
+          original_client_name: source.client_name,
+        });
+        await supabase.from('bookings').update({
+          client_email: targetEmail,
+          client_name: target.client_name,
+        }).eq('client_email', sourceEmail);
+        await supabase.from('clients').delete().eq('email', sourceEmail);
+      }
+      toast({
+        title: "Clients fusionnés",
+        description: `${selected.length} fiches regroupées sous ${targetEmail}.`,
+      });
+      setMultiMergeOpen(false);
+      setMultiTargetKey(null);
+      setSelectedKeys([]);
+      loadStats();
+      loadMergeRecords();
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } finally {
+      setMergingMulti(false);
+    }
+  };
+
+
   const handleUnmerge = async () => {
     if (!unmergeTarget) return;
     try {
@@ -499,8 +549,28 @@ export const ClientStats = () => {
       </div>
 
       <p className="text-sm text-muted-foreground text-center">
-        💡 Glissez-déposez un client sur un autre pour les fusionner
+        💡 Chaque client est identifié par son email — cochez plusieurs fiches pour les fusionner
       </p>
+
+      {/* Barre de fusion multiple */}
+      {selectedKeys.length > 0 && (
+        <div className="sticky top-2 z-10 flex flex-wrap items-center justify-between gap-2 p-3 rounded-lg border border-primary/50 bg-primary/10">
+          <span className="text-sm font-medium">{selectedKeys.length} client(s) sélectionné(s)</span>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => setSelectedKeys([])}>Annuler</Button>
+            <Button
+              size="sm"
+              disabled={selectedKeys.length < 2}
+              onClick={() => {
+                setMultiTargetKey(selectedKeys[0]);
+                setMultiMergeOpen(true);
+              }}
+            >
+              Fusionner en un seul client
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Clients & comptes utilisateurs */}
       <Card>
@@ -525,11 +595,22 @@ export const ClientStats = () => {
                 onDragEnd={handleDragEnd}
                 className={`flex items-center justify-between gap-2 p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-all
                   ${dropTarget === client.key ? "ring-2 ring-primary bg-primary/10 scale-[1.02]" : ""}
+                  ${selectedKeys.includes(client.key) ? "ring-2 ring-primary/70" : ""}
                   ${client.is_blacklisted ? "bg-destructive/10 border-destructive/30" : "hover:bg-accent/50"}
                   ${client.unpaid_amount > 0 ? "border-orange-400/50" : ""}
                 `}
               >
+                <div className="flex items-start gap-2 min-w-0">
+                  <input
+                    type="checkbox"
+                    aria-label={`Sélectionner ${client.client_name}`}
+                    className="mt-1 h-4 w-4 shrink-0 accent-primary cursor-pointer"
+                    checked={selectedKeys.includes(client.key)}
+                    onChange={() => toggleSelect(client.key)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 <div className="min-w-0">
+
                   <div className="flex items-center gap-2 min-w-0">
                     {client.is_blacklisted && <Ban className="h-4 w-4 text-destructive shrink-0" />}
                     <span
@@ -541,6 +622,8 @@ export const ClientStats = () => {
                   </div>
                   <div className="text-xs text-muted-foreground truncate">{client.client_emails[0]}</div>
                 </div>
+                </div>
+
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   <div className="flex items-center gap-1">
                     {client.account_user_id ? (
@@ -860,6 +943,47 @@ export const ClientStats = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Fusion multiple : choix du client principal */}
+      <Dialog open={multiMergeOpen} onOpenChange={(open) => { if (!open) { setMultiMergeOpen(false); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Fusionner {selectedKeys.length} clients</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Choisis la fiche principale : tous les rendez-vous des autres emails seront rattachés à celle-ci.
+            </p>
+            <div className="space-y-2 max-h-72 overflow-y-auto">
+              {stats.filter(c => selectedKeys.includes(c.key)).map((c) => (
+                <label
+                  key={c.key}
+                  className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer ${multiTargetKey === c.key ? "border-primary bg-primary/10" : "hover:bg-accent/50"}`}
+                >
+                  <input
+                    type="radio"
+                    name="multi-target"
+                    className="h-4 w-4 accent-primary"
+                    checked={multiTargetKey === c.key}
+                    onChange={() => setMultiTargetKey(c.key)}
+                  />
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{c.client_name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{c.client_emails[0]} · {c.total_bookings} RDV</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setMultiMergeOpen(false)} disabled={mergingMulti}>Annuler</Button>
+              <Button onClick={handleMultiMerge} disabled={mergingMulti || !multiTargetKey}>
+                {mergingMulti ? "Fusion..." : "Fusionner"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 };
