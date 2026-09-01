@@ -9,6 +9,8 @@ import Dashboard from "./pages/Dashboard";
 import Simulator from "./pages/Simulator";
 import Carnaval from "./pages/Carnaval";
 import Evenements from "./pages/Evenements";
+import Catalogue from "./pages/Catalogue";
+import MesRendezVous from "./pages/MesRendezVous";
 import AdminEvenements from "./pages/AdminEvenements";
 import NotFound from "./pages/NotFound";
 import { Auth } from "./pages/Auth";
@@ -38,6 +40,8 @@ const App = () => (
             <Route path="/simulator" element={<Simulator />} />
             <Route path="/carnaval" element={<Carnaval />} />
             <Route path="/evenements" element={<Evenements />} />
+            <Route path="/catalogue" element={<Catalogue />} />
+            <Route path="/mes-rendez-vous" element={<RequireAuth><MesRendezVous /></RequireAuth>} />
             <Route path="/admin-evenements" element={<AdminEvenements />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
