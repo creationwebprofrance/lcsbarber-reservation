@@ -622,6 +622,8 @@ export const ClientStats = () => {
                   </div>
                   <div className="text-xs text-muted-foreground truncate">{client.client_emails[0]}</div>
                 </div>
+                </div>
+
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   <div className="flex items-center gap-1">
                     {client.account_user_id ? (
