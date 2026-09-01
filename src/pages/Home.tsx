@@ -227,7 +227,7 @@ export default function Home() {
           <div className="grid grid-cols-3 gap-6">
             {[
               { icon: Clock, value: "Sur RDV", label: "Toujours à l'heure" },
-              { icon: MapPin, value: "À domicile", label: "Je viens chez toi" },
+              { icon: MapPin, value: "À côté du domicile", label: "À proximité de chez toi" },
               { icon: Star, value: "5/5", label: "Avis clients" },
             ].map((item, i) => (
               <motion.div

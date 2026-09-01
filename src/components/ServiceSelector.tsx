@@ -45,7 +45,7 @@ export const ServiceSelector = ({ selectedService, onServiceSelect, onBack, domi
             ...s,
             name: domicileServices[s.name].label,
             price: domicileServices[s.name].price,
-            description: "À domicile (chez le coiffeur) — sans frais de déplacement",
+            description: s.description,
           }));
       }
       setServices(list);

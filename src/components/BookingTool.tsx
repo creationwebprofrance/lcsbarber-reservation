@@ -30,7 +30,7 @@ interface CurrentSelection {
 
 type BookingMode = "domicile" | "deplacement" | null;
 
-// Tarifs spéciaux "à domicile" (chez le coiffeur) — pas de frais de déplacement
+// Tarifs spéciaux "à côté du domicile" — pas de frais de déplacement
 const DOMICILE_SERVICES: Record<string, { label: string; price: number }> = {
   "Contours": { label: "Contours", price: 10 },
   "Coupe classique": { label: "Coupe", price: 15 },
@@ -111,7 +111,7 @@ export const BookingTool = () => {
     }
   };
 
-  // Réservation directe "à domicile" : pas de formulaire, on utilise le compte connecté
+  // Réservation directe "à côté du domicile" : pas de formulaire, on utilise le compte connecté
   const handleDirectDomicileBooking = async (time: string) => {
     if (!currentSelection.service || !currentSelection.date || !user?.email) return;
 
@@ -149,10 +149,10 @@ export const BookingTool = () => {
           client_name: clientName,
           client_email: user.email,
           client_phone: "Non renseigné",
-          client_address: "Au domicile du coiffeur (95)",
+          client_address: "À côté du domicile (95)",
           total_price: totalPrice,
           travel_fee: 0,
-          notes: "Réservation à domicile (chez le coiffeur)",
+          notes: "Réservation à côté du domicile",
           deposit_paid: true,
         },
       });
@@ -167,7 +167,7 @@ export const BookingTool = () => {
           clientName,
           clientEmail: user.email,
           clientPhone: "Non renseigné",
-          clientAddress: "Au domicile du coiffeur (95)",
+          clientAddress: "À côté du domicile (95)",
           clientPostalCode: "",
           clientCity: "",
           serviceName: currentSelection.service.name,
@@ -176,14 +176,14 @@ export const BookingTool = () => {
           appointmentTime: time,
           totalPrice,
           travelFee: 0,
-          message: "Réservation à domicile (chez le coiffeur)",
+          message: "Réservation à côté du domicile",
         },
       });
 
       setCurrentSelection({ ...currentSelection, time });
       setIsConfirmed(true);
     } catch (error: any) {
-      console.error("Erreur réservation domicile:", error);
+      console.error("Erreur réservation à côté du domicile:", error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors de la réservation.",
@@ -238,7 +238,7 @@ export const BookingTool = () => {
               : bookingItems.length > 0
               ? `${bookingItems.length} rendez-vous sélectionné${bookingItems.length > 1 ? 's' : ''} - Ajoutez-en d'autres ou continuez`
               : mode === "domicile"
-              ? "À domicile (chez le coiffeur) — tarifs réduits, sans frais de déplacement"
+              ? "À côté du domicile — tarifs réduits, sans frais de déplacement"
               : "En déplacement — je me déplace chez vous"
             }
           </p>
@@ -247,7 +247,7 @@ export const BookingTool = () => {
           </p>
         </div>
 
-        {/* Choix du mode : à domicile ou en déplacement */}
+        {/* Choix du mode : à côté du domicile ou en déplacement */}
         {mode === null && !isConfirmed && (
           <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto">
             <Card
@@ -258,9 +258,9 @@ export const BookingTool = () => {
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                   <Home className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold mb-1">À domicile</h3>
+                <h3 className="text-lg font-semibold mb-1">À côté du domicile</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Chez le coiffeur (95) — réservation instantanée, sans formulaire
+                  À côté du domicile (95) — réservation instantanée, sans formulaire
                 </p>
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>Contours : <span className="text-primary font-semibold">10€</span></p>
@@ -408,7 +408,7 @@ export const BookingTool = () => {
                   <p className="mb-6 text-muted-foreground">
                     {mode === "domicile" ? (
                       <>
-                        Ton rendez-vous à domicile a été enregistré
+                        Ton rendez-vous à côté du domicile a été enregistré
                         {currentSelection.service && currentSelection.date && currentSelection.time && (
                           <>
                             <br />
