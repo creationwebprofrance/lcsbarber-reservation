@@ -256,30 +256,6 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="stripe-line" />
-
-      {/* CTA */}
-      <section className="py-20 sm:py-28">
-        <div className="max-w-3xl mx-auto px-5 text-center">
-          <motion.div
-            initial="hidden" whileInView="visible" viewport={{ once: true }}
-            variants={fadeUp} custom={0}
-          >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Prêt pour ta prochaine <span className="text-primary">coupe</span> ?
-            </h2>
-            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Réserve ton créneau en quelques clics. Simple, rapide, efficace.
-            </p>
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant px-8">
-              <Link to="/reservation">
-                <Calendar className="h-4 w-4 mr-2" />
-                Réserver maintenant
-              </Link>
-            </Button>
-          </motion.div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t border-border/40 py-8">
