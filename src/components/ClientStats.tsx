@@ -578,6 +578,36 @@ export const ClientStats = () => {
           </DialogHeader>
           {selectedClient && (
             <div className="space-y-4">
+              {/* Compte utilisateur lié à l'email */}
+              <div className="p-3 rounded-lg border space-y-2">
+                <div className="text-sm font-semibold">Compte utilisateur</div>
+                <div className="text-xs text-muted-foreground break-all">{selectedClient.client_emails[0]}</div>
+                {selectedClient.account_user_id ? (
+                  <>
+                    <div className="flex items-center gap-2 text-xs">
+                      <Badge variant="outline" className="text-[10px] border-primary/50 text-primary">
+                        {selectedClient.account_role === "admin" ? "Administrateur" : "Client"}
+                      </Badge>
+                      {selectedClient.account_created_at && (
+                        <span className="text-muted-foreground">
+                          Inscrit le {format(new Date(selectedClient.account_created_at), "d MMM yyyy", { locale: fr })}
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={selectedClient.account_role === "admin"}
+                      onClick={() => setAccountToDelete(selectedClient)}
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" /> Supprimer le compte
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-xs text-muted-foreground">Aucun compte lié à cet email.</div>
+                )}
+              </div>
+
               {/* Stats */}
               <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-muted/50">
                 <div className="text-sm">
