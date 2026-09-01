@@ -43,6 +43,10 @@ interface ClientStat {
   is_blacklisted: boolean;
   unpaid_amount: number;
   bookings: BookingDetail[];
+  // Compte utilisateur lié (identifié par l'email)
+  account_user_id: string | null;
+  account_role: string | null;
+  account_created_at: string | null;
 }
 
 interface MergeRecord {
@@ -68,6 +72,9 @@ export const ClientStats = () => {
   const [unmergeTarget, setUnmergeTarget] = useState<MergeRecord | null>(null);
   const [showBookings, setShowBookings] = useState(true);
   const [bookingToDelete, setBookingToDelete] = useState<BookingDetail | null>(null);
+  const [search, setSearch] = useState("");
+  const [accountToDelete, setAccountToDelete] = useState<ClientStat | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   // Drag & drop merge
   const [draggedClient, setDraggedClient] = useState<ClientStat | null>(null);
@@ -104,6 +111,15 @@ export const ClientStats = () => {
         clientInfoMap.set(c.email, { is_blacklisted: c.is_blacklisted || false, unpaid_amount: Number(c.unpaid_amount) || 0 });
       });
 
+      // Comptes utilisateurs — identifiés par leur email
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, email, full_name, role, created_at');
+      const profileMap = new Map<string, any>();
+      profilesData?.forEach((p: any) => {
+        if (p.email) profileMap.set(p.email.trim().toLowerCase(), p);
+      });
+
       const clientMap = new Map<string, ClientStat>();
 
       bookings?.forEach((booking: any) => {
@@ -114,6 +130,7 @@ export const ClientStats = () => {
 
         if (!clientMap.has(groupKey)) {
           const info = clientInfoMap.get(email);
+          const profile = profileMap.get((email || "").trim().toLowerCase());
           clientMap.set(groupKey, {
             key: groupKey,
             client_emails: [email],
@@ -130,6 +147,9 @@ export const ClientStats = () => {
             is_blacklisted: info?.is_blacklisted || false,
             unpaid_amount: info?.unpaid_amount || 0,
             bookings: [],
+            account_user_id: profile?.user_id || null,
+            account_role: profile?.role || null,
+            account_created_at: profile?.created_at || null,
           });
         }
 
@@ -157,6 +177,35 @@ export const ClientStats = () => {
           client_phone: booking.client_phone || "",
           client_email: booking.client_email,
           deposit_paid: !!booking.deposit_paid,
+        });
+      });
+
+      // Comptes sans aucune réservation : on les ajoute quand même à la liste
+      const bookedEmails = new Set(
+        Array.from(clientMap.values()).flatMap(c => c.client_emails.map(e => (e || "").trim().toLowerCase()))
+      );
+      profileMap.forEach((p, email) => {
+        if (bookedEmails.has(email)) return;
+        const info = clientInfoMap.get(p.email);
+        clientMap.set(`account::${email}`, {
+          key: `account::${email}`,
+          client_emails: [p.email],
+          client_name: p.full_name || p.email.split("@")[0],
+          client_phone: "Non renseigné",
+          total_bookings: 0,
+          total_spent: 0,
+          avg_spent: 0,
+          services: [],
+          last_service: "—",
+          last_date: "",
+          avg_days_between: null,
+          dates: [],
+          is_blacklisted: info?.is_blacklisted || false,
+          unpaid_amount: info?.unpaid_amount || 0,
+          bookings: [],
+          account_user_id: p.user_id,
+          account_role: p.role,
+          account_created_at: p.created_at,
         });
       });
 
@@ -352,6 +401,49 @@ export const ClientStats = () => {
     }
   };
 
+  // Suppression du compte utilisateur lié à l'email du client
+  const handleDeleteAccount = async () => {
+    if (!accountToDelete?.account_user_id) return;
+    setDeletingAccount(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Non authentifié");
+
+      const response = await fetch(
+        `https://qgtbedvpxpadpqxrkzzx.supabase.co/functions/v1/delete-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ userId: accountToDelete.account_user_id }),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Erreur lors de la suppression");
+
+      toast({ title: "Compte supprimé", description: "Le compte utilisateur a été supprimé." });
+      setAccountToDelete(null);
+      setSelectedClient(null);
+      loadStats();
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
+  const filteredStats = stats.filter((c) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      c.client_name.toLowerCase().includes(q) ||
+      c.client_emails.some((e) => (e || "").toLowerCase().includes(q)) ||
+      c.client_phone.toLowerCase().includes(q)
+    );
+  });
+
   if (loading) return <div className="p-4">Chargement des statistiques...</div>;
 
   return (
@@ -410,12 +502,19 @@ export const ClientStats = () => {
         💡 Glissez-déposez un client sur un autre pour les fusionner
       </p>
 
-      {/* Client list */}
+      {/* Clients & comptes utilisateurs */}
       <Card>
-        <CardHeader><CardTitle>Clients ({stats.length})</CardTitle></CardHeader>
+        <CardHeader className="space-y-3">
+          <CardTitle>Clients &amp; comptes ({filteredStats.length})</CardTitle>
+          <Input
+            placeholder="Rechercher par email, nom ou téléphone…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </CardHeader>
         <CardContent>
           <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-            {stats.map((client) => (
+            {filteredStats.map((client) => (
               <div
                 key={client.key}
                 draggable
@@ -424,33 +523,45 @@ export const ClientStats = () => {
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, client)}
                 onDragEnd={handleDragEnd}
-                className={`flex items-center justify-between p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-all
+                className={`flex items-center justify-between gap-2 p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-all
                   ${dropTarget === client.key ? "ring-2 ring-primary bg-primary/10 scale-[1.02]" : ""}
                   ${client.is_blacklisted ? "bg-destructive/10 border-destructive/30" : "hover:bg-accent/50"}
                   ${client.unpaid_amount > 0 ? "border-orange-400/50" : ""}
                 `}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  {client.is_blacklisted && <Ban className="h-4 w-4 text-destructive shrink-0" />}
-                  <span
-                    className="font-medium text-primary hover:underline truncate cursor-pointer"
-                    onClick={(e) => { e.stopPropagation(); openClientDialog(client); }}
-                  >
-                    {client.client_name}
-                  </span>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {client.is_blacklisted && <Ban className="h-4 w-4 text-destructive shrink-0" />}
+                    <span
+                      className="font-medium text-primary hover:underline truncate cursor-pointer"
+                      onClick={(e) => { e.stopPropagation(); openClientDialog(client); }}
+                    >
+                      {client.client_name}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">{client.client_emails[0]}</div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <div className="flex items-center gap-1">
+                    {client.account_user_id ? (
+                      <Badge variant="outline" className="text-[10px] border-primary/50 text-primary">
+                        {client.account_role === "admin" ? "Admin" : "Compte"}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] text-muted-foreground">Sans compte</Badge>
+                    )}
+                    <Badge variant="secondary" className="text-xs">{client.total_bookings} RDV</Badge>
+                  </div>
                   {client.unpaid_amount > 0 && (
                     <Badge variant="outline" className="text-xs border-orange-400 text-orange-600">
                       {client.unpaid_amount}€ dû
                     </Badge>
                   )}
-                  <Badge variant="secondary" className="text-xs">{client.total_bookings} RDV</Badge>
                 </div>
               </div>
             ))}
           </div>
-          {stats.length === 0 && (
+          {filteredStats.length === 0 && (
             <div className="text-center text-muted-foreground py-8">Aucun client trouvé</div>
           )}
         </CardContent>
@@ -467,6 +578,36 @@ export const ClientStats = () => {
           </DialogHeader>
           {selectedClient && (
             <div className="space-y-4">
+              {/* Compte utilisateur lié à l'email */}
+              <div className="p-3 rounded-lg border space-y-2">
+                <div className="text-sm font-semibold">Compte utilisateur</div>
+                <div className="text-xs text-muted-foreground break-all">{selectedClient.client_emails[0]}</div>
+                {selectedClient.account_user_id ? (
+                  <>
+                    <div className="flex items-center gap-2 text-xs">
+                      <Badge variant="outline" className="text-[10px] border-primary/50 text-primary">
+                        {selectedClient.account_role === "admin" ? "Administrateur" : "Client"}
+                      </Badge>
+                      {selectedClient.account_created_at && (
+                        <span className="text-muted-foreground">
+                          Inscrit le {format(new Date(selectedClient.account_created_at), "d MMM yyyy", { locale: fr })}
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={selectedClient.account_role === "admin"}
+                      onClick={() => setAccountToDelete(selectedClient)}
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" /> Supprimer le compte
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-xs text-muted-foreground">Aucun compte lié à cet email.</div>
+                )}
+              </div>
+
               {/* Stats */}
               <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-muted/50">
                 <div className="text-sm">
@@ -688,6 +829,33 @@ export const ClientStats = () => {
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteBooking} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete account confirmation */}
+      <AlertDialog open={accountToDelete !== null} onOpenChange={(open) => !open && setAccountToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce compte utilisateur ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {accountToDelete && (
+                <>
+                  Le compte de <strong>{accountToDelete.client_name}</strong> ({accountToDelete.client_emails[0]}) sera supprimé.
+                  <p className="mt-2 text-sm text-destructive">Cette action est irréversible.</p>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingAccount}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={deletingAccount}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingAccount ? "Suppression..." : "Supprimer"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

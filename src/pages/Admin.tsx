@@ -18,7 +18,6 @@ import { ClientStats } from "@/components/ClientStats";
 import { ReviewsList } from "@/components/ReviewsList";
 import { TimeSlotsManager } from "@/components/TimeSlotsManager";
 import { CalendarSlotsManager } from "@/components/CalendarSlotsManager";
-import { UserManagement } from "@/components/UserManagement";
 import { PricingSettings } from "@/components/PricingSettings";
 import { BookingsCalendar } from "@/components/BookingsCalendar";
 import { EmailTemplateEditor } from "@/components/EmailTemplateEditor";
@@ -285,13 +284,9 @@ export const Admin = () => {
                 <CalendarIcon className="h-4 w-4 shrink-0" />
                 <span>Exceptions</span>
               </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
-                <Users className="h-4 w-4 shrink-0" />
-                <span>Utilisateurs</span>
-              </TabsTrigger>
               <TabsTrigger value="clients" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
                 <Users className="h-4 w-4 shrink-0" />
-                <span>Clients</span>
+                <span>Clients &amp; utilisateurs</span>
               </TabsTrigger>
               <TabsTrigger value="reviews" className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium">
                 <Star className="h-4 w-4 shrink-0" />
@@ -322,10 +317,6 @@ export const Admin = () => {
 
           <TabsContent value="timeslots">
             <CalendarSlotsManager />
-          </TabsContent>
-
-          <TabsContent value="users">
-            <UserManagement />
           </TabsContent>
 
           <TabsContent value="calendar" className="space-y-8">
