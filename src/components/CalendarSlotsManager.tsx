@@ -125,6 +125,7 @@ export const CalendarSlotsManager = () => {
         start_time: o.start_time!, 
         end_time: o.end_time!, 
         is_available: true,
+        mode: o.mode || 'both',
         isOverride: true 
       }));
     
@@ -207,7 +208,8 @@ export const CalendarSlotsManager = () => {
         date: dateStr,
         start_time: newSlot.start_time,
         end_time: newSlot.end_time,
-        is_available: true
+        is_available: true,
+        mode: newSlot.mode
       });
       
     if (error) {
@@ -225,7 +227,7 @@ export const CalendarSlotsManager = () => {
     
     toast({ title: "Créneau ajouté" });
     loadDateOverrides();
-    setNewSlot({ start_time: '09:00', end_time: '10:00' });
+    setNewSlot({ start_time: '09:00', end_time: '10:00', mode: 'both' });
   };
 
   const removeOverride = async (overrideId: string) => {
