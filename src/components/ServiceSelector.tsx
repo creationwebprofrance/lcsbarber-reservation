@@ -36,7 +36,19 @@ export const ServiceSelector = ({ selectedService, onServiceSelect, onBack, domi
         .order('name');
 
       if (error) throw error;
-      setServices(data || []);
+      let list = data || [];
+      // Mode domicile : uniquement les prestations éligibles avec tarifs réduits
+      if (domicileMode && domicileServices) {
+        list = list
+          .filter((s) => domicileServices[s.name])
+          .map((s) => ({
+            ...s,
+            name: domicileServices[s.name].label,
+            price: domicileServices[s.name].price,
+            description: "À domicile (chez le coiffeur) — sans frais de déplacement",
+          }));
+      }
+      setServices(list);
     } catch (error) {
       console.error('Error loading services:', error);
     } finally {
