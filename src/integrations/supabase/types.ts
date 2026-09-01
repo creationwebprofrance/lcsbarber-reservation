@@ -369,6 +369,36 @@ export type Database = {
         }
         Relationships: []
       }
+      haircuts: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          image_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pending_bookings: {
         Row: {
           appointment_date: string
@@ -503,6 +533,7 @@ export type Database = {
           role: string
           updated_at: string
           user_id: string
+          welcome_email_sent: boolean
         }
         Insert: {
           created_at?: string
@@ -512,6 +543,7 @@ export type Database = {
           role?: string
           updated_at?: string
           user_id: string
+          welcome_email_sent?: boolean
         }
         Update: {
           created_at?: string
@@ -521,6 +553,7 @@ export type Database = {
           role?: string
           updated_at?: string
           user_id?: string
+          welcome_email_sent?: boolean
         }
         Relationships: []
       }
