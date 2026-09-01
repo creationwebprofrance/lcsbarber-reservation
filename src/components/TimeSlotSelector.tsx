@@ -14,6 +14,7 @@ interface TimeSlotSelectorProps {
   onBack: () => void;
   hideSupplements?: boolean;
   customSlots?: string[];
+  mode?: 'domicile' | 'deplacement';
 }
 
 interface TimeSlot {
@@ -21,7 +22,11 @@ interface TimeSlot {
   start_time: string;
   end_time: string;
   is_available: boolean;
+  mode?: 'both' | 'domicile' | 'deplacement';
 }
+
+const matchesMode = (slotMode: string | null | undefined, mode?: 'domicile' | 'deplacement') =>
+  !mode || !slotMode || slotMode === 'both' || slotMode === mode;
 
 export const TimeSlotSelector = ({
   selectedDate,
@@ -30,6 +35,7 @@ export const TimeSlotSelector = ({
   onBack,
   hideSupplements = false,
   customSlots,
+  mode,
 }: TimeSlotSelectorProps) => {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
@@ -42,7 +48,7 @@ export const TimeSlotSelector = ({
     } else {
       loadAvailableSlots();
     }
-  }, [selectedDate, customSlots]);
+  }, [selectedDate, customSlots, mode]);
 
   const loadBookedSlotsOnly = async () => {
     setLoading(true);
