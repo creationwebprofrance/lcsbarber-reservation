@@ -489,7 +489,29 @@ export const ClientStats = () => {
     }
   };
 
+  // Création des comptes de fidélité + email à tous les clients
+  const handleCreateLoyaltyAccounts = async () => {
+    setLoyaltyRunning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-loyalty-accounts", {
+        body: {},
+      });
+      if (error) throw error;
+      toast({
+        title: "Comptes fidélité",
+        description: `${data.created} compte(s) créé(s), ${data.emailed} email(s) envoyé(s)${data.failed?.length ? `, ${data.failed.length} échec(s)` : ""}.`,
+      });
+      setLoyaltyConfirm(false);
+      loadStats();
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } finally {
+      setLoyaltyRunning(false);
+    }
+  };
+
   const filteredStats = stats.filter((c) => {
+
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
