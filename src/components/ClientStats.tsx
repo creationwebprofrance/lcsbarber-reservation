@@ -43,6 +43,10 @@ interface ClientStat {
   is_blacklisted: boolean;
   unpaid_amount: number;
   bookings: BookingDetail[];
+  // Compte utilisateur lié (identifié par l'email)
+  account_user_id: string | null;
+  account_role: string | null;
+  account_created_at: string | null;
 }
 
 interface MergeRecord {
