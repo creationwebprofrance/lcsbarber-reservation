@@ -65,34 +65,6 @@ export default function Home() {
             <img src={lcsBarberLogo} alt="LCS Barber" className="h-20 sm:h-24" />
           </Link>
           <nav className="flex items-center gap-2 sm:gap-3">
-            {user && isAdmin && (
-              <>
-                <Button asChild variant="ghost" size="sm" className="text-xs">
-                  <Link to="/dashboard">
-                    <BarChart className="h-4 w-4 sm:mr-1.5" />
-                    <span className="hidden sm:inline">Dashboard</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="ghost" size="sm" className="text-xs">
-                  <Link to="/admin">
-                    <Settings className="h-4 w-4 sm:mr-1.5" />
-                    <span className="hidden sm:inline">Admin</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="ghost" size="sm" className="text-xs">
-                  <Link to="/simulator">
-                    <Calculator className="h-4 w-4 sm:mr-1.5" />
-                    <span className="hidden sm:inline">Simulation</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="ghost" size="sm" className="text-xs">
-                  <Link to="/admin-evenements">
-                    <PartyPopper className="h-4 w-4 sm:mr-1.5" />
-                    <span className="hidden sm:inline">Événements</span>
-                  </Link>
-                </Button>
-              </>
-            )}
             {!user && (
               <Button asChild variant="ghost" size="sm" className="text-xs">
                 <Link to="/auth">
