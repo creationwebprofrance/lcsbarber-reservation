@@ -277,6 +277,7 @@ export const ClientStats = () => {
         client_name: editName.trim(),
         client_phone: editPhone.trim(),
         client_email: editEmail.trim(),
+        client_address: editAddress.trim() || null,
       };
 
       const query = supabase.from('bookings').update(updatePayload);
@@ -297,6 +298,7 @@ export const ClientStats = () => {
           name: editName.trim(),
           phone: editPhone.trim(),
           email: editEmail.trim(),
+          address: editAddress.trim() || null,
           unpaid_amount: Number(editUnpaid) || 0,
         }).eq('id', existing.id);
       } else {
@@ -304,8 +306,17 @@ export const ClientStats = () => {
           name: editName.trim(),
           phone: editPhone.trim(),
           email: editEmail.trim(),
+          address: editAddress.trim() || null,
           unpaid_amount: Number(editUnpaid) || 0,
         });
+      }
+
+      // Synchroniser le profil du compte utilisateur lié (identifié par l'email)
+      if (selectedClient.account_user_id) {
+        await supabase.from('profiles').update({
+          full_name: editName.trim(),
+          email: editEmail.trim(),
+        }).eq('user_id', selectedClient.account_user_id);
       }
 
       toast({ title: "Succès", description: "Fiche client mise à jour." });
