@@ -136,6 +136,26 @@ export const ClientStats = () => {
       const clientMap = new Map<string, ClientStat>();
       const ADMIN_EMAIL = "lucas.chipan97@gmail.com";
 
+      // Fusions enregistrées : les fiches fusionnées sont toujours regroupées
+      const { data: mergesData } = await supabase.from('client_merges').select('merged_email, target_email');
+      const mergeTo = new Map<string, string>();
+      mergesData?.forEach((m: any) => {
+        mergeTo.set((m.merged_email || "").trim().toLowerCase(), (m.target_email || "").trim().toLowerCase());
+      });
+      const resolveEmail = (email: string) => {
+        let current = email;
+        const seen = new Set<string>();
+        while (mergeTo.has(current) && !seen.has(current)) {
+          seen.add(current);
+          current = mergeTo.get(current)!;
+        }
+        return current;
+      };
+      const mergedEmails = new Set<string>([
+        ...Array.from(mergeTo.keys()),
+        ...Array.from(mergeTo.values()),
+      ]);
+
       const isGroupedAddress = (address: string | null) => {
         if (!address) return false;
         const normalized = address.trim().toLowerCase();
@@ -145,10 +165,13 @@ export const ClientStats = () => {
       bookings?.forEach((booking: any) => {
         const email = booking.client_email;
         const normalizedEmail = (email || "").trim().toLowerCase();
+        const canonicalEmail = resolveEmail(normalizedEmail);
         // Pour l'admin et les adresses hors Louvres, chaque réservation est affichée individuellement
         const isAdminBooking = normalizedEmail === ADMIN_EMAIL;
-        const shouldGroup = isGroupedAddress(booking.client_address) && !isAdminBooking;
-        const groupKey = isAdminBooking || !shouldGroup ? `single-${booking.id}` : normalizedEmail;
+        const isMerged = mergedEmails.has(normalizedEmail);
+        const shouldGroup = (isMerged || isGroupedAddress(booking.client_address)) && !isAdminBooking;
+        const groupKey = shouldGroup ? canonicalEmail : `single-${booking.id}`;
+
 
         if (!clientMap.has(groupKey)) {
           const info = clientInfoMap.get(email);
