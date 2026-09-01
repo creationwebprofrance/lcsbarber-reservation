@@ -943,6 +943,47 @@ export const ClientStats = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Fusion multiple : choix du client principal */}
+      <Dialog open={multiMergeOpen} onOpenChange={(open) => { if (!open) { setMultiMergeOpen(false); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Fusionner {selectedKeys.length} clients</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Choisis la fiche principale : tous les rendez-vous des autres emails seront rattachés à celle-ci.
+            </p>
+            <div className="space-y-2 max-h-72 overflow-y-auto">
+              {stats.filter(c => selectedKeys.includes(c.key)).map((c) => (
+                <label
+                  key={c.key}
+                  className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer ${multiTargetKey === c.key ? "border-primary bg-primary/10" : "hover:bg-accent/50"}`}
+                >
+                  <input
+                    type="radio"
+                    name="multi-target"
+                    className="h-4 w-4 accent-primary"
+                    checked={multiTargetKey === c.key}
+                    onChange={() => setMultiTargetKey(c.key)}
+                  />
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{c.client_name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{c.client_emails[0]} · {c.total_bookings} RDV</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setMultiMergeOpen(false)} disabled={mergingMulti}>Annuler</Button>
+              <Button onClick={handleMultiMerge} disabled={mergingMulti || !multiTargetKey}>
+                {mergingMulti ? "Fusion..." : "Fusionner"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 };
