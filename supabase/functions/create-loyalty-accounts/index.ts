@@ -29,12 +29,12 @@ const buildHtml = (name: string, link: string) => `
         tu retrouves l'historique de tes coupes, tes rendez-vous à venir et tu réserves en quelques secondes.
       </p>
       <p style="line-height:1.6; color:#CFC9BE; margin:0 0 14px;">
-        Il te suffit de définir ton mot de passe pour y accéder :
+        Ton compte est déjà actif — il te reste juste à choisir ton mot de passe pour y accéder :
       </p>
       <p style="margin:26px 0;">
         <a href="${link}"
            style="background:#C58B52; color:#0B0B0B; text-decoration:none; font-weight:700; padding:14px 26px; border-radius:10px; display:inline-block;">
-          Activer mon compte
+          Définir mon mot de passe
         </a>
       </p>
       <p style="line-height:1.6; color:#8C877F; font-size:13px; margin:0;">

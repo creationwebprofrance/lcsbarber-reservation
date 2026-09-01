@@ -69,18 +69,19 @@ const handler = async (req: Request): Promise<Response> => {
 
     const name = escapeHtml((profile?.full_name || email.split("@")[0] || "").trim());
 
-    const html = `
+    const { data: tpl } = await admin
+      .from("email_templates")
+      .select("subject, html_content")
+      .eq("template_type", "welcome_client")
+      .maybeSingle();
+
+    const fallbackHtml = `
       <div style="font-family: Helvetica, Arial, sans-serif; background:#0B0B0B; padding:32px; color:#F4F1EA;">
         <div style="max-width:560px; margin:0 auto; background:#141414; border:1px solid #262626; border-radius:16px; padding:32px;">
           <p style="letter-spacing:.25em; font-size:12px; color:#C58B52; margin:0 0 12px;">LCS BARBER — BARBER ATELIER</p>
           <h1 style="font-size:26px; margin:0 0 16px; color:#F4F1EA;">Bienvenue ${name} 👊</h1>
           <p style="line-height:1.6; color:#CFC9BE; margin:0 0 14px;">
-            C'est Lucas, le responsable de LCS Barber. Merci d'avoir créé ton compte —
-            tu fais maintenant partie de la maison.
-          </p>
-          <p style="line-height:1.6; color:#CFC9BE; margin:0 0 14px;">
-            Depuis ton espace, tu peux réserver ton créneau en quelques secondes et suivre
-            l'historique de toutes tes coupes et rendez-vous.
+            C'est Lucas, le responsable de LCS Barber. Merci d'avoir créé ton compte.
           </p>
           <p style="margin:26px 0;">
             <a href="https://lcsbarber.com/reservation"
@@ -88,16 +89,21 @@ const handler = async (req: Request): Promise<Response> => {
               Prendre rendez-vous
             </a>
           </p>
-          <p style="line-height:1.6; color:#8C877F; font-size:13px; margin:0;">
-            À très vite pour ta prochaine coupe.<br/>— Lucas, LCS Barber
-          </p>
+          <p style="line-height:1.6; color:#8C877F; font-size:13px; margin:0;">— Lucas, LCS Barber</p>
         </div>
       </div>`;
+
+    const render = (t: string) =>
+      t.replace(/\{\{\s*clientName\s*\}\}/g, name)
+       .replace(/\{\{\s*clientEmail\s*\}\}/g, escapeHtml(email));
+
+    const html = tpl?.html_content ? render(tpl.html_content) : fallbackHtml;
+    const subject = tpl?.subject ? render(tpl.subject) : "Bienvenue chez LCS Barber 👊";
 
     const { error: sendError } = await resend.emails.send({
       from: "LCS Barber <noreply@lookware.fr>",
       to: [email],
-      subject: "Bienvenue chez LCS Barber 👊",
+      subject,
       html,
     });
 
