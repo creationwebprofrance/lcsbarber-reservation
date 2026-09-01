@@ -67,6 +67,7 @@ export const ClientStats = () => {
   const [editPhone, setEditPhone] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editUnpaid, setEditUnpaid] = useState("0");
+  const [editAddress, setEditAddress] = useState("");
   const [saving, setSaving] = useState(false);
   const [mergeRecords, setMergeRecords] = useState<MergeRecord[]>([]);
   const [unmergeTarget, setUnmergeTarget] = useState<MergeRecord | null>(null);
@@ -263,6 +264,7 @@ export const ClientStats = () => {
     setEditPhone(client.client_phone === "Non renseigné" ? "" : client.client_phone);
     setEditEmail(client.client_emails[0]);
     setEditUnpaid(String(client.unpaid_amount));
+    setEditAddress(client.bookings.find(b => b.client_address)?.client_address || "");
     setShowBookings(true);
   };
 
@@ -275,6 +277,7 @@ export const ClientStats = () => {
         client_name: editName.trim(),
         client_phone: editPhone.trim(),
         client_email: editEmail.trim(),
+        client_address: editAddress.trim() || null,
       };
 
       const query = supabase.from('bookings').update(updatePayload);
@@ -295,6 +298,7 @@ export const ClientStats = () => {
           name: editName.trim(),
           phone: editPhone.trim(),
           email: editEmail.trim(),
+          address: editAddress.trim() || null,
           unpaid_amount: Number(editUnpaid) || 0,
         }).eq('id', existing.id);
       } else {
@@ -302,8 +306,17 @@ export const ClientStats = () => {
           name: editName.trim(),
           phone: editPhone.trim(),
           email: editEmail.trim(),
+          address: editAddress.trim() || null,
           unpaid_amount: Number(editUnpaid) || 0,
         });
+      }
+
+      // Synchroniser le profil du compte utilisateur lié (identifié par l'email)
+      if (selectedClient.account_user_id) {
+        await supabase.from('profiles').update({
+          full_name: editName.trim(),
+          email: editEmail.trim(),
+        }).eq('user_id', selectedClient.account_user_id);
       }
 
       toast({ title: "Succès", description: "Fiche client mise à jour." });
@@ -916,6 +929,12 @@ export const ClientStats = () => {
                 <div>
                   <Label>Email</Label>
                   <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} type="email" />
+                </div>
+                <div>
+                  <Label className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> Adresse
+                  </Label>
+                  <Input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} placeholder="Adresse du client" />
                 </div>
                 <div>
                   <Label className="flex items-center gap-1">
