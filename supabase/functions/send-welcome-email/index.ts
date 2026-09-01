@@ -120,6 +120,40 @@ const handler = async (req: Request): Promise<Response> => {
       .update({ welcome_email_sent: true })
       .eq("user_id", userId);
 
+    // Notification au barbier : nouveau client inscrit
+    try {
+      const adminEmail = Deno.env.get("BARBER_EMAIL") || "lucas.chipan97@gmail.com";
+      const signupDate = new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" });
+      const adminHtml = `
+        <div style="font-family: Helvetica, Arial, sans-serif; background:#0B0B0B; padding:32px; color:#F4F1EA;">
+          <div style="max-width:560px; margin:0 auto; background:#141414; border:1px solid #262626; border-radius:16px; padding:32px;">
+            <p style="letter-spacing:.25em; font-size:12px; color:#C58B52; margin:0 0 12px;">LCS BARBER — NOUVEAU CLIENT</p>
+            <h1 style="font-size:24px; margin:0 0 20px; color:#F4F1EA;">Nouvelle inscription 🎉</h1>
+            <table style="width:100%; border-collapse:collapse; font-size:14px; color:#CFC9BE;">
+              <tr><td style="padding:8px 0; color:#8C877F;">Nom</td><td style="padding:8px 0; text-align:right; color:#F4F1EA; font-weight:600;">${name || "—"}</td></tr>
+              <tr><td style="padding:8px 0; color:#8C877F;">Email</td><td style="padding:8px 0; text-align:right; color:#F4F1EA; font-weight:600;">${escapeHtml(email)}</td></tr>
+              <tr><td style="padding:8px 0; color:#8C877F;">Inscription</td><td style="padding:8px 0; text-align:right; color:#F4F1EA;">${signupDate}</td></tr>
+            </table>
+            <p style="margin:26px 0 0;">
+              <a href="https://lcsbarber.com/admin"
+                 style="background:#C58B52; color:#0B0B0B; text-decoration:none; font-weight:700; padding:13px 24px; border-radius:10px; display:inline-block;">
+                Voir dans l'admin
+              </a>
+            </p>
+          </div>
+        </div>`;
+
+      await resend.emails.send({
+        from: "LCS Barber <noreply@lookware.fr>",
+        to: [adminEmail],
+        subject: `Nouveau client inscrit : ${name || email}`,
+        html: adminHtml,
+      });
+    } catch (adminErr) {
+      console.error("Admin notification error:", adminErr);
+    }
+
+
     return new Response(JSON.stringify({ sent: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
