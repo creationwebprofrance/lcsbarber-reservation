@@ -124,16 +124,16 @@ export const ClientStats = () => {
 
       bookings?.forEach((booking: any) => {
         const email = booking.client_email;
-        const name = booking.client_name?.trim().toLowerCase() || "";
-        // Group by BOTH email AND name
-        const groupKey = `${email}::${name}`;
+        // Un client = un email (identification unique par email)
+        const groupKey = (email || "").trim().toLowerCase();
 
         if (!clientMap.has(groupKey)) {
           const info = clientInfoMap.get(email);
-          const profile = profileMap.get((email || "").trim().toLowerCase());
+          const profile = profileMap.get(groupKey);
           clientMap.set(groupKey, {
             key: groupKey,
             client_emails: [email],
+
             client_name: booking.client_name,
             client_phone: booking.client_phone || "Non renseigné",
             total_bookings: 0,
