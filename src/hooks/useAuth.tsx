@@ -48,6 +48,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             
             setIsAdmin(roles && roles.length > 0);
           }, 0);
+
+          if (event === 'SIGNED_IN') {
+            // Welcome email — the edge function only sends it once per account
+            setTimeout(() => {
+              supabase.functions
+                .invoke('send-welcome-email')
+                .catch((err) => console.error('welcome email error', err));
+            }, 0);
+          }
         } else {
           setIsAdmin(false);
         }
