@@ -30,7 +30,7 @@ interface CurrentSelection {
 
 type BookingMode = "domicile" | "deplacement" | null;
 
-// Tarifs spéciaux "à domicile" (chez le coiffeur) — pas de frais de déplacement
+// Tarifs spéciaux "à côté du domicile" — pas de frais de déplacement
 const DOMICILE_SERVICES: Record<string, { label: string; price: number }> = {
   "Contours": { label: "Contours", price: 10 },
   "Coupe classique": { label: "Coupe", price: 15 },
@@ -111,7 +111,7 @@ export const BookingTool = () => {
     }
   };
 
-  // Réservation directe "à domicile" : pas de formulaire, on utilise le compte connecté
+  // Réservation directe "à côté du domicile" : pas de formulaire, on utilise le compte connecté
   const handleDirectDomicileBooking = async (time: string) => {
     if (!currentSelection.service || !currentSelection.date || !user?.email) return;
 
@@ -149,10 +149,10 @@ export const BookingTool = () => {
           client_name: clientName,
           client_email: user.email,
           client_phone: "Non renseigné",
-          client_address: "Au domicile du coiffeur (95)",
+          client_address: "À côté du domicile (95)",
           total_price: totalPrice,
           travel_fee: 0,
-          notes: "Réservation à domicile (chez le coiffeur)",
+          notes: "Réservation à côté du domicile",
           deposit_paid: true,
         },
       });
@@ -167,7 +167,7 @@ export const BookingTool = () => {
           clientName,
           clientEmail: user.email,
           clientPhone: "Non renseigné",
-          clientAddress: "Au domicile du coiffeur (95)",
+          clientAddress: "À côté du domicile (95)",
           clientPostalCode: "",
           clientCity: "",
           serviceName: currentSelection.service.name,
@@ -176,14 +176,14 @@ export const BookingTool = () => {
           appointmentTime: time,
           totalPrice,
           travelFee: 0,
-          message: "Réservation à domicile (chez le coiffeur)",
+          message: "Réservation à côté du domicile",
         },
       });
 
       setCurrentSelection({ ...currentSelection, time });
       setIsConfirmed(true);
     } catch (error: any) {
-      console.error("Erreur réservation domicile:", error);
+      console.error("Erreur réservation à côté du domicile:", error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors de la réservation.",
