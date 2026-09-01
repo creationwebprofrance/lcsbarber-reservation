@@ -113,53 +113,36 @@ export default function Home() {
                 className="text-sm sm:text-lg text-muted-foreground max-w-md mb-6 sm:mb-9 mx-auto lg:mx-0 leading-relaxed"
                 initial="hidden" animate="visible" variants={fadeUp} custom={2}
               >
-                Coupes afro & européennes, barbe soignée. Réserve ton créneau en quelques secondes — je viens chez toi.
+                Coupes afro & européennes, barbe soignée. Réserve ton créneau en quelques secondes.
               </motion.p>
 
+              <motion.span
+                className="inline-flex items-center justify-center lg:justify-start gap-1.5 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider mb-3"
+                initial="hidden" animate="visible" variants={fadeUp} custom={3}
+              >
+                <Clock className="h-3 w-3 text-primary" />
+                De 10h à 20h (frais hors horaire)
+              </motion.span>
 
               <motion.div
                 className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
-                initial="hidden" animate="visible" variants={fadeUp} custom={3}
+                initial="hidden" animate="visible" variants={fadeUp} custom={4}
               >
-                <div className="flex flex-col gap-2 w-full sm:w-auto">
-                  <span className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">
-                    <Clock className="h-3 w-3 text-primary" />
-                    De 10h à 20h (frais hors horaire)
-                  </span>
-                  <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant w-full sm:w-auto">
-                    <Link to="/reservation">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Prendre rendez-vous
-                    </Link>
-                  </Button>
-                </div>
-                <Button asChild size="lg" variant="outline" className="border-border/60 hover:bg-card w-full sm:w-auto">
-                  <a href="#services">
-                    Mes services
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </a>
+                <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant flex-1">
+                  <Link to="/reservation">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Prendre rendez-vous
+                  </Link>
                 </Button>
                 {hasActiveEvent ? (
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex-1 sm:flex-none">
-                      <Link to="/evenements">
-                        <PartyPopper className="h-4 w-4 mr-2" />
-                        Prochain événement
-                      </Link>
-                    </Button>
-                    <Link to="/evenements" className="relative shrink-0 group">
-                      <img
-                        src={veryBadCampAsset.url}
-                        alt="Very Bad Camp — événement en cours"
-                        className="h-14 sm:h-16 w-auto drop-shadow-[0_0_12px_rgba(0,153,255,0.35)] transition-transform group-hover:scale-105"
-                      />
-                      <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full shadow-md animate-pulse">
-                        En cours
-                      </span>
+                  <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold flex-1">
+                    <Link to="/evenements">
+                      <PartyPopper className="h-4 w-4 mr-2" />
+                      Prochain événement
                     </Link>
-                  </div>
+                  </Button>
                 ) : (
-                  <Button size="lg" disabled className="opacity-50 cursor-not-allowed w-full sm:w-auto">
+                  <Button size="lg" disabled className="opacity-50 cursor-not-allowed flex-1">
                     <PartyPopper className="h-4 w-4 mr-2" />
                     Prochain événement
                   </Button>
