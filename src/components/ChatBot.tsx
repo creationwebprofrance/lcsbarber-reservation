@@ -213,6 +213,19 @@ export default function ChatBot() {
     }
   }, [open]);
 
+  // Léo change d'humeur tout seul quand la conversation est en pause
+  useEffect(() => {
+    if (loading) return;
+    const id = setInterval(() => {
+      setEmotion((prev) => {
+        const pool: Emotion[] = prev === "wave" ? ["happy", "excited"] : ["happy", "wave", "excited", "thinking"];
+        return pool[Math.floor(Math.random() * pool.length)];
+      });
+    }, 9000);
+    return () => clearInterval(id);
+  }, [loading]);
+
+
   const send = async (text: string) => {
     const content = text.trim();
     if (!content || loading) return;
