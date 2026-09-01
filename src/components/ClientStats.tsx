@@ -363,6 +363,48 @@ export const ClientStats = () => {
     }
   };
 
+  const toggleSelect = (key: string) => {
+    setSelectedKeys((prev) => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
+
+  const handleMultiMerge = async () => {
+    const selected = stats.filter(c => selectedKeys.includes(c.key));
+    const target = selected.find(c => c.key === multiTargetKey);
+    if (!target || selected.length < 2) return;
+    setMergingMulti(true);
+    try {
+      const targetEmail = target.client_emails[0];
+      for (const source of selected) {
+        if (source.key === target.key) continue;
+        const sourceEmail = source.client_emails[0];
+        await supabase.from('client_merges').insert({
+          merged_email: sourceEmail,
+          target_email: targetEmail,
+          original_client_name: source.client_name,
+        });
+        await supabase.from('bookings').update({
+          client_email: targetEmail,
+          client_name: target.client_name,
+        }).eq('client_email', sourceEmail);
+        await supabase.from('clients').delete().eq('email', sourceEmail);
+      }
+      toast({
+        title: "Clients fusionnés",
+        description: `${selected.length} fiches regroupées sous ${targetEmail}.`,
+      });
+      setMultiMergeOpen(false);
+      setMultiTargetKey(null);
+      setSelectedKeys([]);
+      loadStats();
+      loadMergeRecords();
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } finally {
+      setMergingMulti(false);
+    }
+  };
+
+
   const handleUnmerge = async () => {
     if (!unmergeTarget) return;
     try {
