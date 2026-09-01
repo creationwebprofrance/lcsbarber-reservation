@@ -549,8 +549,28 @@ export const ClientStats = () => {
       </div>
 
       <p className="text-sm text-muted-foreground text-center">
-        💡 Glissez-déposez un client sur un autre pour les fusionner
+        💡 Chaque client est identifié par son email — cochez plusieurs fiches pour les fusionner
       </p>
+
+      {/* Barre de fusion multiple */}
+      {selectedKeys.length > 0 && (
+        <div className="sticky top-2 z-10 flex flex-wrap items-center justify-between gap-2 p-3 rounded-lg border border-primary/50 bg-primary/10">
+          <span className="text-sm font-medium">{selectedKeys.length} client(s) sélectionné(s)</span>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => setSelectedKeys([])}>Annuler</Button>
+            <Button
+              size="sm"
+              disabled={selectedKeys.length < 2}
+              onClick={() => {
+                setMultiTargetKey(selectedKeys[0]);
+                setMultiMergeOpen(true);
+              }}
+            >
+              Fusionner en un seul client
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Clients & comptes utilisateurs */}
       <Card>
@@ -575,11 +595,22 @@ export const ClientStats = () => {
                 onDragEnd={handleDragEnd}
                 className={`flex items-center justify-between gap-2 p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-all
                   ${dropTarget === client.key ? "ring-2 ring-primary bg-primary/10 scale-[1.02]" : ""}
+                  ${selectedKeys.includes(client.key) ? "ring-2 ring-primary/70" : ""}
                   ${client.is_blacklisted ? "bg-destructive/10 border-destructive/30" : "hover:bg-accent/50"}
                   ${client.unpaid_amount > 0 ? "border-orange-400/50" : ""}
                 `}
               >
+                <div className="flex items-start gap-2 min-w-0">
+                  <input
+                    type="checkbox"
+                    aria-label={`Sélectionner ${client.client_name}`}
+                    className="mt-1 h-4 w-4 shrink-0 accent-primary cursor-pointer"
+                    checked={selectedKeys.includes(client.key)}
+                    onChange={() => toggleSelect(client.key)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 <div className="min-w-0">
+
                   <div className="flex items-center gap-2 min-w-0">
                     {client.is_blacklisted && <Ban className="h-4 w-4 text-destructive shrink-0" />}
                     <span
