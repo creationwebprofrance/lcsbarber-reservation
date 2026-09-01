@@ -25,8 +25,6 @@ export const Admin = () => {
 
   useEffect(() => {
     checkAuth();
-    loadCalendarSettings();
-    loadDateOverrides();
   }, []);
 
   const checkAuth = async () => {
