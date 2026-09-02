@@ -262,8 +262,8 @@ export const TimeSlotSelector = ({
             <span className="text-foreground font-medium">Disponible</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-orange-500 border-2 border-orange-500"></div>
-            <span className="text-foreground font-medium">Déjà pris (superposition possible)</span>
+            <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-muted border-2 border-muted-foreground/40"></div>
+            <span className="text-foreground font-medium">Déjà pris</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-primary border-2 border-primary"></div>
