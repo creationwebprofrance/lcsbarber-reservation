@@ -380,23 +380,37 @@ export const LiveTrackingPanel = ({
             }
           }}
         >
-          {active ? "Arrêter le suivi" : "Je suis en route"}
+          {active ? "Arrêter le suivi" : role === "barber" ? "Je suis en route" : "Partager ma position"}
         </Button>
       </div>
 
       {!active ? (
         <p className="text-xs text-muted-foreground">
-          Active le suivi pour partager ta position en temps réel jusqu'à la fin de la prestation.
-          Il se lance automatiquement 30 min avant le rendez-vous.
+          {role === "barber"
+            ? "Active le suivi pour partager ta position en temps réel jusqu'à la fin de la prestation. Il se lance automatiquement 30 min avant le rendez-vous."
+            : "Partage ta position pour suivre l'arrivée de LCS Barber en direct et lui indiquer où te rejoindre."}
         </p>
       ) : (
         <>
-          {error && <p className="text-xs text-muted-foreground">{error}</p>}
-          {!myPos && !error && (
-            <p className="text-xs text-muted-foreground flex items-center gap-2">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Récupération de ta position...
-            </p>
+          {error && (
+            <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-2">
+              <p className="text-xs text-muted-foreground">{error}</p>
+              <Button size="sm" className="h-7 text-xs gap-1.5" onClick={requestLocation}>
+                <Navigation className="h-3.5 w-3.5" /> Autoriser ma localisation
+              </Button>
+            </div>
           )}
+          {!myPos && !error && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground flex items-center gap-2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Récupération de ta position...
+              </p>
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5" onClick={requestLocation}>
+                <Navigation className="h-3.5 w-3.5" /> Autoriser ma localisation
+              </Button>
+            </div>
+          )}
+
           {canChooseDestination && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-muted-foreground">Trajet vers :</span>
