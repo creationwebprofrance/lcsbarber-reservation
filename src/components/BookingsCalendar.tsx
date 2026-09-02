@@ -368,8 +368,10 @@ export const BookingsCalendar = () => {
                       appointmentDate={booking.appointment_date}
                       appointmentTime={booking.appointment_time}
                       peerLabel={booking.client_name}
+                      clientAddress={booking.client_address}
                       onRouteStart={(etaMinutes) => notifyOnTheWay(booking, etaMinutes)}
                     />
+
                   )}
 
                 </div>
