@@ -1,5 +1,11 @@
 import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { CreditCard, Loader2, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -91,15 +97,6 @@ export const DepositPanel = ({
           <CheckCircle2 className="h-4 w-4 text-primary" />
           <span>Acompte de {amount}€ payé par carte. Ton rendez-vous peut être validé.</span>
         </div>
-      ) : clientSecret ? (
-        <div className="rounded-lg bg-background p-2">
-          <EmbeddedCheckoutProvider
-            stripe={stripePromise}
-            options={{ clientSecret, onComplete }}
-          >
-            <EmbeddedCheckout />
-          </EmbeddedCheckoutProvider>
-        </div>
       ) : (
         <>
           <Button
@@ -123,6 +120,37 @@ export const DepositPanel = ({
       <p className="text-xs text-muted-foreground">
         Ton rendez-vous est confirmé dès que le paiement de l'acompte est validé par Stripe.
       </p>
+
+      {/* Pop-up de paiement sécurisé en surimpression de la page */}
+      <Dialog
+        open={!!clientSecret && !confirmed}
+        onOpenChange={(open) => {
+          if (!open) setClientSecret(null);
+        }}
+      >
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[92vh] overflow-y-auto p-0 gap-0">
+          <DialogHeader className="border-b border-border px-5 py-4">
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Paiement sécurisé
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-5 pt-4 pb-2">
+            <p className="text-sm text-muted-foreground">Acompte de réservation — LCS Barber</p>
+            <p className="text-2xl font-bold">{amount},00 €</p>
+          </div>
+          {clientSecret && (
+            <div className="px-2 pb-2">
+              <EmbeddedCheckoutProvider
+                stripe={stripePromise}
+                options={{ clientSecret, onComplete }}
+              >
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
