@@ -1,18 +1,14 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Scissors, Calendar, Clock, CheckCircle, ShoppingCart, Car, Loader2 } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { Scissors, Calendar, Clock, CheckCircle, ShoppingCart, Car } from "lucide-react";
 import { ServiceSelector } from "./ServiceSelector";
 import { DatePicker } from "./DatePicker";
 import { TimeSlotSelector } from "./TimeSlotSelector";
 import { MultiBookingForm } from "./MultiBookingForm";
 import { BookingCart, type BookingItem } from "./BookingCart";
 import { BookingRouteMap } from "./BookingRouteMap";
-import { useToast } from "@/hooks/use-toast";
-import { usePricingSettings } from "@/hooks/usePricingSettings";
-import { calculatePricing, type HourlySupplementSettings } from "@/lib/pricing";
+
 
 interface Service {
   id: string;
