@@ -96,10 +96,20 @@ export default function MesRendezVous() {
               <p className="text-lg font-bold text-foreground">{Number(b.total_price).toFixed(0)} €</p>
             </div>
           </div>
+          {b.status !== "cancelled" && (
+            <LiveTrackingPanel
+              bookingId={b.id}
+              role="client"
+              appointmentDate={b.appointment_date}
+              appointmentTime={b.appointment_time}
+              peerLabel="LCS Barber"
+            />
+          )}
         </CardContent>
       </Card>
     );
   };
+
 
   return (
     <div className="min-h-screen bg-background">
