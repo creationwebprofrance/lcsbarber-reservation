@@ -472,7 +472,9 @@ export const BookingTool = () => {
                         onReferenceChange={setDepositReference}
                         confirmed={depositConfirmed}
                         onConfirmedChange={setDepositConfirmed}
+                        email={user?.email ?? undefined}
                       />
+
 
                       <Button
                         className="w-full"
