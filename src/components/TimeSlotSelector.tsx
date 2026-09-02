@@ -119,43 +119,36 @@ export const TimeSlotSelector = ({
       // Récupérer les créneaux des exceptions avec horaires (filtrés par mode)
       const overrideSlots = dateOverrides?.filter(o => o.is_available && o.start_time && o.end_time && matchesMode(o.mode, mode)) || [];
 
+      // Génère des créneaux toutes les 30 minutes (rendez-vous plus courts / plus longs)
+      const pushRange = (startRaw: string, endRaw: string) => {
+        const start = startRaw.substring(0, 5);
+        const end = endRaw.substring(0, 5);
+        const [sh, sm] = start.split(':').map(Number);
+        const [eh, em] = end.split(':').map(Number);
+        const startMin = sh * 60 + sm;
+        let endMin = eh * 60 + em;
+        if (endMin <= startMin) endMin = 24 * 60; // 00:00 = minuit
+        for (let m = startMin; m < endMin; m += 30) {
+          const h = Math.floor(m / 60) % 24;
+          const mn = m % 60;
+          slots.push(`${h.toString().padStart(2, '0')}:${mn.toString().padStart(2, '0')}`);
+        }
+      };
+
       if (overrideSlots.length > 0) {
-        // Utiliser les horaires des exceptions
-        overrideSlots.forEach((override) => {
-          const start = override.start_time!.substring(0, 5);
-          const end = override.end_time!.substring(0, 5);
-          
-          const startHour = parseInt(start.split(':')[0]);
-          let endHour = parseInt(end.split(':')[0]);
-          // Traiter minuit (00:00) comme 24 pour générer les créneaux jusqu'à minuit
-          if (endHour === 0) endHour = 24;
-          
-          // Générer des créneaux toutes les heures
-          for (let hour = startHour; hour < endHour; hour++) {
-            slots.push(`${hour.toString().padStart(2, '0')}:00`);
-          }
-        });
+        overrideSlots.forEach((override) => pushRange(override.start_time!, override.end_time!));
       } else {
-        // Utiliser les créneaux réguliers (filtrés par mode)
         timeSlots?.filter((slot: TimeSlot) => matchesMode(slot.mode, mode)).forEach((slot: TimeSlot) => {
-          const start = slot.start_time.substring(0, 5);
-          const end = slot.end_time.substring(0, 5);
-          
-          const startHour = parseInt(start.split(':')[0]);
-          let endHour = parseInt(end.split(':')[0]);
-          if (endHour === 0) endHour = 24;
-          
-          for (let hour = startHour; hour < endHour; hour++) {
-            slots.push(`${hour.toString().padStart(2, '0')}:00`);
-          }
+          pushRange(slot.start_time, slot.end_time);
         });
       }
 
       // Marquer les créneaux déjà réservés
       const booked = bookings?.map(b => b.appointment_time.substring(0, 5)) || [];
 
-      setAvailableSlots(slots.sort());
+      setAvailableSlots(Array.from(new Set(slots)).sort());
       setBookedSlots(booked);
+
     } catch (error) {
       console.error('Error loading time slots:', error);
     } finally {
