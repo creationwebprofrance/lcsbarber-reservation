@@ -210,10 +210,10 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
     e.preventDefault();
     if (!validateForm()) return;
 
-    if (requiresDeposit && !depositPaidConfirmed) {
+    if (requiresDeposit && (!depositPaidConfirmed || depositReference.trim().length < 2)) {
       toast({
         title: "Acompte requis",
-        description: "Veuillez confirmer que vous avez effectué le paiement de l'acompte avant de continuer.",
+        description: "Indique la référence de ton virement Revolut et confirme l'envoi de l'acompte pour valider le rendez-vous.",
         variant: "destructive"
       });
       return;
