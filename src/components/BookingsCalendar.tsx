@@ -327,6 +327,17 @@ export const BookingsCalendar = () => {
                   {booking.deposit_paid === false && /Acompte remboursé/i.test(booking.notes ?? "") && (
                     <p className="pt-2 text-xs text-muted-foreground">Acompte déjà remboursé</p>
                   )}
+
+                  {booking.status !== "cancelled" && (
+                    <LiveTrackingPanel
+                      bookingId={booking.id}
+                      role="barber"
+                      appointmentDate={booking.appointment_date}
+                      appointmentTime={booking.appointment_time}
+                      peerLabel={booking.client_name}
+                    />
+                  )}
+
                 </div>
 
                 );
