@@ -207,6 +207,14 @@ export const TimeSlotsManager = () => {
             <Plus className="h-4 w-4 mr-2" />
             Ajouter le créneau
           </Button>
+
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setNewSlot(prev => ({ ...prev, start_time: '00:00', end_time: '00:00' }))}
+          >
+            Toute la journée (00h → 24h)
+          </Button>
         </CardContent>
       </Card>
 
