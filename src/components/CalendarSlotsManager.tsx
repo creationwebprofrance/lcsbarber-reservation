@@ -232,10 +232,10 @@ export const CalendarSlotsManager = () => {
       .from('date_overrides')
       .insert({
         date: dateStr,
-        start_time: newSlot.start_time,
-        end_time: newSlot.end_time,
+        start_time: slotToAdd.start_time,
+        end_time: slotToAdd.end_time,
         is_available: true,
-        mode: newSlot.mode
+        mode: slotToAdd.mode
       });
       
     if (error) {
