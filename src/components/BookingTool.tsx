@@ -195,7 +195,7 @@ export const BookingTool = () => {
         body: {
           clientName,
           clientEmail: user.email,
-          clientPhone: "Non renseigné",
+          clientPhone: clientPhone,
           clientAddress: DOMICILE_ADDRESS,
           clientPostalCode: "",
           clientCity: "",
