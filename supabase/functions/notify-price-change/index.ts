@@ -20,7 +20,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { serviceName, oldPrice, newPrice } = await req.json();
+    const auth = await requireAdmin(req);
+    if (auth.error) return auth.error;
+
+    const { serviceName: rawServiceName, oldPrice, newPrice } = await req.json();
+    const serviceName = escapeHtml(rawServiceName);
 
     if (!serviceName || oldPrice === undefined || newPrice === undefined) {
       return new Response(

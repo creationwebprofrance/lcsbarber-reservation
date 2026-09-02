@@ -27,6 +27,9 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const auth = await requireAdmin(req);
+    if (auth.error) return auth.error;
+
     const rawData = await req.json();
     const validationResult = cancelSchema.safeParse(rawData);
     if (!validationResult.success) {
@@ -36,7 +39,16 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const booking = validationResult.data;
+    const raw = validationResult.data;
+    const booking = {
+      ...raw,
+      clientName: escapeHtml(raw.clientName),
+      clientEmail: escapeHtml(raw.clientEmail),
+      clientPhone: raw.clientPhone ? escapeHtml(raw.clientPhone) : undefined,
+      serviceName: escapeHtml(raw.serviceName),
+      appointmentDate: escapeHtml(raw.appointmentDate),
+      appointmentTime: escapeHtml(raw.appointmentTime),
+    };
     console.log("Sending cancellation email for:", booking.clientName);
 
     const clientHtml = `

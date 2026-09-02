@@ -16,7 +16,17 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { clientName, clientEmail, serviceName, oldTime, newTime, appointmentDate, type } = await req.json();
+    const auth = await requireAdmin(req);
+    if (auth.error) return auth.error;
+
+    const raw = await req.json();
+    const clientName = escapeHtml(raw.clientName);
+    const clientEmail = escapeHtml(raw.clientEmail);
+    const serviceName = escapeHtml(raw.serviceName);
+    const oldTime = escapeHtml(raw.oldTime);
+    const newTime = escapeHtml(raw.newTime);
+    const appointmentDate = raw.appointmentDate ? escapeHtml(raw.appointmentDate) : undefined;
+    const type = raw.type;
     const isDateChange = type === 'date';
     const changeLabel = isDateChange ? "Changement de date" : "Changement d'horaire";
 
