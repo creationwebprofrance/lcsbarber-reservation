@@ -77,7 +77,8 @@ const handler = async (req: Request): Promise<Response> => {
     const priceDirection = newPrice > oldPrice ? "augmenté" : "diminué";
     let emailsSent = 0;
 
-    for (const [email, name] of uniqueClients) {
+    for (const [email, rawName] of uniqueClients) {
+      const name = escapeHtml(rawName);
       const html = `
 <!DOCTYPE html>
 <html>
