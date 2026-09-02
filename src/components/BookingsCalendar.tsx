@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar as CalendarIcon, User, Mail, Phone, MapPin, Clock, Euro, RotateCcw, Loader2 } from "lucide-react";
+import { LiveTrackingPanel } from "@/components/LiveTrackingPanel";
+
 
 interface Booking {
   id: string;
@@ -327,6 +329,17 @@ export const BookingsCalendar = () => {
                   {booking.deposit_paid === false && /Acompte remboursé/i.test(booking.notes ?? "") && (
                     <p className="pt-2 text-xs text-muted-foreground">Acompte déjà remboursé</p>
                   )}
+
+                  {booking.status !== "cancelled" && (
+                    <LiveTrackingPanel
+                      bookingId={booking.id}
+                      role="barber"
+                      appointmentDate={booking.appointment_date}
+                      appointmentTime={booking.appointment_time}
+                      peerLabel={booking.client_name}
+                    />
+                  )}
+
                 </div>
 
                 );

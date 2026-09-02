@@ -9,7 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { LiveTrackingPanel } from "@/components/LiveTrackingPanel";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
+
 
 interface ClientBooking {
   id: string;
@@ -96,10 +98,20 @@ export default function MesRendezVous() {
               <p className="text-lg font-bold text-foreground">{Number(b.total_price).toFixed(0)} €</p>
             </div>
           </div>
+          {b.status !== "cancelled" && (
+            <LiveTrackingPanel
+              bookingId={b.id}
+              role="client"
+              appointmentDate={b.appointment_date}
+              appointmentTime={b.appointment_time}
+              peerLabel="LCS Barber"
+            />
+          )}
         </CardContent>
       </Card>
     );
   };
+
 
   return (
     <div className="min-h-screen bg-background">
