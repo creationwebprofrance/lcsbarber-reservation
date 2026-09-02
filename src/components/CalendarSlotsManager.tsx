@@ -257,6 +257,45 @@ export const CalendarSlotsManager = () => {
     setNewSlot({ start_time: '09:00', end_time: '10:00', mode: 'both' });
   };
 
+  const addRecurringSlot = async (override?: { start_time: string; end_time: string }) => {
+    if (!selectedDay) return;
+    const slotToAdd = { ...recurringSlot, ...(override || {}) };
+
+    const { error } = await supabase
+      .from('calendar_settings')
+      .insert({
+        day_of_week: selectedDay.getDay(),
+        start_time: slotToAdd.start_time,
+        end_time: slotToAdd.end_time,
+        is_available: true,
+        mode: slotToAdd.mode,
+      });
+
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible d'ajouter le créneau récurrent", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Créneau récurrent ajouté", description: `Tous les ${format(selectedDay, 'EEEE', { locale: fr })}s` });
+    loadTimeSlots();
+    setRecurringSlot({ start_time: '09:00', end_time: '10:00', mode: 'domicile' });
+  };
+
+  const removeWeeklySlot = async (slotId: string) => {
+    const { error } = await supabase
+      .from('calendar_settings')
+      .delete()
+      .eq('id', slotId);
+
+    if (error) {
+      toast({ title: "Erreur", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Créneau récurrent supprimé" });
+    loadTimeSlots();
+  };
+
   const removeOverride = async (overrideId: string) => {
     const { error } = await supabase
       .from('date_overrides')
