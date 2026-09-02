@@ -475,10 +475,21 @@ export const CalendarSlotsManager = () => {
                     <SelectItem value="deplacement">🚗 LCS Barber se déplace</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button onClick={addSlotForDate} className="w-full">
+                <Button onClick={() => addSlotForDate()} className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter
                 </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => addSlotForDate({ start_time: '00:00', end_time: '00:00' })}
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  Ouvrir toute la journée (00h → 24h)
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Tu peux ouvrir n'importe quelle heure, y compris la nuit (ex. 22:00 → 00:00).
+                </p>
               </div>
             </div>
           )}
