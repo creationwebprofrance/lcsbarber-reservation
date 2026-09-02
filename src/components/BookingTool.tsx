@@ -273,6 +273,9 @@ export const BookingTool = () => {
     setClientInfo(null);
     setIsConfirmed(false);
     setMode(null);
+    setPendingTime(null);
+    setDepositReference("");
+    setDepositConfirmed(false);
     setCurrentStep(1);
   };
 
