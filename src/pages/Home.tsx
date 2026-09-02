@@ -8,6 +8,8 @@ import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 import veryBadCampAsset from "@/assets/very-bad-camp.png.asset.json";
 import BarberPole3D from "@/components/BarberPole3D";
 import { UserMenu } from "@/components/UserMenu";
+import SiteControls from "@/components/SiteControls";
+import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -21,6 +23,7 @@ const fadeUp = {
 
 export default function Home() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [hasActiveEvent, setHasActiveEvent] = useState(false);
   const [bookSection, setBookSection] = useState({
     label: "BOOK ÉVÉNEMENTIEL",
@@ -66,18 +69,19 @@ export default function Home() {
             <img src={lcsBarberLogo} alt="LCS Barber" className="h-20 sm:h-24" />
           </Link>
           <nav className="flex items-center gap-2 sm:gap-3">
+            <SiteControls />
             {!user && (
               <Button asChild variant="ghost" size="sm" className="text-xs">
                 <Link to="/auth">
                   <LogIn className="h-4 w-4 mr-1.5" />
-                  Connexion
+                  {t("nav.login")}
                 </Link>
               </Button>
             )}
             <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs">
               <Link to="/reservation">
                 <Calendar className="h-4 w-4 mr-1.5" />
-                Réserver
+                {t("nav.book")}
               </Link>
             </Button>
             {user && <UserMenu />}
@@ -98,22 +102,22 @@ export default function Home() {
                 className="font-stencil text-primary text-sm sm:text-base mb-4 tracking-[0.25em]"
                 initial="hidden" animate="visible" variants={fadeUp} custom={0}
               >
-                LCS BARBER — BARBER ATELIER
+                {t("hero.tagline")}
               </motion.p>
               <motion.h1
                 className="text-4xl sm:text-6xl md:text-7xl font-bold text-foreground mb-5 sm:mb-6 leading-[0.95] tracking-tight"
                 initial="hidden" animate="visible" variants={fadeUp} custom={1}
               >
-                Ton style.<br />
-                Ton créneau.<br />
-                <span className="text-accent-gradient">Ta coupe.</span>
+                {t("hero.title1")}<br />
+                {t("hero.title2")}<br />
+                <span className="text-accent-gradient">{t("hero.title3")}</span>
               </motion.h1>
 
               <motion.p
                 className="text-sm sm:text-lg text-muted-foreground max-w-md mb-6 sm:mb-9 mx-auto lg:mx-0 leading-relaxed"
                 initial="hidden" animate="visible" variants={fadeUp} custom={2}
               >
-                Coupes afro & européennes, barbe soignée. Réserve ton créneau en quelques secondes.
+                {t("hero.subtitle")}
               </motion.p>
 
               <motion.span
@@ -121,7 +125,7 @@ export default function Home() {
                 initial="hidden" animate="visible" variants={fadeUp} custom={3}
               >
                 <Clock className="h-3 w-3 text-primary" />
-                De 10h à 20h (frais hors horaire)
+                {t("hero.hours")}
               </motion.span>
 
               <motion.div
@@ -131,20 +135,20 @@ export default function Home() {
                 <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-elegant flex-1">
                   <Link to="/reservation">
                     <Calendar className="h-4 w-4 mr-2" />
-                    Prendre rendez-vous
+                    {t("hero.cta")}
                   </Link>
                 </Button>
                 {hasActiveEvent ? (
                   <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold flex-1">
                     <Link to="/evenements">
                       <PartyPopper className="h-4 w-4 mr-2" />
-                      Prochain événement
+                      {t("hero.event")}
                     </Link>
                   </Button>
                 ) : (
                   <Button size="lg" disabled className="opacity-50 cursor-not-allowed flex-1">
                     <PartyPopper className="h-4 w-4 mr-2" />
-                    Prochain événement
+                    {t("hero.event")}
                   </Button>
                 )}
               </motion.div>
@@ -172,9 +176,9 @@ export default function Home() {
             initial="hidden" whileInView="visible" viewport={{ once: true }}
             variants={fadeUp} custom={0}
           >
-            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">CATALOGUE</p>
+            <p className="text-primary text-sm font-semibold mb-2 tracking-wide">{t("catalogue.label")}</p>
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
-              Mes coupes & mes prestations
+              {t("catalogue.title")}
             </h2>
           </motion.div>
 
@@ -185,15 +189,14 @@ export default function Home() {
               variants={fadeUp} custom={1}
             >
               <Scissors className="h-6 w-6 text-primary mb-4" />
-              <h3 className="text-xl font-bold text-foreground mb-2">Catalogue de coupes</h3>
+              <h3 className="text-xl font-bold text-foreground mb-2">{t("catalogue.cardTitle")}</h3>
               <p className="text-sm text-muted-foreground mb-6 flex-1">
-                Découvre mes réalisations — fades, afro, européennes, barbe soignée — et choisis
-                ton style avant de réserver.
+                {t("catalogue.cardText")}
               </p>
               <Button asChild className="w-full font-semibold">
                 <Link to="/catalogue">
                   <ArrowRight className="h-4 w-4 mr-2" />
-                  Voir le catalogue
+                  {t("catalogue.cardCta")}
                 </Link>
               </Button>
             </motion.div>
@@ -226,9 +229,9 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-5">
           <div className="grid grid-cols-3 gap-6">
             {[
-              { icon: Clock, value: "Sur RDV", label: "Toujours à l'heure" },
-              { icon: MapPin, value: "Le client se déplace", label: "95380 Puiseux-en-France" },
-              { icon: Star, value: "5/5", label: "Avis clients" },
+              { icon: Clock, value: t("stats.onAppointment"), label: t("stats.onTime") },
+              { icon: MapPin, value: t("stats.clientTravels"), label: "95380 Puiseux-en-France" },
+              { icon: Star, value: "5/5", label: t("stats.reviews") },
             ].map((item, i) => (
               <motion.div
                 key={item.label}
@@ -251,7 +254,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <img src={lcsBarberLogo} alt="LCS Barber" className="h-12 opacity-60" />
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} LCS Barber — Tous droits réservés
+            © {new Date().getFullYear()} LCS Barber — {t("footer.rights")}
           </p>
         </div>
       </footer>
