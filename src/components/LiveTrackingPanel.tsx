@@ -340,7 +340,33 @@ export const LiveTrackingPanel = ({
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Récupération de ta position...
             </p>
           )}
+          {canChooseDestination && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-muted-foreground">Trajet vers :</span>
+              <Button
+                size="sm"
+                variant={destination === "address" ? "default" : "outline"}
+                className="h-7 text-xs"
+                onClick={() => setDestination("address")}
+              >
+                Adresse du client
+              </Button>
+              <Button
+                size="sm"
+                variant={destination === "live" ? "default" : "outline"}
+                className="h-7 text-xs"
+                disabled={!peerPos}
+                onClick={() => setDestination("live")}
+              >
+                Position partagée
+              </Button>
+              {destination === "address" && clientAddress && (
+                <span className="text-[11px] text-muted-foreground">{clientAddress}</span>
+              )}
+            </div>
+          )}
           <div ref={mapContainer} className="h-64 w-full rounded-lg overflow-hidden bg-muted/30" />
+
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <Navigation className="h-3.5 w-3.5 text-primary" />
