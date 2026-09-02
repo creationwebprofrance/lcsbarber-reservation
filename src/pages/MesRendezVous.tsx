@@ -9,7 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { LiveTrackingPanel } from "@/components/LiveTrackingPanel";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
+
 
 interface ClientBooking {
   id: string;
