@@ -103,11 +103,21 @@ serve(async (req) => {
     }
 
     // Create the booking
+    const { deposit_amount, deposit_reference, status, notes, ...bookingFields } = validatedData;
+
+    const depositNote = [
+      deposit_amount ? `Acompte attendu: ${deposit_amount}€` : null,
+      deposit_reference ? `Référence Revolut: ${deposit_reference}` : null,
+    ].filter(Boolean).join(' | ');
+
+    const finalNotes = [notes, depositNote].filter(Boolean).join('\n') || null;
+
     const { data: newBooking, error: bookingError } = await supabase
       .from('bookings')
       .insert({
-        ...validatedData,
-        status: 'confirmed',
+        ...bookingFields,
+        notes: finalNotes,
+        status,
       })
       .select()
       .single();
