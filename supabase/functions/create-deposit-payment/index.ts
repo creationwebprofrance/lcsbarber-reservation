@@ -46,10 +46,6 @@ serve(async (req) => {
       // (CB, Apple Pay, Google Pay, Link, etc.) — Stripe affiche automatiquement
       // ceux compatibles avec l'appareil du client.
       payment_method_types: ["card", "link"],
-      payment_method_options: {
-        card: { setup_future_usage: undefined },
-      },
-      phone_number_collection: { enabled: false },
       customer_email: email ?? undefined,
       line_items: [
         {
