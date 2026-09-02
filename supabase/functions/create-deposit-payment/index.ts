@@ -12,6 +12,7 @@ const schema = z.object({
   email: z.string().email().max(255).optional().nullable(),
   description: z.string().max(200).optional().nullable(),
   origin: z.string().url().max(300).optional().nullable(),
+  embedded: z.boolean().optional(),
 });
 
 serve(async (req) => {
@@ -27,7 +28,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-    const { amount, email, description, origin } = parsed.data;
+    const { amount, email, description, origin, embedded } = parsed.data;
 
     const key = Deno.env.get("STRIPE_SECRET_KEY");
     if (!key) {
@@ -40,12 +41,8 @@ serve(async (req) => {
     const stripe = new Stripe(key, { apiVersion: "2023-10-16" });
     const base = origin ?? req.headers.get("origin") ?? "https://lcsbarber.com";
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      // Active tous les moyens de paiement disponibles sur le compte Stripe
-      // (CB, Apple Pay, Google Pay, Link, etc.) — Stripe affiche automatiquement
-      // ceux compatibles avec l'appareil du client.
-      payment_method_types: ["card", "link"],
+    const common = {
+      mode: "payment" as const,
       customer_email: email ?? undefined,
       line_items: [
         {
@@ -60,6 +57,25 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
+    };
+
+    // Checkout intégré (Payment Element dans la page) — Apple Pay / Google Pay / CB / Link
+    if (embedded !== false) {
+      const session = await stripe.checkout.sessions.create({
+        ...common,
+        ui_mode: "embedded",
+        redirect_on_completion: "never",
+      });
+
+      return new Response(
+        JSON.stringify({ clientSecret: session.client_secret, sessionId: session.id }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      ...common,
+      payment_method_types: ["card", "link"],
       success_url: `${base}/reservation?deposit=success`,
       cancel_url: `${base}/reservation?deposit=cancelled`,
     });
