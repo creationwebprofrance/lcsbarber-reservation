@@ -18,6 +18,8 @@ import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import { Admin } from "./pages/Admin";
 import { AuthProvider } from "./hooks/useAuth";
+import { LanguageProvider } from "./hooks/useLanguage";
+import { ThemeProvider } from "next-themes";
 import RequireAuth from "./components/RequireAuth";
 import ScrollToTop from "./components/ScrollToTop";
 import ChatBot from "./components/ChatBot";
@@ -26,12 +28,15 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="lcs-theme">
+    <LanguageProvider>
     <TooltipProvider>
       <AuthProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/reservation" element={<RequireAuth><Reservation /></RequireAuth>} />
