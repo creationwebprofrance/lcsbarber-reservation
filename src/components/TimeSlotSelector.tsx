@@ -159,9 +159,8 @@ export const TimeSlotSelector = ({
     }
   };
 
-  // La superposition de rendez-vous est autorisée : un créneau déjà pris
-  // reste sélectionnable, il est simplement signalé visuellement.
-  const isSlotAvailable = (_time: string) => true;
+  // Un créneau déjà réservé est bloqué : non sélectionnable.
+  const isSlotAvailable = (time: string) => !bookedSlots.includes(time);
   const isSlotBooked = (time: string) => bookedSlots.includes(time);
 
   if (loading) {
