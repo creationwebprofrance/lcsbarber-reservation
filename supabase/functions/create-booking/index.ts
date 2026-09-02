@@ -20,6 +20,9 @@ const bookingSchema = z.object({
   travel_fee: z.number().min(0).optional().default(0),
   notes: z.string().max(1000).optional().nullable(),
   deposit_paid: z.boolean().optional().default(false),
+  deposit_amount: z.number().min(0).optional(),
+  deposit_reference: z.string().max(120).optional().nullable(),
+  status: z.enum(['pending', 'confirmed']).optional().default('confirmed'),
 });
 
 serve(async (req) => {
