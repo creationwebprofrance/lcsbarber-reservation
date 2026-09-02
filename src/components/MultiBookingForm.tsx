@@ -81,7 +81,48 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
   const [isCalculatingTravel, setIsCalculatingTravel] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [depositPaidConfirmed, setDepositPaidConfirmed] = useState(false);
+  const [depositReference, setDepositReference] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Client connecté : on ne demande que l'adresse (+ le téléphone s'il manque au profil)
+  const [profileLoaded, setProfileLoaded] = useState(!user);
+  const [knownPhone, setKnownPhone] = useState(false);
+
+  useEffect(() => {
+    if (!user?.email) {
+      setProfileLoaded(true);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const [{ data: profile }, { data: client }] = await Promise.all([
+        supabase.from("profiles").select("full_name").eq("user_id", user.id).maybeSingle(),
+        supabase.from("clients").select("name, phone").eq("email", user.email!).maybeSingle(),
+      ]);
+      if (cancelled) return;
+      const name =
+        profile?.full_name ||
+        client?.name ||
+        (user.user_metadata?.full_name as string) ||
+        (user.user_metadata?.name as string) ||
+        "";
+      const phone = client?.phone && client.phone.replace(/\D/g, "").length >= 10 ? client.phone : "";
+      setKnownPhone(!!phone);
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || name,
+        email: prev.email || user.email!,
+        phone: prev.phone || phone,
+      }));
+      setProfileLoaded(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, user?.email]);
+
+  const isKnownClient = !!user && profileLoaded;
   
   const { data: pricingSettings } = usePricingSettings();
   
