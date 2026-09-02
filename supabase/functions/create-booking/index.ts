@@ -20,6 +20,9 @@ const bookingSchema = z.object({
   travel_fee: z.number().min(0).optional().default(0),
   notes: z.string().max(1000).optional().nullable(),
   deposit_paid: z.boolean().optional().default(false),
+  deposit_amount: z.number().min(0).optional(),
+  deposit_reference: z.string().max(120).optional().nullable(),
+  status: z.enum(['pending', 'confirmed']).optional().default('confirmed'),
 });
 
 serve(async (req) => {
@@ -100,11 +103,21 @@ serve(async (req) => {
     }
 
     // Create the booking
+    const { deposit_amount, deposit_reference, status, notes, ...bookingFields } = validatedData;
+
+    const depositNote = [
+      deposit_amount ? `Acompte attendu: ${deposit_amount}€` : null,
+      deposit_reference ? `Référence Revolut: ${deposit_reference}` : null,
+    ].filter(Boolean).join(' | ');
+
+    const finalNotes = [notes, depositNote].filter(Boolean).join('\n') || null;
+
     const { data: newBooking, error: bookingError } = await supabase
       .from('bookings')
       .insert({
-        ...validatedData,
-        status: 'confirmed',
+        ...bookingFields,
+        notes: finalNotes,
+        status,
       })
       .select()
       .single();

@@ -14,6 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { usePricingSettings } from "@/hooks/usePricingSettings";
+import { useAuth } from "@/hooks/useAuth";
+import { calculateDeposit } from "@/lib/deposit";
+import { DepositPanel } from "./DepositPanel";
 import type { BookingItem } from "./BookingCart";
 
 interface MultiBookingFormProps {
@@ -78,7 +81,48 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
   const [isCalculatingTravel, setIsCalculatingTravel] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [depositPaidConfirmed, setDepositPaidConfirmed] = useState(false);
+  const [depositReference, setDepositReference] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Client connecté : on ne demande que l'adresse (+ le téléphone s'il manque au profil)
+  const [profileLoaded, setProfileLoaded] = useState(!user);
+  const [knownPhone, setKnownPhone] = useState(false);
+
+  useEffect(() => {
+    if (!user?.email) {
+      setProfileLoaded(true);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const [{ data: profile }, { data: client }] = await Promise.all([
+        supabase.from("profiles").select("full_name").eq("user_id", user.id).maybeSingle(),
+        supabase.from("clients").select("name, phone").eq("email", user.email!).maybeSingle(),
+      ]);
+      if (cancelled) return;
+      const name =
+        profile?.full_name ||
+        client?.name ||
+        (user.user_metadata?.full_name as string) ||
+        (user.user_metadata?.name as string) ||
+        "";
+      const phone = client?.phone && client.phone.replace(/\D/g, "").length >= 10 ? client.phone : "";
+      setKnownPhone(!!phone);
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || name,
+        email: prev.email || user.email!,
+        phone: prev.phone || phone,
+      }));
+      setProfileLoaded(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, user?.email]);
+
+  const isKnownClient = !!user && profileLoaded;
   
   const { data: pricingSettings } = usePricingSettings();
   
@@ -139,12 +183,9 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
   const totalSupplements = pricingDetails.reduce((sum, { pricing }) => sum + pricing.supplement + pricing.sameDayFee + pricing.sundayFee, 0);
   const totalPrice = totalBasePrice + totalSupplements + travelCalculation.fees;
   
-  const requiresDeposit = totalPrice > 50;
-  const depositAmount = 10;
-  
-  const generatePayPalLink = () => {
-    return `https://www.paypal.me/lczzz/${depositAmount}EUR`;
-  };
+  const depositAmount = calculateDeposit(totalPrice);
+  const requiresDeposit = depositAmount > 0;
+  const hideIdentity = isKnownClient && formData.name.trim().length >= 2 && !!formData.email;
 
   const validateForm = () => {
     try {
@@ -169,10 +210,10 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
     e.preventDefault();
     if (!validateForm()) return;
 
-    if (requiresDeposit && !depositPaidConfirmed) {
+    if (requiresDeposit && (!depositPaidConfirmed || depositReference.trim().length < 2)) {
       toast({
         title: "Acompte requis",
-        description: "Veuillez confirmer que vous avez effectué le paiement de l'acompte avant de continuer.",
+        description: "Indique la référence de ton virement Revolut et confirme l'envoi de l'acompte pour valider le rendez-vous.",
         variant: "destructive"
       });
       return;
@@ -198,7 +239,11 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
             (createdBookings.length === 0 ? travelCalculation.fees : 0), // Travel fees only on first booking
           travel_fee: createdBookings.length === 0 ? travelCalculation.fees : 0,
           notes: validatedData.message || null,
-          deposit_paid: requiresDeposit ? depositPaidConfirmed : true,
+          // L'acompte n'est marqué payé qu'après vérification manuelle de la réception
+          deposit_paid: false,
+          deposit_amount: createdBookings.length === 0 ? depositAmount : 0,
+          deposit_reference: createdBookings.length === 0 ? depositReference.trim() : null,
+          status: 'pending' as const,
         };
 
         const { data: bookingResult, error: bookingError } = await supabase.functions.invoke('create-booking', {
@@ -248,8 +293,8 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
       }
 
       toast({
-        title: "✅ Rendez-vous confirmés !",
-        description: `Vos ${bookingItems.length} rendez-vous ont été enregistrés. Un email de confirmation vous a été envoyé.`,
+        title: "✅ Demande enregistrée !",
+        description: `${bookingItems.length} rendez-vous en attente de validation de l'acompte (${depositAmount}€). Tu recevras la confirmation dès réception.`,
         duration: 6000,
       });
 
@@ -361,46 +406,59 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
 
       {/* Formulaire */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 gap-3 sm:gap-4">
-          <div>
-            <Label htmlFor="name">Nom complet *</Label>
-            <Input
-              id="name"
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              className={`mt-1 ${errors.name ? "border-destructive" : ""}`}
-              placeholder="Votre nom complet"
-            />
-            {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name}</p>}
+        {hideIdentity ? (
+          <div className="rounded-lg border border-border/50 bg-muted/30 p-3 text-sm">
+            <p className="font-medium">{formData.name}</p>
+            <p className="text-muted-foreground">{formData.email}</p>
+            {knownPhone && <p className="text-muted-foreground">{formData.phone}</p>}
+            <p className="mt-2 text-xs text-muted-foreground">
+              Informations reprises de ton compte — il ne reste que ton adresse à renseigner.
+            </p>
           </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
+            <div>
+              <Label htmlFor="name">Nom complet *</Label>
+              <Input
+                id="name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                className={`mt-1 ${errors.name ? "border-destructive" : ""}`}
+                placeholder="Votre nom complet"
+              />
+              {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name}</p>}
+            </div>
 
-          <div>
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              className={`mt-1 ${errors.email ? "border-destructive" : ""}`}
-              placeholder="votre@email.com"
-            />
-            {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email}</p>}
+            <div>
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                className={`mt-1 ${errors.email ? "border-destructive" : ""}`}
+                placeholder="votre@email.com"
+              />
+              {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email}</p>}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div>
-          <Label htmlFor="phone">Téléphone *</Label>
-          <Input
-            id="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => handleInputChange("phone", e.target.value)}
-            className={`mt-1 ${errors.phone ? "border-destructive" : ""}`}
-            placeholder="01 23 45 67 89"
-          />
-          {errors.phone && <p className="mt-1 text-sm text-destructive">{errors.phone}</p>}
-        </div>
+        {!(hideIdentity && knownPhone) && (
+          <div>
+            <Label htmlFor="phone">Téléphone *</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => handleInputChange("phone", e.target.value)}
+              className={`mt-1 ${errors.phone ? "border-destructive" : ""}`}
+              placeholder="01 23 45 67 89"
+            />
+            {errors.phone && <p className="mt-1 text-sm text-destructive">{errors.phone}</p>}
+          </div>
+        )}
 
         <div>
           <Label htmlFor="address">Adresse *</Label>
@@ -468,43 +526,25 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
 
         <div className="flex flex-col space-y-3 pt-4">
           {requiresDeposit && (
-            <div className="text-center bg-blue-50 dark:bg-blue-950 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100 mb-3">
-                ⚠️ Pour les réservations de plus de 50€, un acompte de {depositAmount}€ est obligatoire.
-              </p>
-              <Button 
-                type="button"
-                onClick={() => window.open(generatePayPalLink(), '_blank')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white mb-3"
-                size="lg"
-              >
-                💳 Payer l'acompte ({depositAmount}€)
-              </Button>
-              <div className="flex items-center justify-center space-x-2 mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg">
-                <input
-                  type="checkbox"
-                  id="deposit-confirm"
-                  checked={depositPaidConfirmed}
-                  onChange={(e) => setDepositPaidConfirmed(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="deposit-confirm" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-                  Je confirme avoir effectué le paiement de l'acompte
-                </label>
-              </div>
-            </div>
+            <DepositPanel
+              amount={depositAmount}
+              reference={depositReference}
+              onReferenceChange={setDepositReference}
+              confirmed={depositPaidConfirmed}
+              onConfirmedChange={setDepositPaidConfirmed}
+            />
           )}
-          
+
           <div className="flex justify-end space-x-3">
             <Button type="button" variant="outline" onClick={onBack}>
               Retour
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting || (requiresDeposit && !depositPaidConfirmed)}
+              disabled={isSubmitting || (requiresDeposit && (!depositPaidConfirmed || depositReference.trim().length < 2))}
               className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
             >
-              {isSubmitting ? "Enregistrement..." : `Confirmer ${bookingItems.length} rendez-vous`}
+              {isSubmitting ? "Enregistrement..." : `Valider ${bookingItems.length} rendez-vous`}
             </Button>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Scissors, Calendar, Clock, CheckCircle, ShoppingCart, Home, Car, Loader2 } from "lucide-react";
@@ -14,6 +14,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { usePricingSettings } from "@/hooks/usePricingSettings";
 import { calculatePricing, type HourlySupplementSettings } from "@/lib/pricing";
+import { calculateDeposit } from "@/lib/deposit";
+import { DepositPanel } from "./DepositPanel";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Service {
@@ -56,10 +58,32 @@ export const BookingTool = () => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [clientInfo, setClientInfo] = useState<any>(null);
   const [isBookingDirect, setIsBookingDirect] = useState(false);
+  const [pendingTime, setPendingTime] = useState<string | null>(null);
+  const [depositReference, setDepositReference] = useState("");
+  const [depositConfirmed, setDepositConfirmed] = useState(false);
+  const [clientPhoneInput, setClientPhoneInput] = useState("");
+  const [hasKnownPhone, setHasKnownPhone] = useState(true);
 
   const { user } = useAuth();
   const { toast } = useToast();
   const { data: pricingSettings } = usePricingSettings();
+
+  useEffect(() => {
+    if (!user?.email) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("clients")
+        .select("phone")
+        .eq("email", user.email!)
+        .maybeSingle();
+      if (cancelled) return;
+      setHasKnownPhone(!!data?.phone && data.phone.replace(/\D/g, "").length >= 10);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.email]);
 
   const hourlySettings: HourlySupplementSettings | undefined = pricingSettings ? {
     earlyHourThreshold: pricingSettings.early_hour_threshold,
@@ -69,6 +93,13 @@ export const BookingTool = () => {
     sameDayFee: pricingSettings.same_day_fee,
     sundayFee: pricingSettings.sunday_fee,
   } : undefined;
+
+  const domicileTotal =
+    currentSelection.service && pendingTime
+      ? currentSelection.service.price +
+        calculatePricing(currentSelection.service.price, pendingTime, 0, hourlySettings, undefined).supplement
+      : 0;
+  const domicileDeposit = calculateDeposit(domicileTotal);
 
   const steps = [
     { number: 1, title: "Choisir la prestation", icon: Scissors },
@@ -96,7 +127,11 @@ export const BookingTool = () => {
 
   const handleTimeSelect = (time: string) => {
     if (mode === "domicile") {
-      handleDirectDomicileBooking(time);
+      // Étape acompte avant enregistrement du rendez-vous
+      setPendingTime(time);
+      setDepositReference("");
+      setDepositConfirmed(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     // Add to cart and stay on step 3 or show cart
@@ -134,6 +169,20 @@ export const BookingTool = () => {
       if (profile?.full_name) clientName = profile.full_name;
       if (clientName.trim().length < 2) clientName = "Client LCS";
 
+      const { data: clientRow } = await supabase
+        .from("clients")
+        .select("phone")
+        .eq("email", user.email)
+        .maybeSingle();
+      const clientPhone =
+        clientRow?.phone && clientRow.phone.replace(/\D/g, "").length >= 10
+          ? clientRow.phone
+          : clientPhoneInput.trim();
+
+      if (clientPhone.replace(/\D/g, "").length < 10) {
+        throw new Error("Merci d'indiquer un numéro de téléphone valide.");
+      }
+
       // Frais horaires uniquement (pas de déplacement, pas de jour même / dimanche)
       const pricing = calculatePricing(
         currentSelection.service.price,
@@ -151,12 +200,15 @@ export const BookingTool = () => {
           appointment_time: time,
           client_name: clientName,
           client_email: user.email,
-          client_phone: "Non renseigné",
+          client_phone: clientPhone,
           client_address: DOMICILE_ADDRESS,
           total_price: totalPrice,
           travel_fee: 0,
           notes: "Réservation — le client se déplace",
-          deposit_paid: true,
+          deposit_paid: false,
+          deposit_amount: calculateDeposit(totalPrice),
+          deposit_reference: depositReference.trim(),
+          status: "pending",
         },
       });
 
@@ -169,7 +221,7 @@ export const BookingTool = () => {
         body: {
           clientName,
           clientEmail: user.email,
-          clientPhone: "Non renseigné",
+          clientPhone: clientPhone,
           clientAddress: DOMICILE_ADDRESS,
           clientPostalCode: "",
           clientCity: "",
@@ -221,6 +273,9 @@ export const BookingTool = () => {
     setClientInfo(null);
     setIsConfirmed(false);
     setMode(null);
+    setPendingTime(null);
+    setDepositReference("");
+    setDepositConfirmed(false);
     setCurrentStep(1);
   };
 
@@ -381,7 +436,55 @@ export const BookingTool = () => {
                   {isBookingDirect ? (
                     <div className="py-12 text-center space-y-4">
                       <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                      <p className="text-muted-foreground">Confirmation de votre rendez-vous...</p>
+                      <p className="text-muted-foreground">Enregistrement de ta demande...</p>
+                    </div>
+                  ) : mode === "domicile" && pendingTime && currentSelection.service ? (
+                    <div className="space-y-4">
+                      <Button variant="ghost" size="sm" onClick={() => setPendingTime(null)}>
+                        ← Changer d'horaire
+                      </Button>
+                      <div className="rounded-lg border border-border/50 bg-muted/30 p-3 text-sm">
+                        <p className="font-medium">
+                          {currentSelection.service.name} — {format(currentSelection.date, "EEEE d MMMM", { locale: fr })} à {pendingTime}
+                        </p>
+                        <p className="text-muted-foreground">{DOMICILE_ADDRESS}</p>
+                      </div>
+
+                      {!hasKnownPhone && (
+                        <div>
+                          <label htmlFor="direct-phone" className="text-sm font-medium">
+                            Téléphone *
+                          </label>
+                          <input
+                            id="direct-phone"
+                            type="tel"
+                            value={clientPhoneInput}
+                            onChange={(e) => setClientPhoneInput(e.target.value)}
+                            placeholder="06 12 34 56 78"
+                            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          />
+                        </div>
+                      )}
+
+                      <DepositPanel
+                        amount={domicileDeposit}
+                        reference={depositReference}
+                        onReferenceChange={setDepositReference}
+                        confirmed={depositConfirmed}
+                        onConfirmedChange={setDepositConfirmed}
+                      />
+
+                      <Button
+                        className="w-full"
+                        disabled={
+                          !depositConfirmed ||
+                          depositReference.trim().length < 2 ||
+                          (!hasKnownPhone && clientPhoneInput.replace(/\D/g, "").length < 10)
+                        }
+                        onClick={() => handleDirectDomicileBooking(pendingTime)}
+                      >
+                        Valider ma demande de rendez-vous
+                      </Button>
                     </div>
                   ) : (
                     <TimeSlotSelector
@@ -408,9 +511,7 @@ export const BookingTool = () => {
                   <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-success/20">
                     <CheckCircle className="h-8 w-8 text-success" />
                   </div>
-                  <h2 className="mb-4 text-2xl font-bold">
-                    {bookingItems.length > 1 ? 'Rendez-vous confirmés !' : 'Rendez-vous confirmé !'}
-                  </h2>
+                  <h2 className="mb-4 text-2xl font-bold">Demande enregistrée !</h2>
                   <p className="mb-6 text-muted-foreground">
                     {mode === "domicile" ? (
                       <>
@@ -438,7 +539,8 @@ export const BookingTool = () => {
                         <br />
                       </>
                     )}
-                    Un email de confirmation vous a été envoyé.
+                    Ton rendez-vous est <span className="font-medium text-foreground">en attente</span> jusqu'à la
+                    vérification de l'acompte sur Revolut. Tu recevras un email dès qu'il sera confirmé.
                   </p>
 
                   <Button variant="outline" onClick={resetBooking}>
