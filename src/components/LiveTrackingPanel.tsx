@@ -17,6 +17,8 @@ interface LiveTrackingPanelProps {
   appointmentTime: string; // HH:mm[:ss]
   durationMinutes?: number;
   peerLabel?: string;
+  /** Appelé une fois quand le barber démarre manuellement le suivi ("Je suis en route"). */
+  onRouteStart?: (etaMinutes?: number) => void | Promise<void>;
 }
 
 interface Position {
@@ -74,6 +76,7 @@ export const LiveTrackingPanel = ({
   appointmentTime,
   durationMinutes = 60,
   peerLabel,
+  onRouteStart,
 }: LiveTrackingPanelProps) => {
   const peerRole: Role = role === "client" ? "barber" : "client";
   const [active, setActive] = useState(false);
