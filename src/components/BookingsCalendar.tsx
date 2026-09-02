@@ -314,21 +314,29 @@ export const BookingsCalendar = () => {
                     </div>
                   )}
 
-                  {canRefund(booking) && (
+                  {isRefunded(booking) ? (
+                    <p className="pt-3 border-t text-xs text-muted-foreground">Acompte déjà remboursé</p>
+                  ) : (
                     <div className="pt-3 border-t">
                       <Button
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        onClick={() => setRefundTarget(booking)}
+                        disabled={!canRefund(booking)}
+                        onClick={() => {
+                          setCancelOnRefund(true);
+                          setRefundTarget(booking);
+                        }}
                       >
                         <RotateCcw className="h-4 w-4 mr-2" />
                         Rembourser l'acompte
                       </Button>
+                      {!canRefund(booking) && (
+                        <p className="mt-1 text-xs text-muted-foreground text-center">
+                          Aucun acompte payé sur cette réservation
+                        </p>
+                      )}
                     </div>
-                  )}
-                  {booking.deposit_paid === false && /Acompte remboursé/i.test(booking.notes ?? "") && (
-                    <p className="pt-2 text-xs text-muted-foreground">Acompte déjà remboursé</p>
                   )}
 
                   {booking.status !== "cancelled" && (
