@@ -174,12 +174,15 @@ export const BookingTool = () => {
           appointment_time: time,
           client_name: clientName,
           client_email: user.email,
-          client_phone: "Non renseigné",
+          client_phone: clientPhone,
           client_address: DOMICILE_ADDRESS,
           total_price: totalPrice,
           travel_fee: 0,
           notes: "Réservation — le client se déplace",
-          deposit_paid: true,
+          deposit_paid: false,
+          deposit_amount: calculateDeposit(totalPrice),
+          deposit_reference: depositReference.trim(),
+          status: "pending",
         },
       });
 
