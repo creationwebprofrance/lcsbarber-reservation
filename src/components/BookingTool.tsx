@@ -58,6 +58,9 @@ export const BookingTool = () => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [clientInfo, setClientInfo] = useState<any>(null);
   const [isBookingDirect, setIsBookingDirect] = useState(false);
+  const [pendingTime, setPendingTime] = useState<string | null>(null);
+  const [depositReference, setDepositReference] = useState("");
+  const [depositConfirmed, setDepositConfirmed] = useState(false);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -98,7 +101,11 @@ export const BookingTool = () => {
 
   const handleTimeSelect = (time: string) => {
     if (mode === "domicile") {
-      handleDirectDomicileBooking(time);
+      // Étape acompte avant enregistrement du rendez-vous
+      setPendingTime(time);
+      setDepositReference("");
+      setDepositConfirmed(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     // Add to cart and stay on step 3 or show cart
