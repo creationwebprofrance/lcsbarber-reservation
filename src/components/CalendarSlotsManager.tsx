@@ -242,7 +242,7 @@ export const CalendarSlotsManager = () => {
       return;
     }
     
-    toast({ title: "Exception supprimée" });
+    toast({ title: "Créneau supprimé" });
     loadDateOverrides();
   };
 
@@ -296,11 +296,6 @@ export const CalendarSlotsManager = () => {
                       {format(day, 'd')}
                     </div>
                   </div>
-                  {hasOverride && (
-                    <Badge variant="outline" className="text-xs">
-                      Exception
-                    </Badge>
-                  )}
                 </div>
               </CardHeader>
               <CardContent className="p-2 pt-0 space-y-1">
