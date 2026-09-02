@@ -29,8 +29,8 @@ interface TimeSlot {
 
 const slotModeLabels: Record<string, string> = {
   both: 'Les deux',
-  domicile: '🏠 Domicile',
-  deplacement: '🚗 Déplacement',
+  domicile: '🏠 Le client se déplace',
+  deplacement: '🚗 LCS Barber se déplace',
 };
 
 interface DateOverride {
@@ -450,8 +450,8 @@ export const CalendarSlotsManager = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="both">Les deux</SelectItem>
-                    <SelectItem value="domicile">🏠 À côté du domicile</SelectItem>
-                    <SelectItem value="deplacement">🚗 En déplacement</SelectItem>
+                    <SelectItem value="domicile">🏠 Le client se déplace</SelectItem>
+                    <SelectItem value="deplacement">🚗 LCS Barber se déplace</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button onClick={addSlotForDate} className="w-full">
