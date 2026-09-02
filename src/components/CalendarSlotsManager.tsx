@@ -127,9 +127,10 @@ export const CalendarSlotsManager = () => {
         start_time: o.start_time ?? '', 
         end_time: o.end_time ?? '', 
         is_available: true,
-        mode: o.mode || 'both',
+        mode: o.mode || 'deplacement',
         isOverride: true 
       }));
+
     
     // A blocking marker only closes the day when no available timed override exists.
     const blockingOverride = overrides.find(o => !o.is_available && !o.start_time);
@@ -414,8 +415,9 @@ export const CalendarSlotsManager = () => {
                         <span className="text-sm flex items-center gap-2">
                           {slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}
                           <Badge variant="outline" className="text-xs">
-                            {slotModeLabels[slot.mode || 'both']}
+                            {slotModeLabels[slot.mode || 'deplacement']}
                           </Badge>
+
                         </span>
                         {slot.isOverride && (
                           <Button 

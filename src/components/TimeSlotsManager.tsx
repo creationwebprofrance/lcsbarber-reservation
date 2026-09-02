@@ -229,9 +229,10 @@ export const TimeSlotsManager = () => {
                         <span className={slot.is_available ? '' : 'text-muted-foreground line-through'}>
                           {slot.start_time} - {slot.end_time}
                         </span>
-                        <Badge variant={slot.mode === 'both' ? 'secondary' : 'outline'} className="text-xs">
-                          {modeLabels[slot.mode] || 'Les deux'}
+                        <Badge variant="outline" className="text-xs">
+                          {modeLabels[slot.mode] || 'LCS Barber se déplace'}
                         </Badge>
+
                       </div>
                       <Button
                         variant="destructive"
