@@ -137,7 +137,8 @@ export const TimeSlotSelector = ({
         }
       };
 
-      if (overrideSlots.length > 0) {
+      if (hasAnyTimedOverride) {
+        // Des exceptions avec horaires existent : seuls les créneaux de ce mode sont visibles
         overrideSlots.forEach((override) => pushRange(override.start_time!, override.end_time!));
       } else {
         timeSlots?.filter((slot: TimeSlot) => matchesMode(slot.mode, mode)).forEach((slot: TimeSlot) => {
