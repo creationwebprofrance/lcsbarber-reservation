@@ -25,6 +25,41 @@ serve(async (req: Request): Promise<Response> => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Authentification requise : l'appelant doit être connecté
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Authentification requise" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Session invalide" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // L'appelant doit être admin ou le client du rendez-vous
+    const { data: adminRole } = await supabase
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    const isAdmin = !!adminRole;
+    const isOwner = (user.email ?? "").toLowerCase() === String(clientEmail).toLowerCase();
+
+    if (!isAdmin && !isOwner) {
+      return new Response(
+        JSON.stringify({ error: "Accès refusé" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Fetch booking and verify ownership by matching clientEmail
     const { data: booking, error } = await supabase
       .from('bookings')
