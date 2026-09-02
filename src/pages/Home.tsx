@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
-import { LogIn, Calendar, Scissors, Star, Clock, MapPin, ArrowRight, PartyPopper } from "lucide-react";
+import { LogIn, Calendar, Scissors, Star, Clock, ArrowRight, PartyPopper } from "lucide-react";
 import { motion } from "framer-motion";
 import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 import veryBadCampAsset from "@/assets/very-bad-camp.png.asset.json";
