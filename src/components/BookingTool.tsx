@@ -143,6 +143,20 @@ export const BookingTool = () => {
       if (profile?.full_name) clientName = profile.full_name;
       if (clientName.trim().length < 2) clientName = "Client LCS";
 
+      const { data: clientRow } = await supabase
+        .from("clients")
+        .select("phone")
+        .eq("email", user.email)
+        .maybeSingle();
+      const clientPhone =
+        clientRow?.phone && clientRow.phone.replace(/\D/g, "").length >= 10
+          ? clientRow.phone
+          : clientPhoneInput.trim();
+
+      if (clientPhone.replace(/\D/g, "").length < 10) {
+        throw new Error("Merci d'indiquer un numéro de téléphone valide.");
+      }
+
       // Frais horaires uniquement (pas de déplacement, pas de jour même / dimanche)
       const pricing = calculatePricing(
         currentSelection.service.price,
