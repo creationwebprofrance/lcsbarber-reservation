@@ -132,19 +132,18 @@ export const CalendarSlotsManager = () => {
         isOverride: true 
       }));
     
-    // If there are override slots, use only those
-    if (overrideSlots.length > 0) {
-      return overrideSlots;
-    }
-
     // A blocking marker only closes the day when no available timed override exists.
     const blockingOverride = overrides.find(o => !o.is_available && !o.start_time);
-    if (blockingOverride) return [];
+    if (blockingOverride && overrideSlots.length === 0) return [];
     
-    // Otherwise, use regular weekly slots
-    return timeSlots
+    // Specific slots complement the recurring schedule instead of hiding it.
+    const weeklySlots = timeSlots
       .filter(slot => slot.day_of_week === dayOfWeek && slot.is_available)
       .map(slot => ({ ...slot, isOverride: false }));
+
+    return [...weeklySlots, ...overrideSlots].sort((a, b) =>
+      a.start_time.localeCompare(b.start_time)
+    );
   };
 
   const getBookingsForDay = (date: Date) => {
