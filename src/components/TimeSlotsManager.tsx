@@ -33,8 +33,9 @@ export const TimeSlotsManager = () => {
     start_time: '09:00',
     end_time: '12:00',
     is_available: true,
-    mode: 'both' as 'both' | 'domicile' | 'deplacement'
+    mode: 'deplacement' as 'deplacement'
   });
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -175,12 +176,11 @@ export const TimeSlotsManager = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="both">Les deux</SelectItem>
-                <SelectItem value="domicile">Le client se déplace</SelectItem>
                 <SelectItem value="deplacement">LCS Barber se déplace</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
