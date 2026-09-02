@@ -63,6 +63,7 @@ export const CalendarSlotsManager = () => {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newSlot, setNewSlot] = useState({ start_time: '09:00', end_time: '10:00', mode: 'both' as 'both' | 'domicile' | 'deplacement' });
+  const [recurringSlot, setRecurringSlot] = useState({ start_time: '09:00', end_time: '10:00', mode: 'domicile' as 'both' | 'domicile' | 'deplacement' });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
