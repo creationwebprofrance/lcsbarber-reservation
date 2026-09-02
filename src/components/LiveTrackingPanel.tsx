@@ -109,10 +109,36 @@ export const LiveTrackingPanel = ({
   const sameDay = isTrackingDay(appointmentDate);
   const canChooseDestination = role === "barber" && !!clientAddress;
 
-  // Démarrage automatique dans la fenêtre du rendez-vous (ou via lien de suivi)
+  // Démarrage automatique : fenêtre du RDV, lien de suivi, ou côté client le jour J
   useEffect(() => {
-    if (windowOpen || autoStart) setActive(true);
-  }, [windowOpen, autoStart]);
+    if (windowOpen || autoStart || (role === "client" && sameDay)) setActive(true);
+  }, [windowOpen, autoStart, role, sameDay]);
+
+  // Demande explicite d'autorisation de localisation (déclenche le prompt navigateur)
+  const requestLocation = useCallback(() => {
+    setError(null);
+    setActive(true);
+    if (!navigator.geolocation) {
+      setError("La géolocalisation n'est pas supportée par ton navigateur.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const p = { lng: pos.coords.longitude, lat: pos.coords.latitude, at: Date.now() };
+        setMyPos(p);
+        void channelRef.current?.track({ role, ...p });
+      },
+      (err) => {
+        setError(
+          err.code === err.PERMISSION_DENIED
+            ? "Localisation refusée. Autorise l'accès à ta position dans les réglages du navigateur, puis réessaie."
+            : "Position indisponible — vérifie que la localisation est activée sur ton téléphone."
+        );
+      },
+      { enableHighAccuracy: true, timeout: 20000 }
+    );
+  }, [role]);
+
 
   // Géocodage de l'adresse saisie par le client (destination alternative)
   useEffect(() => {
@@ -152,6 +178,14 @@ export const LiveTrackingPanel = ({
     });
     channelRef.current = channel;
 
+    let subscribed = false;
+    let lastPos: Position | null = null;
+
+    const pushPos = (p: Position) => {
+      lastPos = p;
+      if (subscribed) void channel.track({ role, ...p });
+    };
+
     channel
       .on("presence", { event: "sync" }, () => {
         const state = channel.presenceState() as Record<string, Array<Record<string, unknown>>>;
@@ -162,7 +196,13 @@ export const LiveTrackingPanel = ({
           setPeerPos(null);
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          subscribed = true;
+          // Envoie la dernière position connue même si elle est arrivée avant l'abonnement
+          if (lastPos) void channel.track({ role, ...lastPos });
+        }
+      });
 
     let watchId: number | null = null;
     if (!navigator.geolocation) {
@@ -173,28 +213,41 @@ export const LiveTrackingPanel = ({
           setError(null);
           const p = { lng: pos.coords.longitude, lat: pos.coords.latitude, at: Date.now() };
           setMyPos(p);
-          channel.track({ role, ...p });
+          pushPos(p);
         },
-        () => setError("Position indisponible — vérifie les autorisations de localisation."),
-        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+        (err) => {
+          setError(
+            err.code === err.PERMISSION_DENIED
+              ? "Localisation refusée. Autorise l'accès à ta position dans les réglages du navigateur pour partager ta position."
+              : "Position indisponible — vérifie que la localisation est activée sur ton téléphone."
+          );
+        },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
       );
     }
 
+    // Ré-émission périodique : garde la présence à jour même sans nouveau point GPS
+    const keepAlive = setInterval(() => {
+      if (subscribed && lastPos) void channel.track({ role, ...lastPos, at: Date.now() });
+    }, 15_000);
+
     return () => {
+      clearInterval(keepAlive);
       if (watchId !== null) navigator.geolocation.clearWatch(watchId);
       supabase.removeChannel(channel);
       channelRef.current = null;
     };
   }, [active, bookingId, role, peerRole]);
 
-  // Carte
+  // Carte : s'initialise dès qu'on a une position (la mienne OU celle du peer)
   useEffect(() => {
-    if (!active || !mapContainer.current || map.current || !myPos) return;
+    const anchor = myPos ?? peerPos;
+    if (!active || !mapContainer.current || map.current || !anchor) return;
     mapboxgl.accessToken = MAPBOX_PUBLIC_TOKEN;
     const m = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/dark-v11",
-      center: [myPos.lng, myPos.lat],
+      center: [anchor.lng, anchor.lat],
       zoom: 13,
     });
     map.current = m;
@@ -205,7 +258,8 @@ export const LiveTrackingPanel = ({
       peerMarker.current = null;
       fitted.current = false;
     };
-  }, [active, myPos]);
+  }, [active, myPos, peerPos]);
+
 
   // Marqueurs
   useEffect(() => {
@@ -243,6 +297,9 @@ export const LiveTrackingPanel = ({
         .extend([peerPos.lng, peerPos.lat]);
       m.fitBounds(bounds, { padding: 70, maxZoom: 15 });
       fitted.current = true;
+    } else if (!myPos && peerPos && !fitted.current) {
+      // Pas de position perso (refusée) : on suit quand même le peer
+      m.easeTo({ center: [peerPos.lng, peerPos.lat], zoom: 14 });
     }
   }, [myPos, peerPos, role, peerRole, peerLabel]);
 
@@ -323,23 +380,37 @@ export const LiveTrackingPanel = ({
             }
           }}
         >
-          {active ? "Arrêter le suivi" : "Je suis en route"}
+          {active ? "Arrêter le suivi" : role === "barber" ? "Je suis en route" : "Partager ma position"}
         </Button>
       </div>
 
       {!active ? (
         <p className="text-xs text-muted-foreground">
-          Active le suivi pour partager ta position en temps réel jusqu'à la fin de la prestation.
-          Il se lance automatiquement 30 min avant le rendez-vous.
+          {role === "barber"
+            ? "Active le suivi pour partager ta position en temps réel jusqu'à la fin de la prestation. Il se lance automatiquement 30 min avant le rendez-vous."
+            : "Partage ta position pour suivre l'arrivée de LCS Barber en direct et lui indiquer où te rejoindre."}
         </p>
       ) : (
         <>
-          {error && <p className="text-xs text-muted-foreground">{error}</p>}
-          {!myPos && !error && (
-            <p className="text-xs text-muted-foreground flex items-center gap-2">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Récupération de ta position...
-            </p>
+          {error && (
+            <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-2">
+              <p className="text-xs text-muted-foreground">{error}</p>
+              <Button size="sm" className="h-7 text-xs gap-1.5" onClick={requestLocation}>
+                <Navigation className="h-3.5 w-3.5" /> Autoriser ma localisation
+              </Button>
+            </div>
           )}
+          {!myPos && !error && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground flex items-center gap-2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Récupération de ta position...
+              </p>
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5" onClick={requestLocation}>
+                <Navigation className="h-3.5 w-3.5" /> Autoriser ma localisation
+              </Button>
+            </div>
+          )}
+
           {canChooseDestination && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-muted-foreground">Trajet vers :</span>
