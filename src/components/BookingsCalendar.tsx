@@ -192,7 +192,7 @@ export const BookingsCalendar = () => {
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold text-lg">{booking.services.name}</h3>
+                      <h3 className="font-semibold text-lg">{booking.services?.name ?? 'Prestation'}</h3>
                       {isEvent && (
                         <span className="inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded" style={{ backgroundColor: '#F97316', color: 'white' }}>
                           🎉 {eventLabel}

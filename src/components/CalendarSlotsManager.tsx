@@ -278,7 +278,6 @@ export const CalendarSlotsManager = () => {
           const isBlocked = isDayBlocked(day);
           const isToday = isSameDay(day, new Date());
           const dateStr = format(day, 'yyyy-MM-dd');
-          const hasOverride = dateOverrides.some(o => o.date === dateStr);
 
           return (
             <Card 
