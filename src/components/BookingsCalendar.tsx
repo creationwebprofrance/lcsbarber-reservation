@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar as CalendarIcon, User, Mail, Phone, MapPin, Clock, Euro, RotateCcw, Loader2 } from "lucide-react";
+import { LiveTrackingPanel } from "@/components/LiveTrackingPanel";
+
 
 interface Booking {
   id: string;
