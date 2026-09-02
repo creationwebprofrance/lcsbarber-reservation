@@ -61,6 +61,8 @@ export const BookingTool = () => {
   const [pendingTime, setPendingTime] = useState<string | null>(null);
   const [depositReference, setDepositReference] = useState("");
   const [depositConfirmed, setDepositConfirmed] = useState(false);
+  const [clientPhoneInput, setClientPhoneInput] = useState("");
+  const [hasKnownPhone, setHasKnownPhone] = useState(true);
 
   const { user } = useAuth();
   const { toast } = useToast();
