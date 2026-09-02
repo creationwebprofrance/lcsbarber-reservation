@@ -20,10 +20,9 @@ interface TimeSlot {
 }
 
 const modeLabels: Record<string, string> = {
-  both: 'Les deux',
-  domicile: 'Le client se déplace',
   deplacement: 'LCS Barber se déplace',
 };
+
 
 const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 

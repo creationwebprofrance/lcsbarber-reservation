@@ -28,10 +28,9 @@ interface TimeSlot {
 }
 
 const slotModeLabels: Record<string, string> = {
-  both: 'Les deux',
-  domicile: '🏠 Le client se déplace',
   deplacement: '🚗 LCS Barber se déplace',
 };
+
 
 interface DateOverride {
   id: string;
