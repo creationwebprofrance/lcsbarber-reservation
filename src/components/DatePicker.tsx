@@ -11,12 +11,11 @@ interface DatePickerProps {
   selectedDate: Date | null;
   onDateSelect: (date: Date) => void;
   onBack?: () => void;
-  mode?: 'deplacement';
+  mode?: 'domicile' | 'deplacement';
 }
 
-const matchesMode = (slotMode: string | null | undefined, mode?: 'deplacement') =>
-  !mode || !slotMode || slotMode === mode;
-
+const matchesMode = (slotMode: string | null | undefined, mode?: 'domicile' | 'deplacement') =>
+  !mode || !slotMode || slotMode === 'both' || slotMode === mode;
 
 export const DatePicker = ({ selectedDate, onDateSelect, onBack, mode }: DatePickerProps) => {
   const today = new Date();

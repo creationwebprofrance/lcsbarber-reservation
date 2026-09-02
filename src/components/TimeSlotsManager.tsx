@@ -20,9 +20,10 @@ interface TimeSlot {
 }
 
 const modeLabels: Record<string, string> = {
+  both: 'Les deux',
+  domicile: 'Le client se déplace',
   deplacement: 'LCS Barber se déplace',
 };
-
 
 const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
@@ -33,9 +34,8 @@ export const TimeSlotsManager = () => {
     start_time: '09:00',
     end_time: '12:00',
     is_available: true,
-    mode: 'deplacement' as 'deplacement'
+    mode: 'both' as 'both' | 'domicile' | 'deplacement'
   });
-
   const { toast } = useToast();
 
   useEffect(() => {
@@ -176,11 +176,12 @@ export const TimeSlotsManager = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="both">Les deux</SelectItem>
+                <SelectItem value="domicile">Le client se déplace</SelectItem>
                 <SelectItem value="deplacement">LCS Barber se déplace</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -206,6 +207,14 @@ export const TimeSlotsManager = () => {
             <Plus className="h-4 w-4 mr-2" />
             Ajouter le créneau
           </Button>
+
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setNewSlot(prev => ({ ...prev, start_time: '00:00', end_time: '00:00' }))}
+          >
+            Toute la journée (00h → 24h)
+          </Button>
         </CardContent>
       </Card>
 
@@ -229,10 +238,9 @@ export const TimeSlotsManager = () => {
                         <span className={slot.is_available ? '' : 'text-muted-foreground line-through'}>
                           {slot.start_time} - {slot.end_time}
                         </span>
-                        <Badge variant="outline" className="text-xs">
-                          {modeLabels[slot.mode] || 'LCS Barber se déplace'}
+                        <Badge variant={slot.mode === 'both' ? 'secondary' : 'outline'} className="text-xs">
+                          {modeLabels[slot.mode] || 'Les deux'}
                         </Badge>
-
                       </div>
                       <Button
                         variant="destructive"
