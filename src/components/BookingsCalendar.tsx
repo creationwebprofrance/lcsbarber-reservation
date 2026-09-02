@@ -50,6 +50,7 @@ export const BookingsCalendar = () => {
   const [search, setSearch] = useState("");
   const [refundTarget, setRefundTarget] = useState<Booking | null>(null);
   const [refunding, setRefunding] = useState(false);
+  const [cancelOnRefund, setCancelOnRefund] = useState(true);
   const { toast } = useToast();
 
   const isRefunded = (b: Booking) => /Acompte remboursé/i.test(b.notes ?? "");
