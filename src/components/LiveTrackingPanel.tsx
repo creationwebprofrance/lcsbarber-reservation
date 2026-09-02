@@ -17,6 +17,10 @@ interface LiveTrackingPanelProps {
   appointmentTime: string; // HH:mm[:ss]
   durationMinutes?: number;
   peerLabel?: string;
+  /** Adresse saisie par le client (destination alternative pour le barber). */
+  clientAddress?: string | null;
+  /** Démarre le partage de position dès l'affichage (lien de suivi reçu par email). */
+  autoStart?: boolean;
   /** Appelé une fois quand le barber démarre manuellement le suivi ("Je suis en route"). */
   onRouteStart?: (etaMinutes?: number) => void | Promise<void>;
 }
@@ -26,6 +30,7 @@ interface Position {
   lat: number;
   at: number;
 }
+
 
 const ROLE_COLOR: Record<Role, string> = {
   client: "#F4F1EA",
