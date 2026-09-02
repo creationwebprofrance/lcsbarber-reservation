@@ -378,6 +378,32 @@ export const BookingsCalendar = () => {
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!refundTarget} onOpenChange={(o) => !o && setRefundTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rembourser l'acompte ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              L'acompte de {refundTarget?.client_name} sera remboursé via Stripe, le rendez-vous
+              sera annulé et le client recevra un email d'information. Action irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={refunding}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleRefund();
+              }}
+              disabled={refunding}
+            >
+              {refunding && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirmer le remboursement
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+
   );
 };
