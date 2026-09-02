@@ -59,7 +59,10 @@ const App = () => (
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
+    </LanguageProvider>
+    </ThemeProvider>
   </QueryClientProvider>
+
 );
 
 export default App;
