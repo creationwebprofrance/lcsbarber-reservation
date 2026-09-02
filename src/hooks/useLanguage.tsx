@@ -23,8 +23,8 @@ const translations = {
     "catalogue.cardCta": "Voir le catalogue",
     "stats.onAppointment": "Sur RDV",
     "stats.onTime": "Toujours à l'heure",
-    "stats.clientTravels": "Le client se déplace",
     "stats.reviews": "Avis clients",
+
     "footer.rights": "Tous droits réservés",
     "theme.light": "Mode clair",
     "theme.dark": "Mode sombre",
@@ -50,8 +50,8 @@ const translations = {
     "catalogue.cardCta": "View the catalogue",
     "stats.onAppointment": "By appointment",
     "stats.onTime": "Always on time",
-    "stats.clientTravels": "Client travels",
     "stats.reviews": "Client reviews",
+
     "footer.rights": "All rights reserved",
     "theme.light": "Light mode",
     "theme.dark": "Dark mode",

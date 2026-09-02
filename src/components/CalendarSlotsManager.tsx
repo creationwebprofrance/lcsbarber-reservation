@@ -28,10 +28,9 @@ interface TimeSlot {
 }
 
 const slotModeLabels: Record<string, string> = {
-  both: 'Les deux',
-  domicile: '🏠 Le client se déplace',
   deplacement: '🚗 LCS Barber se déplace',
 };
+
 
 interface DateOverride {
   id: string;
@@ -62,7 +61,7 @@ export const CalendarSlotsManager = () => {
   );
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newSlot, setNewSlot] = useState({ start_time: '09:00', end_time: '10:00', mode: 'both' as 'both' | 'domicile' | 'deplacement' });
+  const [newSlot, setNewSlot] = useState({ start_time: '09:00', end_time: '10:00', mode: 'deplacement' as 'deplacement' });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -128,9 +127,10 @@ export const CalendarSlotsManager = () => {
         start_time: o.start_time ?? '', 
         end_time: o.end_time ?? '', 
         is_available: true,
-        mode: o.mode || 'both',
+        mode: o.mode || 'deplacement',
         isOverride: true 
       }));
+
     
     // A blocking marker only closes the day when no available timed override exists.
     const blockingOverride = overrides.find(o => !o.is_available && !o.start_time);
@@ -252,7 +252,7 @@ export const CalendarSlotsManager = () => {
     
     toast({ title: "Créneau ajouté" });
     loadDateOverrides();
-    setNewSlot({ start_time: '09:00', end_time: '10:00', mode: 'both' });
+    setNewSlot({ start_time: '09:00', end_time: '10:00', mode: 'deplacement' });
   };
 
   const removeOverride = async (overrideId: string) => {
@@ -336,9 +336,10 @@ export const CalendarSlotsManager = () => {
                         className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 flex items-center justify-between gap-1"
                       >
                         <span>{slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}</span>
-                        {slot.mode && slot.mode !== 'both' && (
-                          <span>{slot.mode === 'domicile' ? '🏠' : '🚗'}</span>
+                        {slot.mode && (
+                          <span>🚗</span>
                         )}
+
                       </div>
                     ))}
                     
@@ -414,8 +415,9 @@ export const CalendarSlotsManager = () => {
                         <span className="text-sm flex items-center gap-2">
                           {slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}
                           <Badge variant="outline" className="text-xs">
-                            {slotModeLabels[slot.mode || 'both']}
+                            {slotModeLabels[slot.mode || 'deplacement']}
                           </Badge>
+
                         </span>
                         {slot.isOverride && (
                           <Button 
@@ -469,11 +471,10 @@ export const CalendarSlotsManager = () => {
                     <SelectValue placeholder="Type de prestation" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="both">Les deux</SelectItem>
-                    <SelectItem value="domicile">🏠 Le client se déplace</SelectItem>
                     <SelectItem value="deplacement">🚗 LCS Barber se déplace</SelectItem>
                   </SelectContent>
                 </Select>
+
                 <Button onClick={addSlotForDate} className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter
