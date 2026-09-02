@@ -43,11 +43,8 @@ serve(async (req) => {
 
     const common = {
       mode: "payment" as const,
-      // Carte + Link + wallets (Apple Pay / Google Pay) activés dans le dashboard Stripe
-      payment_method_types: ["card", "link", "paypal"],
-      payment_method_options: {
-        card: { setup_future_usage: undefined },
-      },
+      // Carte + Link — Apple Pay / Google Pay s'affichent automatiquement avec "card"
+      payment_method_types: ["card", "link"],
       customer_email: email ?? undefined,
       line_items: [
         {
