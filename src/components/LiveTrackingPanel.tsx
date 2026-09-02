@@ -109,10 +109,36 @@ export const LiveTrackingPanel = ({
   const sameDay = isTrackingDay(appointmentDate);
   const canChooseDestination = role === "barber" && !!clientAddress;
 
-  // Démarrage automatique dans la fenêtre du rendez-vous (ou via lien de suivi)
+  // Démarrage automatique : fenêtre du RDV, lien de suivi, ou côté client le jour J
   useEffect(() => {
-    if (windowOpen || autoStart) setActive(true);
-  }, [windowOpen, autoStart]);
+    if (windowOpen || autoStart || (role === "client" && sameDay)) setActive(true);
+  }, [windowOpen, autoStart, role, sameDay]);
+
+  // Demande explicite d'autorisation de localisation (déclenche le prompt navigateur)
+  const requestLocation = useCallback(() => {
+    setError(null);
+    setActive(true);
+    if (!navigator.geolocation) {
+      setError("La géolocalisation n'est pas supportée par ton navigateur.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const p = { lng: pos.coords.longitude, lat: pos.coords.latitude, at: Date.now() };
+        setMyPos(p);
+        void channelRef.current?.track({ role, ...p });
+      },
+      (err) => {
+        setError(
+          err.code === err.PERMISSION_DENIED
+            ? "Localisation refusée. Autorise l'accès à ta position dans les réglages du navigateur, puis réessaie."
+            : "Position indisponible — vérifie que la localisation est activée sur ton téléphone."
+        );
+      },
+      { enableHighAccuracy: true, timeout: 20000 }
+    );
+  }, [role]);
+
 
   // Géocodage de l'adresse saisie par le client (destination alternative)
   useEffect(() => {
