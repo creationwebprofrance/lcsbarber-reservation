@@ -426,7 +426,55 @@ export const BookingTool = () => {
                   {isBookingDirect ? (
                     <div className="py-12 text-center space-y-4">
                       <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                      <p className="text-muted-foreground">Confirmation de votre rendez-vous...</p>
+                      <p className="text-muted-foreground">Enregistrement de ta demande...</p>
+                    </div>
+                  ) : mode === "domicile" && pendingTime && currentSelection.service ? (
+                    <div className="space-y-4">
+                      <Button variant="ghost" size="sm" onClick={() => setPendingTime(null)}>
+                        ← Changer d'horaire
+                      </Button>
+                      <div className="rounded-lg border border-border/50 bg-muted/30 p-3 text-sm">
+                        <p className="font-medium">
+                          {currentSelection.service.name} — {format(currentSelection.date, "EEEE d MMMM", { locale: fr })} à {pendingTime}
+                        </p>
+                        <p className="text-muted-foreground">{DOMICILE_ADDRESS}</p>
+                      </div>
+
+                      {!hasKnownPhone && (
+                        <div>
+                          <label htmlFor="direct-phone" className="text-sm font-medium">
+                            Téléphone *
+                          </label>
+                          <input
+                            id="direct-phone"
+                            type="tel"
+                            value={clientPhoneInput}
+                            onChange={(e) => setClientPhoneInput(e.target.value)}
+                            placeholder="06 12 34 56 78"
+                            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          />
+                        </div>
+                      )}
+
+                      <DepositPanel
+                        amount={domicileDeposit}
+                        reference={depositReference}
+                        onReferenceChange={setDepositReference}
+                        confirmed={depositConfirmed}
+                        onConfirmedChange={setDepositConfirmed}
+                      />
+
+                      <Button
+                        className="w-full"
+                        disabled={
+                          !depositConfirmed ||
+                          depositReference.trim().length < 2 ||
+                          (!hasKnownPhone && clientPhoneInput.replace(/\D/g, "").length < 10)
+                        }
+                        onClick={() => handleDirectDomicileBooking(pendingTime)}
+                      >
+                        Valider ma demande de rendez-vous
+                      </Button>
                     </div>
                   ) : (
                     <TimeSlotSelector
