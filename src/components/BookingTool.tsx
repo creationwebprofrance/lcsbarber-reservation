@@ -541,8 +541,8 @@ export const BookingTool = () => {
                         <br />
                       </>
                     )}
-                    Ton rendez-vous est <span className="font-medium text-foreground">en attente</span> jusqu'à la
                     Ton acompte a bien été réglé par carte (Stripe). Tu recevras un email de confirmation.
+
                   </p>
 
 
