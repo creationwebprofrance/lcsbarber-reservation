@@ -72,7 +72,8 @@ export const DepositPanel = ({
       body: { sessionId: id },
     });
     if (data?.paid) {
-      onReferenceChange(`Stripe ${id}`);
+      // On conserve l'ID de session Stripe brut (cs_...) pour que le serveur puisse revérifier le paiement
+      onReferenceChange(id);
       onConfirmedChange(true);
       setClientSecret(null);
       toast({ title: "Acompte reçu", description: `Paiement de ${amount}€ confirmé.` });
