@@ -105,11 +105,11 @@ export const TimeSlotSelector = ({
       // Créer une liste de tous les créneaux disponibles (par heure)
       const slots: string[] = [];
 
-      // Vérifier s'il y a une exception bloquante (jour fermé)
-      const blockingOverride = dateOverrides?.find(o => !o.is_available && !o.start_time);
-      
+      // Vérifier s'il y a une exception bloquante (jour fermé) pour ce mode
+      const blockingOverride = dateOverrides?.find(o => !o.is_available && !o.start_time && matchesMode(o.mode, mode));
+
       if (blockingOverride) {
-        // Jour bloqué - aucun créneau
+        // Jour bloqué pour ce mode - aucun créneau
         setAvailableSlots([]);
         setBookedSlots([]);
         setLoading(false);
@@ -118,6 +118,8 @@ export const TimeSlotSelector = ({
 
       // Récupérer les créneaux des exceptions avec horaires (filtrés par mode)
       const overrideSlots = dateOverrides?.filter(o => o.is_available && o.start_time && o.end_time && matchesMode(o.mode, mode)) || [];
+      // Y a-t-il des exceptions avec horaires pour cette date (tous modes confondus) ?
+      const hasAnyTimedOverride = (dateOverrides?.some(o => o.start_time && o.end_time && o.is_available)) || false;
 
       // Génère des créneaux toutes les 30 minutes (rendez-vous plus courts / plus longs)
       const pushRange = (startRaw: string, endRaw: string) => {
@@ -135,7 +137,8 @@ export const TimeSlotSelector = ({
         }
       };
 
-      if (overrideSlots.length > 0) {
+      if (hasAnyTimedOverride) {
+        // Des exceptions avec horaires existent : seuls les créneaux de ce mode sont visibles
         overrideSlots.forEach((override) => pushRange(override.start_time!, override.end_time!));
       } else {
         timeSlots?.filter((slot: TimeSlot) => matchesMode(slot.mode, mode)).forEach((slot: TimeSlot) => {

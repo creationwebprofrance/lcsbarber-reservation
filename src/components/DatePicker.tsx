@@ -49,8 +49,8 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack, mode }: DatePic
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayOverrides = overrides.filter(o => o.date === dateStr);
 
-    // Jour bloqué par une exception sans horaires
-    if (dayOverrides.some(o => !o.is_available && !o.start_time)) return false;
+    // Jour bloqué par une exception sans horaires (pour ce mode uniquement)
+    if (dayOverrides.some(o => !o.is_available && !o.start_time && matchesMode(o.mode, mode))) return false;
 
     // Exceptions avec horaires pour ce mode
     const overrideSlots = dayOverrides.filter(o => o.is_available && o.start_time && o.end_time && matchesMode(o.mode, mode));
