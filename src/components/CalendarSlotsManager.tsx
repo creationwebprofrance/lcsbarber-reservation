@@ -242,7 +242,7 @@ export const CalendarSlotsManager = () => {
       return;
     }
     
-    toast({ title: "Exception supprimée" });
+    toast({ title: "Créneau supprimé" });
     loadDateOverrides();
   };
 
@@ -278,7 +278,6 @@ export const CalendarSlotsManager = () => {
           const isBlocked = isDayBlocked(day);
           const isToday = isSameDay(day, new Date());
           const dateStr = format(day, 'yyyy-MM-dd');
-          const hasOverride = dateOverrides.some(o => o.date === dateStr);
 
           return (
             <Card 
@@ -296,11 +295,6 @@ export const CalendarSlotsManager = () => {
                       {format(day, 'd')}
                     </div>
                   </div>
-                  {hasOverride && (
-                    <Badge variant="outline" className="text-xs">
-                      Exception
-                    </Badge>
-                  )}
                 </div>
               </CardHeader>
               <CardContent className="p-2 pt-0 space-y-1">

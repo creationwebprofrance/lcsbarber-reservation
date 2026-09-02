@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { MapPin, Navigation, Loader2, X } from "lucide-react";
+import { MapPin, Navigation, Loader2, ExternalLink } from "lucide-react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { formatDistance, formatTravelTime } from "@/lib/travel-calculator";
@@ -145,15 +145,33 @@ export const BookingRouteMap = ({ mode }: BookingRouteMapProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userPosition]);
 
-  // Reset à chaque changement de mode
+  // Reset + demande automatique de la localisation à chaque changement de mode
   useEffect(() => {
     setUserPosition(null);
     setDeclined(false);
     setError(null);
     setRouteInfo(null);
+    map.current?.remove();
+    map.current = null;
+    if (navigator.geolocation) {
+      setLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserPosition([pos.coords.longitude, pos.coords.latitude]);
+          setLocating(false);
+        },
+        () => {
+          setError("Position non partagée — tu peux quand même voir le trajet avec Google Maps.");
+          setLocating(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
   }, [mode]);
 
-  if (declined) return null;
+  const googleMapsUrl = userPosition
+    ? `https://www.google.com/maps/dir/?api=1&origin=${userPosition[1]},${userPosition[0]}&destination=${encodeURIComponent(fixedPoint.address)}&travelmode=driving`
+    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fixedPoint.address)}&travelmode=driving`;
 
   return (
     <div className="mt-6 rounded-xl border border-border/50 bg-background/40 p-4 space-y-3">
@@ -177,13 +195,9 @@ export const BookingRouteMap = ({ mode }: BookingRouteMapProps) => {
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" onClick={shareLocation} disabled={locating} className="gap-2">
             {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Navigation className="h-4 w-4" />}
-            {locating ? "Localisation..." : "Partager ma position"}
+            {locating ? "Localisation..." : "Réessayer avec ma position"}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setDeclined(true)}>
-            <X className="h-4 w-4 mr-1" />
-            Non merci
-          </Button>
-          {error && <p className="w-full text-xs text-destructive">{error}</p>}
+          {error && <p className="w-full text-xs text-muted-foreground">{error}</p>}
         </div>
       ) : (
         <>
@@ -197,6 +211,13 @@ export const BookingRouteMap = ({ mode }: BookingRouteMapProps) => {
           )}
         </>
       )}
+
+      <Button asChild size="sm" variant="outline" className="w-full gap-2">
+        <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
+          <ExternalLink className="h-4 w-4" />
+          Voir le trajet avec Google Maps
+        </a>
+      </Button>
     </div>
   );
 };
