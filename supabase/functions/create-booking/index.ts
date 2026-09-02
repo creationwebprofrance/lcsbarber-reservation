@@ -106,13 +106,18 @@ serve(async (req) => {
     const { deposit_amount, deposit_reference, status, notes, deposit_paid, ...bookingFields } = validatedData;
 
     // Ne jamais faire confiance au flag client : vérifier le paiement Stripe côté serveur
+    // L'ID de session peut être envoyé brut (cs_...) ou précédemment préfixé par "Stripe "
+    const stripeSessionId = typeof deposit_reference === 'string'
+      ? deposit_reference.match(/cs_[A-Za-z0-9_]+/)?.[0] ?? null
+      : null;
+
     let verifiedDepositPaid = false;
-    if (deposit_paid && deposit_reference?.startsWith('cs_')) {
+    if (deposit_paid && stripeSessionId) {
       const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
       if (stripeKey) {
         try {
           const res = await fetch(
-            `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(deposit_reference)}`,
+            `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(stripeSessionId)}`,
             { headers: { Authorization: `Bearer ${stripeKey}` } }
           );
           if (res.ok) {
