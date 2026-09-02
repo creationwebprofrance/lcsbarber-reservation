@@ -212,14 +212,21 @@ export const TimeSlotSelector = ({
             return (
               <Card
                 key={time}
-                className={`cursor-pointer border-2 transition-all duration-200 ${
+                className={`border-2 transition-all duration-200 ${
+                  isBooked
+                    ? "border-muted bg-muted/40 opacity-60 cursor-not-allowed"
+                    : "cursor-pointer"
+                } ${
                   isSelected
                     ? "border-primary bg-primary/20 shadow-glow ring-2 ring-primary/30"
-                    : isBooked
-                    ? "border-orange-500/50 bg-orange-500/10 hover:border-orange-500"
-                    : "border-success/50 bg-success/10 hover:border-success hover:bg-success/20"
+                    : !isBooked
+                    ? "border-success/50 bg-success/10 hover:border-success hover:bg-success/20"
+                    : ""
                 }`}
-                onClick={() => onTimeSelect(time)}
+                onClick={() => {
+                  if (isBooked) return;
+                  onTimeSelect(time);
+                }}
               >
                 <div className="p-2 sm:p-3 text-center">
                   <span
@@ -227,7 +234,7 @@ export const TimeSlotSelector = ({
                       isSelected
                         ? "text-primary"
                         : isBooked
-                        ? "text-orange-500"
+                        ? "text-muted-foreground line-through"
                         : "text-success"
                     }`}
                   >
@@ -239,7 +246,7 @@ export const TimeSlotSelector = ({
                     </div>
                   )}
                   {isBooked && (
-                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-orange-500 font-medium">
+                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-muted-foreground font-medium">
                       Déjà pris
                     </div>
                   )}
