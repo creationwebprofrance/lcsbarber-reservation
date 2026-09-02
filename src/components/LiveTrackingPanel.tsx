@@ -91,6 +91,7 @@ export const LiveTrackingPanel = ({
   const peerMarker = useRef<mapboxgl.Marker | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const fitted = useRef(false);
+  const routeNotified = useRef(false);
 
   const windowOpen = useMemo(
     () => isTrackingWindowOpen(appointmentDate, appointmentTime, durationMinutes),
@@ -269,7 +270,18 @@ export const LiveTrackingPanel = ({
             </Badge>
           )}
         </div>
-        <Button size="sm" variant={active ? "outline" : "default"} onClick={() => setActive((a) => !a)}>
+        <Button
+          size="sm"
+          variant={active ? "outline" : "default"}
+          onClick={() => {
+            const next = !active;
+            setActive(next);
+            if (next && role === "barber" && onRouteStart && !routeNotified.current) {
+              routeNotified.current = true;
+              void onRouteStart(route?.duration);
+            }
+          }}
+        >
           {active ? "Arrêter le suivi" : "Je suis en route"}
         </Button>
       </div>
