@@ -213,7 +213,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
     if (requiresDeposit && (!depositPaidConfirmed || depositReference.trim().length < 2)) {
       toast({
         title: "Acompte requis",
-        description: "Indique la référence de ton virement Revolut et confirme l'envoi de l'acompte pour valider le rendez-vous.",
+        description: "Règle l'acompte par carte (Stripe) pour valider le rendez-vous.",
         variant: "destructive"
       });
       return;
