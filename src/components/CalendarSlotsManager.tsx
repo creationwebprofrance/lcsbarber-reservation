@@ -529,6 +529,37 @@ export const CalendarSlotsManager = () => {
                   Tu peux ouvrir n'importe quelle heure, y compris la nuit (ex. 22:00 → 00:00).
                 </p>
               </div>
+
+              {/* Add recurring weekly slot for this day of week */}
+              <div className="space-y-2 pt-4 border-t">
+                <Label>Ajouter un créneau récurrent (tous les {selectedDay && format(selectedDay, 'EEEE', { locale: fr })}s)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="time"
+                    value={recurringSlot.start_time}
+                    onChange={(e) => setRecurringSlot(prev => ({ ...prev, start_time: e.target.value }))}
+                  />
+                  <Input
+                    type="time"
+                    value={recurringSlot.end_time}
+                    onChange={(e) => setRecurringSlot(prev => ({ ...prev, end_time: e.target.value }))}
+                  />
+                </div>
+                <Select value={recurringSlot.mode} onValueChange={(v) => setRecurringSlot(prev => ({ ...prev, mode: v as typeof prev.mode }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Type de prestation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="both">Les deux</SelectItem>
+                    <SelectItem value="domicile">🏠 Le client se déplace</SelectItem>
+                    <SelectItem value="deplacement">🚗 LCS Barber se déplace</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={() => addRecurringSlot()} className="w-full">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter chaque semaine
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
