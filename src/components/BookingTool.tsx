@@ -14,6 +14,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { usePricingSettings } from "@/hooks/usePricingSettings";
 import { calculatePricing, type HourlySupplementSettings } from "@/lib/pricing";
+import { calculateDeposit } from "@/lib/deposit";
+import { DepositPanel } from "./DepositPanel";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Service {
