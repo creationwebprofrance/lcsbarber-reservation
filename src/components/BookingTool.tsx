@@ -180,7 +180,8 @@ export const BookingTool = () => {
                   selectedService={currentSelection.service}
                   onServiceSelect={handleServiceSelect}
                 />
-                <BookingRouteMap mode="deplacement" />
+                <BookingRouteMap />
+
               </>
             )}
 
