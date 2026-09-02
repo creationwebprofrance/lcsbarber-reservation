@@ -17,6 +17,8 @@ interface LiveTrackingPanelProps {
   appointmentTime: string; // HH:mm[:ss]
   durationMinutes?: number;
   peerLabel?: string;
+  /** Appelé une fois quand le barber démarre manuellement le suivi ("Je suis en route"). */
+  onRouteStart?: (etaMinutes?: number) => void | Promise<void>;
 }
 
 interface Position {
@@ -74,6 +76,7 @@ export const LiveTrackingPanel = ({
   appointmentTime,
   durationMinutes = 60,
   peerLabel,
+  onRouteStart,
 }: LiveTrackingPanelProps) => {
   const peerRole: Role = role === "client" ? "barber" : "client";
   const [active, setActive] = useState(false);
@@ -88,6 +91,7 @@ export const LiveTrackingPanel = ({
   const peerMarker = useRef<mapboxgl.Marker | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const fitted = useRef(false);
+  const routeNotified = useRef(false);
 
   const windowOpen = useMemo(
     () => isTrackingWindowOpen(appointmentDate, appointmentTime, durationMinutes),
@@ -266,7 +270,18 @@ export const LiveTrackingPanel = ({
             </Badge>
           )}
         </div>
-        <Button size="sm" variant={active ? "outline" : "default"} onClick={() => setActive((a) => !a)}>
+        <Button
+          size="sm"
+          variant={active ? "outline" : "default"}
+          onClick={() => {
+            const next = !active;
+            setActive(next);
+            if (next && role === "barber" && onRouteStart && !routeNotified.current) {
+              routeNotified.current = true;
+              void onRouteStart(route?.duration);
+            }
+          }}
+        >
           {active ? "Arrêter le suivi" : "Je suis en route"}
         </Button>
       </div>

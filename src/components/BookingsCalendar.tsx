@@ -83,6 +83,26 @@ export const BookingsCalendar = () => {
   };
 
 
+  const notifyOnTheWay = async (booking: Booking, etaMinutes?: number) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("notify-barber-on-the-way", {
+        body: { bookingId: booking.id, etaMinutes },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast({
+        title: "Client prévenu",
+        description: `${booking.client_name} a reçu un email « LCS Barber est en route ».`,
+      });
+    } catch (e: any) {
+      toast({
+        title: "Email non envoyé",
+        description: e?.message ?? "Le suivi reste actif, mais l'email n'a pas pu être envoyé.",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     loadBookings();
   }, []);
@@ -348,6 +368,7 @@ export const BookingsCalendar = () => {
                       appointmentDate={booking.appointment_date}
                       appointmentTime={booking.appointment_time}
                       peerLabel={booking.client_name}
+                      onRouteStart={(etaMinutes) => notifyOnTheWay(booking, etaMinutes)}
                     />
                   )}
 

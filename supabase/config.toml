@@ -39,3 +39,6 @@ verify_jwt = false
 
 [functions.verify-deposit-payment]
 verify_jwt = false
+
+[functions.notify-barber-on-the-way]
+verify_jwt = false
