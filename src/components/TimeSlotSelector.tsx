@@ -156,9 +156,10 @@ export const TimeSlotSelector = ({
     }
   };
 
-  const isSlotAvailable = (time: string) => {
-    return !bookedSlots.includes(time);
-  };
+  // La superposition de rendez-vous est autorisée : un créneau déjà pris
+  // reste sélectionnable, il est simplement signalé visuellement.
+  const isSlotAvailable = (_time: string) => true;
+  const isSlotBooked = (time: string) => bookedSlots.includes(time);
 
   if (loading) {
     return <div className="text-center py-8">Chargement des créneaux disponibles...</div>;
@@ -202,6 +203,7 @@ export const TimeSlotSelector = ({
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5">
           {availableSlots.map((time) => {
             const isAvailable = isSlotAvailable(time);
+            const isBooked = isSlotBooked(time);
             const isSelected = selectedTime === time;
             const supplementText = hideSupplements ? null : getTimeSupplementText(time);
 
@@ -209,21 +211,21 @@ export const TimeSlotSelector = ({
               <Card
                 key={time}
                 className={`cursor-pointer border-2 transition-all duration-200 ${
-                  !isAvailable
-                    ? "border-muted-foreground/30 bg-muted/50 cursor-not-allowed opacity-60"
-                    : isSelected
+                  isSelected
                     ? "border-primary bg-primary/20 shadow-glow ring-2 ring-primary/30"
+                    : isBooked
+                    ? "border-orange-500/50 bg-orange-500/10 hover:border-orange-500"
                     : "border-success/50 bg-success/10 hover:border-success hover:bg-success/20"
                 }`}
-                onClick={() => isAvailable && onTimeSelect(time)}
+                onClick={() => onTimeSelect(time)}
               >
                 <div className="p-2 sm:p-3 text-center">
                   <span
                     className={`font-semibold text-sm sm:text-base ${
-                      !isAvailable
-                        ? "text-muted-foreground/60 line-through"
-                        : isSelected
+                      isSelected
                         ? "text-primary"
+                        : isBooked
+                        ? "text-orange-500"
                         : "text-success"
                     }`}
                   >
@@ -234,9 +236,9 @@ export const TimeSlotSelector = ({
                       {supplementText.match(/\+(\d+)€/)?.[0] || '+?€'}
                     </div>
                   )}
-                  {!isAvailable && (
-                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-muted-foreground font-medium">
-                      Réservé
+                  {isBooked && (
+                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-orange-500 font-medium">
+                      Déjà pris
                     </div>
                   )}
                 </div>
@@ -251,8 +253,8 @@ export const TimeSlotSelector = ({
             <span className="text-foreground font-medium">Disponible</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-muted-foreground/30 border-2 border-muted-foreground/30"></div>
-            <span className="text-foreground font-medium">Réservé</span>
+            <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-orange-500 border-2 border-orange-500"></div>
+            <span className="text-foreground font-medium">Déjà pris (superposition possible)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-primary border-2 border-primary"></div>
