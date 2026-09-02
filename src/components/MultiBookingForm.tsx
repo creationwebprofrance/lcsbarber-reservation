@@ -293,8 +293,8 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
       }
 
       toast({
-        title: "✅ Rendez-vous confirmés !",
-        description: `Vos ${bookingItems.length} rendez-vous ont été enregistrés. Un email de confirmation vous a été envoyé.`,
+        title: "✅ Demande enregistrée !",
+        description: `${bookingItems.length} rendez-vous en attente de validation de l'acompte (${depositAmount}€). Tu recevras la confirmation dès réception.`,
         duration: 6000,
       });
 
