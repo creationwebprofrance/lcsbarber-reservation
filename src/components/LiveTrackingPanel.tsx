@@ -81,6 +81,8 @@ export const LiveTrackingPanel = ({
   appointmentTime,
   durationMinutes = 60,
   peerLabel,
+  clientAddress,
+  autoStart,
   onRouteStart,
 }: LiveTrackingPanelProps) => {
   const peerRole: Role = role === "client" ? "barber" : "client";
@@ -89,6 +91,8 @@ export const LiveTrackingPanel = ({
   const [peerPos, setPeerPos] = useState<Position | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [route, setRoute] = useState<{ duration: number; distance: number } | null>(null);
+  const [destination, setDestination] = useState<"live" | "address">("live");
+  const [addressPos, setAddressPos] = useState<Position | null>(null);
 
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -103,11 +107,36 @@ export const LiveTrackingPanel = ({
     [appointmentDate, appointmentTime, durationMinutes]
   );
   const sameDay = isTrackingDay(appointmentDate);
+  const canChooseDestination = role === "barber" && !!clientAddress;
 
-  // Démarrage automatique dans la fenêtre du rendez-vous
+  // Démarrage automatique dans la fenêtre du rendez-vous (ou via lien de suivi)
   useEffect(() => {
-    if (windowOpen) setActive(true);
-  }, [windowOpen]);
+    if (windowOpen || autoStart) setActive(true);
+  }, [windowOpen, autoStart]);
+
+  // Géocodage de l'adresse saisie par le client (destination alternative)
+  useEffect(() => {
+    if (!canChooseDestination || !clientAddress || addressPos) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+            clientAddress
+          )}.json?access_token=${MAPBOX_PUBLIC_TOKEN}&country=fr&limit=1`
+        );
+        const data = await res.json();
+        const c = data.features?.[0]?.center;
+        if (!cancelled && Array.isArray(c)) setAddressPos({ lng: c[0], lat: c[1], at: Date.now() });
+      } catch (e) {
+        console.error("Géocodage adresse client:", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [canChooseDestination, clientAddress, addressPos]);
+
 
   // Canal temps réel + géolocalisation continue
   useEffect(() => {
