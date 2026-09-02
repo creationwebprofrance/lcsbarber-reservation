@@ -50,23 +50,24 @@ export const BookingsCalendar = () => {
   const [search, setSearch] = useState("");
   const [refundTarget, setRefundTarget] = useState<Booking | null>(null);
   const [refunding, setRefunding] = useState(false);
+  const [cancelOnRefund, setCancelOnRefund] = useState(true);
   const { toast } = useToast();
 
-  const canRefund = (b: Booking) =>
-    b.deposit_paid && /cs_[A-Za-z0-9_]+/.test(b.notes ?? "") && !/Acompte remboursé/i.test(b.notes ?? "");
+  const isRefunded = (b: Booking) => /Acompte remboursé/i.test(b.notes ?? "");
+  const canRefund = (b: Booking) => b.deposit_paid && !isRefunded(b);
 
   const handleRefund = async () => {
     if (!refundTarget) return;
     setRefunding(true);
     try {
       const { data, error } = await supabase.functions.invoke("refund-deposit", {
-        body: { booking_id: refundTarget.id, cancel_booking: true },
+        body: { booking_id: refundTarget.id, cancel_booking: cancelOnRefund },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
       toast({
         title: "Acompte remboursé",
-        description: `${(data as any)?.amount ?? ""}€ remboursés à ${refundTarget.client_name}. Le rendez-vous est annulé.`,
+        description: `${(data as any)?.amount ?? ""}€ remboursés à ${refundTarget.client_name}.${cancelOnRefund ? " Le rendez-vous est annulé (conservé dans l'historique)." : " Le rendez-vous est conservé."}`,
       });
       setRefundTarget(null);
       await loadBookings();
@@ -165,6 +166,8 @@ export const BookingsCalendar = () => {
   if (loading) {
     return <div>Chargement...</div>;
   }
+
+  const cancelled = bookings.filter((b) => b.status === 'cancelled');
 
   const searched = bookings.filter((b) => {
     if (!search.trim()) return true;
@@ -313,21 +316,29 @@ export const BookingsCalendar = () => {
                     </div>
                   )}
 
-                  {canRefund(booking) && (
+                  {isRefunded(booking) ? (
+                    <p className="pt-3 border-t text-xs text-muted-foreground">Acompte déjà remboursé</p>
+                  ) : (
                     <div className="pt-3 border-t">
                       <Button
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        onClick={() => setRefundTarget(booking)}
+                        disabled={!canRefund(booking)}
+                        onClick={() => {
+                          setCancelOnRefund(true);
+                          setRefundTarget(booking);
+                        }}
                       >
                         <RotateCcw className="h-4 w-4 mr-2" />
                         Rembourser l'acompte
                       </Button>
+                      {!canRefund(booking) && (
+                        <p className="mt-1 text-xs text-muted-foreground text-center">
+                          Aucun acompte payé sur cette réservation
+                        </p>
+                      )}
                     </div>
-                  )}
-                  {booking.deposit_paid === false && /Acompte remboursé/i.test(booking.notes ?? "") && (
-                    <p className="pt-2 text-xs text-muted-foreground">Acompte déjà remboursé</p>
                   )}
 
                   {booking.status !== "cancelled" && (
@@ -392,15 +403,58 @@ export const BookingsCalendar = () => {
         </CardContent>
       </Card>
 
+      {/* Historique des rendez-vous annulés */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Historique des rendez-vous annulés ({cancelled.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="max-h-[400px] overflow-y-auto divide-y">
+            {cancelled.length === 0 ? (
+              <p className="py-6 text-center text-muted-foreground">Aucun rendez-vous annulé</p>
+            ) : (
+              cancelled.map((b) => (
+                <div key={b.id} className="py-3 px-2 space-y-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium truncate">{b.client_name}</p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-sm font-semibold">{b.total_price}€</span>
+                      <Badge className="bg-red-500">Annulé</Badge>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(b.appointment_date), 'd MMM yyyy', { locale: fr })} · {b.appointment_time?.slice(0, 5)} · {b.services?.name ?? 'Prestation'} · {b.client_email}
+                  </p>
+                  {isRefunded(b) && (
+                    <p className="text-xs" style={{ color: '#C58B52' }}>
+                      {(b.notes ?? '').split('\n').filter((l) => /Acompte remboursé/i.test(l)).join(' ')}
+                    </p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <AlertDialog open={!!refundTarget} onOpenChange={(o) => !o && setRefundTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Rembourser l'acompte ?</AlertDialogTitle>
             <AlertDialogDescription>
-              L'acompte de {refundTarget?.client_name} sera remboursé via Stripe, le rendez-vous
-              sera annulé et le client recevra un email d'information. Action irréversible.
+              L'acompte de {refundTarget?.client_name} sera remboursé via Stripe et le client
+              recevra un email d'information. Le rendez-vous n'est jamais supprimé : il reste
+              consultable dans l'historique.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={cancelOnRefund}
+              onChange={(e) => setCancelOnRefund(e.target.checked)}
+            />
+            Annuler aussi le rendez-vous
+          </label>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={refunding}>Annuler</AlertDialogCancel>
             <AlertDialogAction
