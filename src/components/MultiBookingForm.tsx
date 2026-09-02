@@ -239,11 +239,12 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
             (createdBookings.length === 0 ? travelCalculation.fees : 0), // Travel fees only on first booking
           travel_fee: createdBookings.length === 0 ? travelCalculation.fees : 0,
           notes: validatedData.message || null,
-          // L'acompte n'est marqué payé qu'après vérification manuelle de la réception
-          deposit_paid: false,
+          // L'acompte est encaissé via Stripe avant la création du rendez-vous
+          deposit_paid: requiresDeposit,
           deposit_amount: createdBookings.length === 0 ? depositAmount : 0,
           deposit_reference: createdBookings.length === 0 ? depositReference.trim() : null,
-          status: 'pending' as const,
+          status: 'confirmed' as const,
+
         };
 
         const { data: bookingResult, error: bookingError } = await supabase.functions.invoke('create-booking', {
