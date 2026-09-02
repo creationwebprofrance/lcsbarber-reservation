@@ -72,29 +72,8 @@ serve(async (req) => {
       );
     }
     
-    // Check if the time slot is already booked by ANOTHER client
-    const { data: existingBooking } = await supabase
-      .from('bookings')
-      .select('id, client_email')
-      .eq('appointment_date', validatedData.appointment_date)
-      .eq('appointment_time', validatedData.appointment_time)
-      .in('status', ['confirmed', 'pending'])
-      .neq('client_email', validatedData.client_email)
-      .maybeSingle();
-    
-    if (existingBooking) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Ce créneau n\'est plus disponible. Veuillez en choisir un autre.' 
-        }),
-        { 
-          status: 409, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-    
+    // Superposition autorisée : plusieurs rendez-vous peuvent partager le même créneau.
+
     // Create the booking
     const { data: newBooking, error: bookingError } = await supabase
       .from('bookings')
