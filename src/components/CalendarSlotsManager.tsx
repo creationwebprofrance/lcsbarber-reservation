@@ -204,7 +204,8 @@ export const CalendarSlotsManager = () => {
     loadDateOverrides();
   };
 
-  const addSlotForDate = async () => {
+  const addSlotForDate = async (override?: { start_time: string; end_time: string }) => {
+    const slotToAdd = { ...newSlot, ...(override || {}) };
     if (!selectedDay) return;
     
     const dateStr = format(selectedDay, 'yyyy-MM-dd');
