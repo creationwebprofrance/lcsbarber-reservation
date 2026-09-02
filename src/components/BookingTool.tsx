@@ -64,6 +64,10 @@ export const BookingTool = () => {
   const [clientPhoneInput, setClientPhoneInput] = useState("");
   const [hasKnownPhone, setHasKnownPhone] = useState(true);
 
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { data: pricingSettings } = usePricingSettings();
+
   useEffect(() => {
     if (!user?.email) return;
     let cancelled = false;
@@ -80,10 +84,6 @@ export const BookingTool = () => {
       cancelled = true;
     };
   }, [user?.email]);
-
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const { data: pricingSettings } = usePricingSettings();
 
   const hourlySettings: HourlySupplementSettings | undefined = pricingSettings ? {
     earlyHourThreshold: pricingSettings.early_hour_threshold,
