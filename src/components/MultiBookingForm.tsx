@@ -532,7 +532,9 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
               onReferenceChange={setDepositReference}
               confirmed={depositPaidConfirmed}
               onConfirmedChange={setDepositPaidConfirmed}
+              email={formData.email || user?.email || undefined}
             />
+
           )}
 
           <div className="flex justify-end space-x-3">
