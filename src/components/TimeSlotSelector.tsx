@@ -119,43 +119,36 @@ export const TimeSlotSelector = ({
       // Récupérer les créneaux des exceptions avec horaires (filtrés par mode)
       const overrideSlots = dateOverrides?.filter(o => o.is_available && o.start_time && o.end_time && matchesMode(o.mode, mode)) || [];
 
+      // Génère des créneaux toutes les 30 minutes (rendez-vous plus courts / plus longs)
+      const pushRange = (startRaw: string, endRaw: string) => {
+        const start = startRaw.substring(0, 5);
+        const end = endRaw.substring(0, 5);
+        const [sh, sm] = start.split(':').map(Number);
+        const [eh, em] = end.split(':').map(Number);
+        const startMin = sh * 60 + sm;
+        let endMin = eh * 60 + em;
+        if (endMin <= startMin) endMin = 24 * 60; // 00:00 = minuit
+        for (let m = startMin; m < endMin; m += 30) {
+          const h = Math.floor(m / 60) % 24;
+          const mn = m % 60;
+          slots.push(`${h.toString().padStart(2, '0')}:${mn.toString().padStart(2, '0')}`);
+        }
+      };
+
       if (overrideSlots.length > 0) {
-        // Utiliser les horaires des exceptions
-        overrideSlots.forEach((override) => {
-          const start = override.start_time!.substring(0, 5);
-          const end = override.end_time!.substring(0, 5);
-          
-          const startHour = parseInt(start.split(':')[0]);
-          let endHour = parseInt(end.split(':')[0]);
-          // Traiter minuit (00:00) comme 24 pour générer les créneaux jusqu'à minuit
-          if (endHour === 0) endHour = 24;
-          
-          // Générer des créneaux toutes les heures
-          for (let hour = startHour; hour < endHour; hour++) {
-            slots.push(`${hour.toString().padStart(2, '0')}:00`);
-          }
-        });
+        overrideSlots.forEach((override) => pushRange(override.start_time!, override.end_time!));
       } else {
-        // Utiliser les créneaux réguliers (filtrés par mode)
         timeSlots?.filter((slot: TimeSlot) => matchesMode(slot.mode, mode)).forEach((slot: TimeSlot) => {
-          const start = slot.start_time.substring(0, 5);
-          const end = slot.end_time.substring(0, 5);
-          
-          const startHour = parseInt(start.split(':')[0]);
-          let endHour = parseInt(end.split(':')[0]);
-          if (endHour === 0) endHour = 24;
-          
-          for (let hour = startHour; hour < endHour; hour++) {
-            slots.push(`${hour.toString().padStart(2, '0')}:00`);
-          }
+          pushRange(slot.start_time, slot.end_time);
         });
       }
 
       // Marquer les créneaux déjà réservés
       const booked = bookings?.map(b => b.appointment_time.substring(0, 5)) || [];
 
-      setAvailableSlots(slots.sort());
+      setAvailableSlots(Array.from(new Set(slots)).sort());
       setBookedSlots(booked);
+
     } catch (error) {
       console.error('Error loading time slots:', error);
     } finally {
@@ -163,9 +156,10 @@ export const TimeSlotSelector = ({
     }
   };
 
-  const isSlotAvailable = (time: string) => {
-    return !bookedSlots.includes(time);
-  };
+  // La superposition de rendez-vous est autorisée : un créneau déjà pris
+  // reste sélectionnable, il est simplement signalé visuellement.
+  const isSlotAvailable = (_time: string) => true;
+  const isSlotBooked = (time: string) => bookedSlots.includes(time);
 
   if (loading) {
     return <div className="text-center py-8">Chargement des créneaux disponibles...</div>;
@@ -209,6 +203,7 @@ export const TimeSlotSelector = ({
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5">
           {availableSlots.map((time) => {
             const isAvailable = isSlotAvailable(time);
+            const isBooked = isSlotBooked(time);
             const isSelected = selectedTime === time;
             const supplementText = hideSupplements ? null : getTimeSupplementText(time);
 
@@ -216,21 +211,21 @@ export const TimeSlotSelector = ({
               <Card
                 key={time}
                 className={`cursor-pointer border-2 transition-all duration-200 ${
-                  !isAvailable
-                    ? "border-muted-foreground/30 bg-muted/50 cursor-not-allowed opacity-60"
-                    : isSelected
+                  isSelected
                     ? "border-primary bg-primary/20 shadow-glow ring-2 ring-primary/30"
+                    : isBooked
+                    ? "border-orange-500/50 bg-orange-500/10 hover:border-orange-500"
                     : "border-success/50 bg-success/10 hover:border-success hover:bg-success/20"
                 }`}
-                onClick={() => isAvailable && onTimeSelect(time)}
+                onClick={() => onTimeSelect(time)}
               >
                 <div className="p-2 sm:p-3 text-center">
                   <span
                     className={`font-semibold text-sm sm:text-base ${
-                      !isAvailable
-                        ? "text-muted-foreground/60 line-through"
-                        : isSelected
+                      isSelected
                         ? "text-primary"
+                        : isBooked
+                        ? "text-orange-500"
                         : "text-success"
                     }`}
                   >
@@ -241,9 +236,9 @@ export const TimeSlotSelector = ({
                       {supplementText.match(/\+(\d+)€/)?.[0] || '+?€'}
                     </div>
                   )}
-                  {!isAvailable && (
-                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-muted-foreground font-medium">
-                      Réservé
+                  {isBooked && (
+                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-orange-500 font-medium">
+                      Déjà pris
                     </div>
                   )}
                 </div>
@@ -258,8 +253,8 @@ export const TimeSlotSelector = ({
             <span className="text-foreground font-medium">Disponible</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-muted-foreground/30 border-2 border-muted-foreground/30"></div>
-            <span className="text-foreground font-medium">Réservé</span>
+            <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-orange-500 border-2 border-orange-500"></div>
+            <span className="text-foreground font-medium">Déjà pris (superposition possible)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-primary border-2 border-primary"></div>
