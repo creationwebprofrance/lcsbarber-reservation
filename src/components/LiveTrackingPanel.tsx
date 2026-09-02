@@ -17,6 +17,10 @@ interface LiveTrackingPanelProps {
   appointmentTime: string; // HH:mm[:ss]
   durationMinutes?: number;
   peerLabel?: string;
+  /** Adresse saisie par le client (destination alternative pour le barber). */
+  clientAddress?: string | null;
+  /** Démarre le partage de position dès l'affichage (lien de suivi reçu par email). */
+  autoStart?: boolean;
   /** Appelé une fois quand le barber démarre manuellement le suivi ("Je suis en route"). */
   onRouteStart?: (etaMinutes?: number) => void | Promise<void>;
 }
@@ -26,6 +30,7 @@ interface Position {
   lat: number;
   at: number;
 }
+
 
 const ROLE_COLOR: Record<Role, string> = {
   client: "#F4F1EA",
@@ -76,6 +81,8 @@ export const LiveTrackingPanel = ({
   appointmentTime,
   durationMinutes = 60,
   peerLabel,
+  clientAddress,
+  autoStart,
   onRouteStart,
 }: LiveTrackingPanelProps) => {
   const peerRole: Role = role === "client" ? "barber" : "client";
@@ -84,6 +91,8 @@ export const LiveTrackingPanel = ({
   const [peerPos, setPeerPos] = useState<Position | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [route, setRoute] = useState<{ duration: number; distance: number } | null>(null);
+  const [destination, setDestination] = useState<"live" | "address">("live");
+  const [addressPos, setAddressPos] = useState<Position | null>(null);
 
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -98,11 +107,36 @@ export const LiveTrackingPanel = ({
     [appointmentDate, appointmentTime, durationMinutes]
   );
   const sameDay = isTrackingDay(appointmentDate);
+  const canChooseDestination = role === "barber" && !!clientAddress;
 
-  // Démarrage automatique dans la fenêtre du rendez-vous
+  // Démarrage automatique dans la fenêtre du rendez-vous (ou via lien de suivi)
   useEffect(() => {
-    if (windowOpen) setActive(true);
-  }, [windowOpen]);
+    if (windowOpen || autoStart) setActive(true);
+  }, [windowOpen, autoStart]);
+
+  // Géocodage de l'adresse saisie par le client (destination alternative)
+  useEffect(() => {
+    if (!canChooseDestination || !clientAddress || addressPos) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+            clientAddress
+          )}.json?access_token=${MAPBOX_PUBLIC_TOKEN}&country=fr&limit=1`
+        );
+        const data = await res.json();
+        const c = data.features?.[0]?.center;
+        if (!cancelled && Array.isArray(c)) setAddressPos({ lng: c[0], lat: c[1], at: Date.now() });
+      } catch (e) {
+        console.error("Géocodage adresse client:", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [canChooseDestination, clientAddress, addressPos]);
+
 
   // Canal temps réel + géolocalisation continue
   useEffect(() => {
@@ -212,12 +246,18 @@ export const LiveTrackingPanel = ({
     }
   }, [myPos, peerPos, role, peerRole, peerLabel]);
 
+  // Destination du trajet : position live du client ou adresse saisie
+  const targetPos = useMemo(() => {
+    if (canChooseDestination && destination === "address") return addressPos;
+    return peerPos ?? (canChooseDestination ? addressPos : null);
+  }, [canChooseDestination, destination, addressPos, peerPos]);
+
   // Trajet + ETA recalculés régulièrement
   const refreshRoute = useCallback(async () => {
     const m = map.current;
-    if (!m || !myPos || !peerPos) return;
+    if (!m || !myPos || !targetPos) return;
     try {
-      const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${myPos.lng},${myPos.lat};${peerPos.lng},${peerPos.lat}?access_token=${MAPBOX_PUBLIC_TOKEN}&geometries=geojson&overview=full`;
+      const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${myPos.lng},${myPos.lat};${targetPos.lng},${targetPos.lat}?access_token=${MAPBOX_PUBLIC_TOKEN}&geometries=geojson&overview=full`;
       const res = await fetch(url);
       const data = await res.json();
       const r = data.routes?.[0];
@@ -241,15 +281,16 @@ export const LiveTrackingPanel = ({
     } catch (e) {
       console.error("Erreur itinéraire live:", e);
     }
-  }, [myPos, peerPos]);
+  }, [myPos, targetPos]);
 
   useEffect(() => {
-    if (!active || !myPos || !peerPos) return;
+    if (!active || !myPos || !targetPos) return;
     refreshRoute();
     const id = setInterval(refreshRoute, 30_000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, !!myPos, !!peerPos]);
+  }, [active, !!myPos, targetPos?.lng, targetPos?.lat, destination]);
+
 
   if (!sameDay && !windowOpen) return null;
 
@@ -299,7 +340,33 @@ export const LiveTrackingPanel = ({
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Récupération de ta position...
             </p>
           )}
+          {canChooseDestination && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-muted-foreground">Trajet vers :</span>
+              <Button
+                size="sm"
+                variant={destination === "address" ? "default" : "outline"}
+                className="h-7 text-xs"
+                onClick={() => setDestination("address")}
+              >
+                Adresse du client
+              </Button>
+              <Button
+                size="sm"
+                variant={destination === "live" ? "default" : "outline"}
+                className="h-7 text-xs"
+                disabled={!peerPos}
+                onClick={() => setDestination("live")}
+              >
+                Position partagée
+              </Button>
+              {destination === "address" && clientAddress && (
+                <span className="text-[11px] text-muted-foreground">{clientAddress}</span>
+              )}
+            </div>
+          )}
           <div ref={mapContainer} className="h-64 w-full rounded-lg overflow-hidden bg-muted/30" />
+
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <Navigation className="h-3.5 w-3.5 text-primary" />
