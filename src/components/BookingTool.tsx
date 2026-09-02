@@ -539,7 +539,8 @@ export const BookingTool = () => {
                         <br />
                       </>
                     )}
-                    Un email de confirmation vous a été envoyé.
+                    Ton rendez-vous est <span className="font-medium text-foreground">en attente</span> jusqu'à la
+                    vérification de l'acompte sur Revolut. Tu recevras un email dès qu'il sera confirmé.
                   </p>
 
                   <Button variant="outline" onClick={resetBooking}>
