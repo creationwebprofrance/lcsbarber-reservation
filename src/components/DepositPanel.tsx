@@ -1,9 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Loader2, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LatePolicy } from "./LatePolicy";
+import { stripePromise } from "@/lib/stripe";
+import {
+  EmbeddedCheckout,
+  EmbeddedCheckoutProvider,
+} from "@stripe/react-stripe-js";
 
 interface DepositPanelProps {
   amount: number;
@@ -24,38 +29,8 @@ export const DepositPanel = ({
 }: DepositPanelProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const pollRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (pollRef.current) window.clearInterval(pollRef.current);
-    };
-  }, []);
-
-  const verify = async (id: string, silent = false) => {
-    const { data, error } = await supabase.functions.invoke("verify-deposit-payment", {
-      body: { sessionId: id },
-    });
-    if (error) return false;
-    if (data?.paid) {
-      onReferenceChange(`Stripe ${id}`);
-      onConfirmedChange(true);
-      if (pollRef.current) window.clearInterval(pollRef.current);
-      setChecking(false);
-      toast({ title: "Acompte reçu", description: `Paiement de ${amount}€ confirmé.` });
-      return true;
-    }
-    if (!silent) {
-      toast({
-        title: "Paiement non détecté",
-        description: "Termine le paiement dans l'onglet Stripe, puis réessaie.",
-        variant: "destructive",
-      });
-    }
-    return false;
-  };
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
 
   const startPayment = async () => {
     setLoading(true);
@@ -66,33 +41,12 @@ export const DepositPanel = ({
           email: email || undefined,
           description: `Acompte de ${amount}€ pour ton rendez-vous`,
           origin: window.location.origin,
+          embedded: true,
         },
       });
-      if (error || !data?.url) throw error ?? new Error("no url");
-
-      setSessionId(data.sessionId);
-
-      // Ouvre Stripe Checkout en popup centrée (pas de nouvel onglet)
-      const w = 500;
-      const h = 700;
-      const left = window.screenX + (window.outerWidth - w) / 2;
-      const top = window.screenY + (window.outerHeight - h) / 2;
-      const popup = window.open(
-        data.url,
-        "stripe-checkout",
-        `popup=yes,width=${w},height=${h},left=${left},top=${top},noopener,noreferrer`,
-      );
-      // Fallback si le navigateur bloque la popup : redirection dans la même page
-      if (!popup) {
-        window.location.href = data.url;
-        return;
-      }
-      setChecking(true);
-
-      if (pollRef.current) window.clearInterval(pollRef.current);
-      pollRef.current = window.setInterval(() => {
-        verify(data.sessionId, true);
-      }, 4000);
+      if (error || !data?.clientSecret) throw error ?? new Error("no client secret");
+      sessionIdRef.current = data.sessionId;
+      setClientSecret(data.clientSecret);
     } catch (e) {
       console.error(e);
       toast({
@@ -105,6 +59,26 @@ export const DepositPanel = ({
     }
   };
 
+  const onComplete = useCallback(async () => {
+    const id = sessionIdRef.current;
+    if (!id) return;
+    const { data } = await supabase.functions.invoke("verify-deposit-payment", {
+      body: { sessionId: id },
+    });
+    if (data?.paid) {
+      onReferenceChange(`Stripe ${id}`);
+      onConfirmedChange(true);
+      setClientSecret(null);
+      toast({ title: "Acompte reçu", description: `Paiement de ${amount}€ confirmé.` });
+    } else {
+      toast({
+        title: "Paiement non confirmé",
+        description: "Le paiement n'a pas pu être vérifié. Réessaie.",
+        variant: "destructive",
+      });
+    }
+  }, [amount, onConfirmedChange, onReferenceChange, toast]);
+
   return (
     <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
       <div className="flex items-center justify-between">
@@ -116,6 +90,15 @@ export const DepositPanel = ({
         <div className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 p-3 text-sm">
           <CheckCircle2 className="h-4 w-4 text-primary" />
           <span>Acompte de {amount}€ payé par carte. Ton rendez-vous peut être validé.</span>
+        </div>
+      ) : clientSecret ? (
+        <div className="rounded-lg bg-background p-2">
+          <EmbeddedCheckoutProvider
+            stripe={stripePromise}
+            options={{ clientSecret, onComplete }}
+          >
+            <EmbeddedCheckout />
+          </EmbeddedCheckoutProvider>
         </div>
       ) : (
         <>
@@ -130,21 +113,8 @@ export const DepositPanel = ({
             Payer {amount}€ par carte
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Paiement sécurisé par Stripe — CB, Apple Pay, Google Pay
+            Paiement sécurisé par Stripe — CB, Apple Pay, Google Pay, Link
           </p>
-
-          {sessionId && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full gap-2"
-              onClick={() => verify(sessionId)}
-            >
-              {checking && <Loader2 className="h-3 w-3 animate-spin" />}
-              J'ai payé — vérifier le paiement
-            </Button>
-          )}
         </>
       )}
 
