@@ -167,6 +167,8 @@ export const BookingsCalendar = () => {
     return <div>Chargement...</div>;
   }
 
+  const cancelled = bookings.filter((b) => b.status === 'cancelled');
+
   const searched = bookings.filter((b) => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
