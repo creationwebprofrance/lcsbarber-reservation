@@ -7,23 +7,10 @@ import { formatDistance, formatTravelTime } from "@/lib/travel-calculator";
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibGNoaXBhbiIsImEiOiJjbWZtOHc1dG4wZDdzMmlzN3hmeDRldnhzIn0.lK1A8wh63mIkudWk8h7f6Q';
 
-interface BookingRouteMapProps {
-  mode: "domicile" | "deplacement";
-}
-
-// "LCS Barber se déplace" : le barber part de la gare de Louvres
-// "Le client se déplace" : rendez-vous à côté du domicile
 const FIXED_POINT = {
-  domicile: {
-    label: "Le rendez-vous",
-    address: "Imp. des Hirondelles Prolongée, 95380 Puiseux-en-France",
-    geocodeQuery: "Imp. des Hirondelles Prolongée, 95380 Puiseux-en-France",
-  },
-  deplacement: {
-    label: "LCS Barber (départ)",
-    address: "Gare de Louvres, 95380 Louvres",
-    geocodeQuery: "Gare de Louvres, 95380 Louvres",
-  },
+  label: "LCS Barber (départ)",
+  address: "Gare de Louvres, 95380 Louvres",
+  geocodeQuery: "Gare de Louvres, 95380 Louvres",
 } as const;
 
 const geocode = async (query: string): Promise<[number, number] | null> => {
@@ -34,16 +21,13 @@ const geocode = async (query: string): Promise<[number, number] | null> => {
   return data.features[0].center as [number, number];
 };
 
-export const BookingRouteMap = ({ mode }: BookingRouteMapProps) => {
+export const BookingRouteMap = () => {
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   const [locating, setLocating] = useState(false);
-  const [declined, setDeclined] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [routeInfo, setRouteInfo] = useState<{ duration: number; distance: number } | null>(null);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-
-  const fixedPoint = FIXED_POINT[mode];
 
   const shareLocation = () => {
     if (!navigator.geolocation) {
@@ -72,7 +56,7 @@ export const BookingRouteMap = ({ mode }: BookingRouteMapProps) => {
     let cancelled = false;
 
     const init = async () => {
-      const fixedCoords = await geocode(fixedPoint.geocodeQuery);
+      const fixedCoords = await geocode(FIXED_POINT.geocodeQuery);
       if (cancelled || !fixedCoords || !mapContainer.current) return;
 
       mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -90,7 +74,6 @@ export const BookingRouteMap = ({ mode }: BookingRouteMapProps) => {
       m.on("load", async () => {
         if (cancelled) return;
 
-        // Marqueurs : position du client + point fixe
         new mapboxgl.Marker({ color: "#F4F1EA" })
           .setLngLat(userPosition)
           .setPopup(new mapboxgl.Popup({ offset: 25 }).setText("Ta position"))
@@ -98,10 +81,9 @@ export const BookingRouteMap = ({ mode }: BookingRouteMapProps) => {
 
         new mapboxgl.Marker({ color: "#C58B52" })
           .setLngLat(fixedCoords)
-          .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(fixedPoint.label))
+          .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(FIXED_POINT.label))
           .addTo(m);
 
-        // Itinéraire
         try {
           const dirUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${userPosition[0]},${userPosition[1]};${fixedCoords[0]},${fixedCoords[1]}?access_token=${MAPBOX_TOKEN}&geometries=geojson`;
           const res = await fetch(dirUrl);
@@ -142,17 +124,12 @@ export const BookingRouteMap = ({ mode }: BookingRouteMapProps) => {
       map.current?.remove();
       map.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userPosition]);
 
-  // Reset + demande automatique de la localisation à chaque changement de mode
+  // Demande automatique de la localisation au montage
   useEffect(() => {
-    setUserPosition(null);
-    setDeclined(false);
     setError(null);
     setRouteInfo(null);
-    map.current?.remove();
-    map.current = null;
     if (navigator.geolocation) {
       setLocating(true);
       navigator.geolocation.getCurrentPosition(
@@ -167,11 +144,11 @@ export const BookingRouteMap = ({ mode }: BookingRouteMapProps) => {
         { enableHighAccuracy: true, timeout: 10000 }
       );
     }
-  }, [mode]);
+  }, []);
 
   const googleMapsUrl = userPosition
-    ? `https://www.google.com/maps/dir/?api=1&origin=${userPosition[1]},${userPosition[0]}&destination=${encodeURIComponent(fixedPoint.address)}&travelmode=driving`
-    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fixedPoint.address)}&travelmode=driving`;
+    ? `https://www.google.com/maps/dir/?api=1&origin=${userPosition[1]},${userPosition[0]}&destination=${encodeURIComponent(FIXED_POINT.address)}&travelmode=driving`
+    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(FIXED_POINT.address)}&travelmode=driving`;
 
   return (
     <div className="mt-6 rounded-xl border border-border/50 bg-background/40 p-4 space-y-3">
@@ -182,11 +159,7 @@ export const BookingRouteMap = ({ mode }: BookingRouteMapProps) => {
         <div className="flex-1">
           <p className="text-sm font-medium">Voir le trajet sur la carte</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Partage ta position pour afficher le trajet{" "}
-            {mode === "domicile"
-              ? `jusqu'au rendez-vous (${fixedPoint.address})`
-              : `que fera LCS Barber depuis la gare de Louvres jusqu'à chez toi`}
-            .
+            Partage ta position pour afficher le trajet que fera LCS Barber depuis la gare de Louvres jusqu'à chez toi.
           </p>
         </div>
       </div>
@@ -206,7 +179,7 @@ export const BookingRouteMap = ({ mode }: BookingRouteMapProps) => {
             <p className="text-xs text-muted-foreground">
               Trajet estimé :{" "}
               <span className="text-primary font-semibold">{formatTravelTime(routeInfo.duration)}</span>
-              {" "}({formatDistance(routeInfo.distance)}) — {fixedPoint.label} : {fixedPoint.address}
+              {" "}({formatDistance(routeInfo.distance)}) — {FIXED_POINT.label} : {FIXED_POINT.address}
             </p>
           )}
         </>
