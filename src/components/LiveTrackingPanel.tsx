@@ -246,12 +246,18 @@ export const LiveTrackingPanel = ({
     }
   }, [myPos, peerPos, role, peerRole, peerLabel]);
 
+  // Destination du trajet : position live du client ou adresse saisie
+  const targetPos = useMemo(() => {
+    if (canChooseDestination && destination === "address") return addressPos;
+    return peerPos ?? (canChooseDestination ? addressPos : null);
+  }, [canChooseDestination, destination, addressPos, peerPos]);
+
   // Trajet + ETA recalculés régulièrement
   const refreshRoute = useCallback(async () => {
     const m = map.current;
-    if (!m || !myPos || !peerPos) return;
+    if (!m || !myPos || !targetPos) return;
     try {
-      const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${myPos.lng},${myPos.lat};${peerPos.lng},${peerPos.lat}?access_token=${MAPBOX_PUBLIC_TOKEN}&geometries=geojson&overview=full`;
+      const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${myPos.lng},${myPos.lat};${targetPos.lng},${targetPos.lat}?access_token=${MAPBOX_PUBLIC_TOKEN}&geometries=geojson&overview=full`;
       const res = await fetch(url);
       const data = await res.json();
       const r = data.routes?.[0];
@@ -275,15 +281,16 @@ export const LiveTrackingPanel = ({
     } catch (e) {
       console.error("Erreur itinéraire live:", e);
     }
-  }, [myPos, peerPos]);
+  }, [myPos, targetPos]);
 
   useEffect(() => {
-    if (!active || !myPos || !peerPos) return;
+    if (!active || !myPos || !targetPos) return;
     refreshRoute();
     const id = setInterval(refreshRoute, 30_000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, !!myPos, !!peerPos]);
+  }, [active, !!myPos, targetPos?.lng, targetPos?.lat, destination]);
+
 
   if (!sameDay && !windowOpen) return null;
 
