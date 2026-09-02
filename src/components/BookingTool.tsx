@@ -94,6 +94,13 @@ export const BookingTool = () => {
     sundayFee: pricingSettings.sunday_fee,
   } : undefined;
 
+  const domicileTotal =
+    currentSelection.service && pendingTime
+      ? currentSelection.service.price +
+        calculatePricing(currentSelection.service.price, pendingTime, 0, hourlySettings, undefined).supplement
+      : 0;
+  const domicileDeposit = calculateDeposit(domicileTotal);
+
   const steps = [
     { number: 1, title: "Choisir la prestation", icon: Scissors },
     { number: 2, title: "Choisir une date", icon: Calendar },
