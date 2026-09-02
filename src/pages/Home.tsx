@@ -227,12 +227,12 @@ export default function Home() {
       {/* Quick stats */}
       <section className="py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-5">
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 gap-6">
             {[
               { icon: Clock, value: t("stats.onAppointment"), label: t("stats.onTime") },
-              { icon: MapPin, value: t("stats.clientTravels"), label: "95380 Puiseux-en-France" },
               { icon: Star, value: "5/5", label: t("stats.reviews") },
             ].map((item, i) => (
+
               <motion.div
                 key={item.label}
                 className="text-center"
