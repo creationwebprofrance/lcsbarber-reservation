@@ -38,19 +38,8 @@ export const BookingTool = () => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [clientInfo, setClientInfo] = useState<any>(null);
 
-  const { toast } = useToast();
-  const { data: pricingSettings } = usePricingSettings();
-
-  const hourlySettings: HourlySupplementSettings | undefined = pricingSettings ? {
-    earlyHourThreshold: pricingSettings.early_hour_threshold,
-    earlyHourFee: pricingSettings.early_hour_fee,
-    lateHourThreshold: pricingSettings.late_hour_threshold,
-    lateHourFee: pricingSettings.late_hour_fee,
-    sameDayFee: pricingSettings.same_day_fee,
-    sundayFee: pricingSettings.sunday_fee,
-  } : undefined;
-
   const steps = [
+
     { number: 1, title: "Choisir la prestation", icon: Scissors },
     { number: 2, title: "Choisir une date", icon: Calendar },
     { number: 3, title: "Sélectionner l'heure", icon: Clock },
