@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+import { requireAdmin, escapeHtml } from "../_shared/admin-auth.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -19,7 +20,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { serviceName, oldPrice, newPrice } = await req.json();
+    const auth = await requireAdmin(req);
+    if (auth.error) return auth.error;
+
+    const { serviceName: rawServiceName, oldPrice, newPrice } = await req.json();
+    const serviceName = escapeHtml(rawServiceName);
 
     if (!serviceName || oldPrice === undefined || newPrice === undefined) {
       return new Response(
@@ -72,7 +77,8 @@ const handler = async (req: Request): Promise<Response> => {
     const priceDirection = newPrice > oldPrice ? "augmenté" : "diminué";
     let emailsSent = 0;
 
-    for (const [email, name] of uniqueClients) {
+    for (const [email, rawName] of uniqueClients) {
+      const name = escapeHtml(rawName);
       const html = `
 <!DOCTYPE html>
 <html>

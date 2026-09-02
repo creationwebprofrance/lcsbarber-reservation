@@ -103,7 +103,33 @@ serve(async (req) => {
     }
 
     // Create the booking
-    const { deposit_amount, deposit_reference, status, notes, ...bookingFields } = validatedData;
+    const { deposit_amount, deposit_reference, status, notes, deposit_paid, ...bookingFields } = validatedData;
+
+    // Ne jamais faire confiance au flag client : vérifier le paiement Stripe côté serveur
+    let verifiedDepositPaid = false;
+    if (deposit_paid && deposit_reference?.startsWith('cs_')) {
+      const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+      if (stripeKey) {
+        try {
+          const res = await fetch(
+            `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(deposit_reference)}`,
+            { headers: { Authorization: `Bearer ${stripeKey}` } }
+          );
+          if (res.ok) {
+            const session = await res.json();
+            const expectedCents = deposit_amount ? Math.round(deposit_amount * 100) : null;
+            verifiedDepositPaid =
+              session.payment_status === 'paid' &&
+              (expectedCents === null || session.amount_total === expectedCents);
+          }
+        } catch (e) {
+          console.error('Stripe verification error:', e);
+        }
+      }
+    }
+
+    // Acompte annoncé mais non vérifié => le rendez-vous reste en attente
+    const finalStatus = (deposit_paid && !verifiedDepositPaid) ? 'pending' : status;
 
     const depositNote = [
       deposit_amount ? `Acompte attendu: ${deposit_amount}€` : null,
@@ -116,8 +142,9 @@ serve(async (req) => {
       .from('bookings')
       .insert({
         ...bookingFields,
+        deposit_paid: verifiedDepositPaid,
         notes: finalNotes,
-        status,
+        status: finalStatus,
       })
       .select()
       .single();

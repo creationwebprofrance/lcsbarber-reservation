@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { requireAdmin, escapeHtml } from "../_shared/admin-auth.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const barberEmail = Deno.env.get("BARBER_EMAIL") ?? "";
@@ -26,6 +27,9 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const auth = await requireAdmin(req);
+    if (auth.error) return auth.error;
+
     const rawData = await req.json();
     const validationResult = cancelSchema.safeParse(rawData);
     if (!validationResult.success) {
@@ -35,7 +39,16 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const booking = validationResult.data;
+    const raw = validationResult.data;
+    const booking = {
+      ...raw,
+      clientName: escapeHtml(raw.clientName),
+      clientEmail: escapeHtml(raw.clientEmail),
+      clientPhone: raw.clientPhone ? escapeHtml(raw.clientPhone) : undefined,
+      serviceName: escapeHtml(raw.serviceName),
+      appointmentDate: escapeHtml(raw.appointmentDate),
+      appointmentTime: escapeHtml(raw.appointmentTime),
+    };
     console.log("Sending cancellation email for:", booking.clientName);
 
     const clientHtml = `
