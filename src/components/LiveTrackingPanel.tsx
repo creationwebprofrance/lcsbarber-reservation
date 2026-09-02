@@ -152,6 +152,14 @@ export const LiveTrackingPanel = ({
     });
     channelRef.current = channel;
 
+    let subscribed = false;
+    let lastPos: Position | null = null;
+
+    const pushPos = (p: Position) => {
+      lastPos = p;
+      if (subscribed) void channel.track({ role, ...p });
+    };
+
     channel
       .on("presence", { event: "sync" }, () => {
         const state = channel.presenceState() as Record<string, Array<Record<string, unknown>>>;
@@ -162,7 +170,13 @@ export const LiveTrackingPanel = ({
           setPeerPos(null);
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          subscribed = true;
+          // Envoie la dernière position connue même si elle est arrivée avant l'abonnement
+          if (lastPos) void channel.track({ role, ...lastPos });
+        }
+      });
 
     let watchId: number | null = null;
     if (!navigator.geolocation) {
@@ -173,28 +187,41 @@ export const LiveTrackingPanel = ({
           setError(null);
           const p = { lng: pos.coords.longitude, lat: pos.coords.latitude, at: Date.now() };
           setMyPos(p);
-          channel.track({ role, ...p });
+          pushPos(p);
         },
-        () => setError("Position indisponible — vérifie les autorisations de localisation."),
-        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+        (err) => {
+          setError(
+            err.code === err.PERMISSION_DENIED
+              ? "Localisation refusée. Autorise l'accès à ta position dans les réglages du navigateur pour partager ta position."
+              : "Position indisponible — vérifie que la localisation est activée sur ton téléphone."
+          );
+        },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
       );
     }
 
+    // Ré-émission périodique : garde la présence à jour même sans nouveau point GPS
+    const keepAlive = setInterval(() => {
+      if (subscribed && lastPos) void channel.track({ role, ...lastPos, at: Date.now() });
+    }, 15_000);
+
     return () => {
+      clearInterval(keepAlive);
       if (watchId !== null) navigator.geolocation.clearWatch(watchId);
       supabase.removeChannel(channel);
       channelRef.current = null;
     };
   }, [active, bookingId, role, peerRole]);
 
-  // Carte
+  // Carte : s'initialise dès qu'on a une position (la mienne OU celle du peer)
   useEffect(() => {
-    if (!active || !mapContainer.current || map.current || !myPos) return;
+    const anchor = myPos ?? peerPos;
+    if (!active || !mapContainer.current || map.current || !anchor) return;
     mapboxgl.accessToken = MAPBOX_PUBLIC_TOKEN;
     const m = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/dark-v11",
-      center: [myPos.lng, myPos.lat],
+      center: [anchor.lng, anchor.lat],
       zoom: 13,
     });
     map.current = m;
@@ -205,7 +232,8 @@ export const LiveTrackingPanel = ({
       peerMarker.current = null;
       fitted.current = false;
     };
-  }, [active, myPos]);
+  }, [active, myPos, peerPos]);
+
 
   // Marqueurs
   useEffect(() => {
