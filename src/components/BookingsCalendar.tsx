@@ -3,11 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calendar as CalendarIcon, User, Mail, Phone, MapPin, Clock, Euro } from "lucide-react";
+import { Calendar as CalendarIcon, User, Mail, Phone, MapPin, Clock, Euro, RotateCcw, Loader2 } from "lucide-react";
 
 interface Booking {
   id: string;
@@ -22,10 +33,12 @@ interface Booking {
   travel_fee: number;
   status: string;
   notes: string;
+  deposit_paid: boolean;
   services: {
     name: string;
   };
 }
+
 
 export const BookingsCalendar = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -33,7 +46,39 @@ export const BookingsCalendar = () => {
   const [selectedDateBookings, setSelectedDateBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [refundTarget, setRefundTarget] = useState<Booking | null>(null);
+  const [refunding, setRefunding] = useState(false);
   const { toast } = useToast();
+
+  const canRefund = (b: Booking) =>
+    b.deposit_paid && /cs_[A-Za-z0-9_]+/.test(b.notes ?? "") && !/Acompte remboursé/i.test(b.notes ?? "");
+
+  const handleRefund = async () => {
+    if (!refundTarget) return;
+    setRefunding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("refund-deposit", {
+        body: { booking_id: refundTarget.id, cancel_booking: true },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast({
+        title: "Acompte remboursé",
+        description: `${(data as any)?.amount ?? ""}€ remboursés à ${refundTarget.client_name}. Le rendez-vous est annulé.`,
+      });
+      setRefundTarget(null);
+      await loadBookings();
+    } catch (e: any) {
+      toast({
+        title: "Remboursement impossible",
+        description: e?.message ?? "Erreur lors du remboursement.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefunding(false);
+    }
+  };
+
 
   useEffect(() => {
     loadBookings();
@@ -265,7 +310,25 @@ export const BookingsCalendar = () => {
                       </p>
                     </div>
                   )}
+
+                  {canRefund(booking) && (
+                    <div className="pt-3 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => setRefundTarget(booking)}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Rembourser l'acompte
+                      </Button>
+                    </div>
+                  )}
+                  {booking.deposit_paid === false && /Acompte remboursé/i.test(booking.notes ?? "") && (
+                    <p className="pt-2 text-xs text-muted-foreground">Acompte déjà remboursé</p>
+                  )}
                 </div>
+
                 );
               })
 
@@ -315,6 +378,32 @@ export const BookingsCalendar = () => {
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!refundTarget} onOpenChange={(o) => !o && setRefundTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rembourser l'acompte ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              L'acompte de {refundTarget?.client_name} sera remboursé via Stripe, le rendez-vous
+              sera annulé et le client recevra un email d'information. Action irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={refunding}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleRefund();
+              }}
+              disabled={refunding}
+            >
+              {refunding && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirmer le remboursement
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+
   );
 };
