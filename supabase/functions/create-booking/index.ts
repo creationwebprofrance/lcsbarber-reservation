@@ -107,7 +107,7 @@ serve(async (req) => {
 
     const depositNote = [
       deposit_amount ? `Acompte attendu: ${deposit_amount}€` : null,
-      deposit_reference ? `Référence Revolut: ${deposit_reference}` : null,
+      deposit_reference ? `Paiement acompte: ${deposit_reference}` : null,
     ].filter(Boolean).join(' | ');
 
     const finalNotes = [notes, depositNote].filter(Boolean).join('\n') || null;

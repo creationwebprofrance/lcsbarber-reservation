@@ -205,10 +205,11 @@ export const BookingTool = () => {
           total_price: totalPrice,
           travel_fee: 0,
           notes: "Réservation — le client se déplace",
-          deposit_paid: false,
+          deposit_paid: true,
           deposit_amount: calculateDeposit(totalPrice),
           deposit_reference: depositReference.trim(),
-          status: "pending",
+          status: "confirmed",
+
         },
       });
 
@@ -472,7 +473,9 @@ export const BookingTool = () => {
                         onReferenceChange={setDepositReference}
                         confirmed={depositConfirmed}
                         onConfirmedChange={setDepositConfirmed}
+                        email={user?.email ?? undefined}
                       />
+
 
                       <Button
                         className="w-full"
@@ -539,9 +542,10 @@ export const BookingTool = () => {
                         <br />
                       </>
                     )}
-                    Ton rendez-vous est <span className="font-medium text-foreground">en attente</span> jusqu'à la
-                    vérification de l'acompte sur Revolut. Tu recevras un email dès qu'il sera confirmé.
+                    Ton acompte a bien été réglé par carte (Stripe). Tu recevras un email de confirmation.
+
                   </p>
+
 
                   <Button variant="outline" onClick={resetBooking}>
                     Prendre un autre rendez-vous
