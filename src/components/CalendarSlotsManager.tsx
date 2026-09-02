@@ -458,15 +458,13 @@ export const CalendarSlotsManager = () => {
                             {slotModeLabels[slot.mode || 'both']}
                           </Badge>
                         </span>
-                        {slot.isOverride && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => removeOverride(slot.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => slot.isOverride ? removeOverride(slot.id) : removeWeeklySlot(slot.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                     {getBookingsForDay(selectedDay).map((booking) => (
