@@ -43,6 +43,8 @@ serve(async (req) => {
 
     const common = {
       mode: "payment" as const,
+      // Carte + Link — Apple Pay / Google Pay s'affichent automatiquement avec "card"
+      payment_method_types: ["card", "link"],
       customer_email: email ?? undefined,
       line_items: [
         {
