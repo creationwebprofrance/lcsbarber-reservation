@@ -406,46 +406,59 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
 
       {/* Formulaire */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 gap-3 sm:gap-4">
-          <div>
-            <Label htmlFor="name">Nom complet *</Label>
-            <Input
-              id="name"
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              className={`mt-1 ${errors.name ? "border-destructive" : ""}`}
-              placeholder="Votre nom complet"
-            />
-            {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name}</p>}
+        {hideIdentity ? (
+          <div className="rounded-lg border border-border/50 bg-muted/30 p-3 text-sm">
+            <p className="font-medium">{formData.name}</p>
+            <p className="text-muted-foreground">{formData.email}</p>
+            {knownPhone && <p className="text-muted-foreground">{formData.phone}</p>}
+            <p className="mt-2 text-xs text-muted-foreground">
+              Informations reprises de ton compte — il ne reste que ton adresse à renseigner.
+            </p>
           </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
+            <div>
+              <Label htmlFor="name">Nom complet *</Label>
+              <Input
+                id="name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                className={`mt-1 ${errors.name ? "border-destructive" : ""}`}
+                placeholder="Votre nom complet"
+              />
+              {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name}</p>}
+            </div>
 
-          <div>
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              className={`mt-1 ${errors.email ? "border-destructive" : ""}`}
-              placeholder="votre@email.com"
-            />
-            {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email}</p>}
+            <div>
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                className={`mt-1 ${errors.email ? "border-destructive" : ""}`}
+                placeholder="votre@email.com"
+              />
+              {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email}</p>}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div>
-          <Label htmlFor="phone">Téléphone *</Label>
-          <Input
-            id="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => handleInputChange("phone", e.target.value)}
-            className={`mt-1 ${errors.phone ? "border-destructive" : ""}`}
-            placeholder="01 23 45 67 89"
-          />
-          {errors.phone && <p className="mt-1 text-sm text-destructive">{errors.phone}</p>}
-        </div>
+        {!(hideIdentity && knownPhone) && (
+          <div>
+            <Label htmlFor="phone">Téléphone *</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => handleInputChange("phone", e.target.value)}
+              className={`mt-1 ${errors.phone ? "border-destructive" : ""}`}
+              placeholder="01 23 45 67 89"
+            />
+            {errors.phone && <p className="mt-1 text-sm text-destructive">{errors.phone}</p>}
+          </div>
+        )}
 
         <div>
           <Label htmlFor="address">Adresse *</Label>
