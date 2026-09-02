@@ -511,9 +511,7 @@ export const BookingTool = () => {
                   <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-success/20">
                     <CheckCircle className="h-8 w-8 text-success" />
                   </div>
-                  <h2 className="mb-4 text-2xl font-bold">
-                    {bookingItems.length > 1 ? 'Rendez-vous confirmés !' : 'Rendez-vous confirmé !'}
-                  </h2>
+                  <h2 className="mb-4 text-2xl font-bold">Demande enregistrée !</h2>
                   <p className="mb-6 text-muted-foreground">
                     {mode === "domicile" ? (
                       <>
