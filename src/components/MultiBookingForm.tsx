@@ -526,43 +526,25 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
 
         <div className="flex flex-col space-y-3 pt-4">
           {requiresDeposit && (
-            <div className="text-center bg-blue-50 dark:bg-blue-950 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100 mb-3">
-                ⚠️ Pour les réservations de plus de 50€, un acompte de {depositAmount}€ est obligatoire.
-              </p>
-              <Button 
-                type="button"
-                onClick={() => window.open(generatePayPalLink(), '_blank')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white mb-3"
-                size="lg"
-              >
-                💳 Payer l'acompte ({depositAmount}€)
-              </Button>
-              <div className="flex items-center justify-center space-x-2 mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg">
-                <input
-                  type="checkbox"
-                  id="deposit-confirm"
-                  checked={depositPaidConfirmed}
-                  onChange={(e) => setDepositPaidConfirmed(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="deposit-confirm" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-                  Je confirme avoir effectué le paiement de l'acompte
-                </label>
-              </div>
-            </div>
+            <DepositPanel
+              amount={depositAmount}
+              reference={depositReference}
+              onReferenceChange={setDepositReference}
+              confirmed={depositPaidConfirmed}
+              onConfirmedChange={setDepositPaidConfirmed}
+            />
           )}
-          
+
           <div className="flex justify-end space-x-3">
             <Button type="button" variant="outline" onClick={onBack}>
               Retour
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting || (requiresDeposit && !depositPaidConfirmed)}
+              disabled={isSubmitting || (requiresDeposit && (!depositPaidConfirmed || depositReference.trim().length < 2))}
               className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
             >
-              {isSubmitting ? "Enregistrement..." : `Confirmer ${bookingItems.length} rendez-vous`}
+              {isSubmitting ? "Enregistrement..." : `Valider ${bookingItems.length} rendez-vous`}
             </Button>
           </div>
         </div>
