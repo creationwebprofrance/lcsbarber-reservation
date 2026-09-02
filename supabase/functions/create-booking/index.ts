@@ -72,7 +72,32 @@ serve(async (req) => {
       );
     }
     
-    // Superposition autorisée : plusieurs rendez-vous peuvent partager le même créneau.
+    // Bloquer le créneau s'il est déjà réservé par un AUTRE client.
+    // (Le même client peut cumuler plusieurs prestations sur le même créneau.)
+    const { count: conflictCount, error: conflictError } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('appointment_date', validatedData.appointment_date)
+      .eq('appointment_time', validatedData.appointment_time)
+      .neq('client_email', validatedData.client_email)
+      .in('status', ['pending', 'confirmed']);
+
+    if (conflictError) {
+      console.error('Conflict check error:', conflictError);
+    }
+
+    if ((conflictCount ?? 0) > 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Ce créneau vient d\'être réservé. Veuillez en choisir un autre.'
+        }),
+        {
+          status: 409,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
     // Create the booking
     const { data: newBooking, error: bookingError } = await supabase

@@ -159,9 +159,8 @@ export const TimeSlotSelector = ({
     }
   };
 
-  // La superposition de rendez-vous est autorisée : un créneau déjà pris
-  // reste sélectionnable, il est simplement signalé visuellement.
-  const isSlotAvailable = (_time: string) => true;
+  // Un créneau déjà réservé est bloqué : non sélectionnable.
+  const isSlotAvailable = (time: string) => !bookedSlots.includes(time);
   const isSlotBooked = (time: string) => bookedSlots.includes(time);
 
   if (loading) {
@@ -213,14 +212,21 @@ export const TimeSlotSelector = ({
             return (
               <Card
                 key={time}
-                className={`cursor-pointer border-2 transition-all duration-200 ${
+                className={`border-2 transition-all duration-200 ${
+                  isBooked
+                    ? "border-muted bg-muted/40 opacity-60 cursor-not-allowed"
+                    : "cursor-pointer"
+                } ${
                   isSelected
                     ? "border-primary bg-primary/20 shadow-glow ring-2 ring-primary/30"
-                    : isBooked
-                    ? "border-orange-500/50 bg-orange-500/10 hover:border-orange-500"
-                    : "border-success/50 bg-success/10 hover:border-success hover:bg-success/20"
+                    : !isBooked
+                    ? "border-success/50 bg-success/10 hover:border-success hover:bg-success/20"
+                    : ""
                 }`}
-                onClick={() => onTimeSelect(time)}
+                onClick={() => {
+                  if (isBooked) return;
+                  onTimeSelect(time);
+                }}
               >
                 <div className="p-2 sm:p-3 text-center">
                   <span
@@ -228,7 +234,7 @@ export const TimeSlotSelector = ({
                       isSelected
                         ? "text-primary"
                         : isBooked
-                        ? "text-orange-500"
+                        ? "text-muted-foreground line-through"
                         : "text-success"
                     }`}
                   >
@@ -240,7 +246,7 @@ export const TimeSlotSelector = ({
                     </div>
                   )}
                   {isBooked && (
-                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-orange-500 font-medium">
+                    <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-muted-foreground font-medium">
                       Déjà pris
                     </div>
                   )}
@@ -256,8 +262,8 @@ export const TimeSlotSelector = ({
             <span className="text-foreground font-medium">Disponible</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-orange-500 border-2 border-orange-500"></div>
-            <span className="text-foreground font-medium">Déjà pris (superposition possible)</span>
+            <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-muted border-2 border-muted-foreground/40"></div>
+            <span className="text-foreground font-medium">Déjà pris</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-primary border-2 border-primary"></div>
