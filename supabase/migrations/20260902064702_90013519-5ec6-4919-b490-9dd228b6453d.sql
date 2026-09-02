@@ -1,0 +1,1 @@
+ALTER TABLE public.date_overrides DROP CONSTRAINT IF EXISTS date_overrides_date_start_time_key;
