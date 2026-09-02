@@ -10,6 +10,7 @@ import BarberPole3D from "@/components/BarberPole3D";
 import { UserMenu } from "@/components/UserMenu";
 import SiteControls from "@/components/SiteControls";
 import { useLanguage } from "@/hooks/useLanguage";
+import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -247,6 +248,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <div className="stripe-line" />
+
+      <ReviewsCarousel />
 
 
       {/* Footer */}

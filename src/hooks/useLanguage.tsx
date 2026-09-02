@@ -24,6 +24,8 @@ const translations = {
     "stats.onAppointment": "Sur RDV",
     "stats.onTime": "Toujours à l'heure",
     "stats.reviews": "Avis clients",
+    "reviews.title": "Ils me font confiance.",
+    "reviews.noComment": "Avis sans commentaire.",
 
     "footer.rights": "Tous droits réservés",
     "theme.light": "Mode clair",
@@ -51,6 +53,8 @@ const translations = {
     "stats.onAppointment": "By appointment",
     "stats.onTime": "Always on time",
     "stats.reviews": "Client reviews",
+    "reviews.title": "They trust me.",
+    "reviews.noComment": "Review without comment.",
 
     "footer.rights": "All rights reserved",
     "theme.light": "Light mode",
