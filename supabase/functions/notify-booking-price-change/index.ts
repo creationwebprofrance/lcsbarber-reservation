@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { requireAdmin, escapeHtml } from "../_shared/admin-auth.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -15,7 +16,17 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { clientName, clientEmail, serviceName, oldPrice, newPrice, appointmentDate, appointmentTime } = await req.json();
+    const auth = await requireAdmin(req);
+    if (auth.error) return auth.error;
+
+    const raw = await req.json();
+    const clientName = escapeHtml(raw.clientName);
+    const clientEmail = escapeHtml(raw.clientEmail);
+    const serviceName = raw.serviceName ? escapeHtml(raw.serviceName) : undefined;
+    const appointmentDate = raw.appointmentDate ? escapeHtml(raw.appointmentDate) : undefined;
+    const appointmentTime = raw.appointmentTime ? escapeHtml(raw.appointmentTime) : undefined;
+    const oldPrice = raw.oldPrice;
+    const newPrice = raw.newPrice;
 
     if (!clientEmail || !clientName || oldPrice === undefined || newPrice === undefined) {
       return new Response(
