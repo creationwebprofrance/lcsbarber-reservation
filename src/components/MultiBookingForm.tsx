@@ -14,6 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { usePricingSettings } from "@/hooks/usePricingSettings";
+import { useAuth } from "@/hooks/useAuth";
+import { calculateDeposit } from "@/lib/deposit";
+import { DepositPanel } from "./DepositPanel";
 import type { BookingItem } from "./BookingCart";
 
 interface MultiBookingFormProps {
