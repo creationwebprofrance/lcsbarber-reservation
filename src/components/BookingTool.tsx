@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Scissors, Calendar, Clock, CheckCircle, ShoppingCart, Home, Car, Loader2 } from "lucide-react";
@@ -63,6 +63,23 @@ export const BookingTool = () => {
   const [depositConfirmed, setDepositConfirmed] = useState(false);
   const [clientPhoneInput, setClientPhoneInput] = useState("");
   const [hasKnownPhone, setHasKnownPhone] = useState(true);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("clients")
+        .select("phone")
+        .eq("email", user.email!)
+        .maybeSingle();
+      if (cancelled) return;
+      setHasKnownPhone(!!data?.phone && data.phone.replace(/\D/g, "").length >= 10);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.email]);
 
   const { user } = useAuth();
   const { toast } = useToast();
