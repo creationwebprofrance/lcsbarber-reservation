@@ -63,6 +63,7 @@ export const CalendarSlotsManager = () => {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newSlot, setNewSlot] = useState({ start_time: '09:00', end_time: '10:00', mode: 'both' as 'both' | 'domicile' | 'deplacement' });
+  const [recurringSlot, setRecurringSlot] = useState({ start_time: '09:00', end_time: '10:00', mode: 'domicile' as 'both' | 'domicile' | 'deplacement' });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -256,6 +257,45 @@ export const CalendarSlotsManager = () => {
     setNewSlot({ start_time: '09:00', end_time: '10:00', mode: 'both' });
   };
 
+  const addRecurringSlot = async (override?: { start_time: string; end_time: string }) => {
+    if (!selectedDay) return;
+    const slotToAdd = { ...recurringSlot, ...(override || {}) };
+
+    const { error } = await supabase
+      .from('calendar_settings')
+      .insert({
+        day_of_week: selectedDay.getDay(),
+        start_time: slotToAdd.start_time,
+        end_time: slotToAdd.end_time,
+        is_available: true,
+        mode: slotToAdd.mode,
+      });
+
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible d'ajouter le créneau récurrent", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Créneau récurrent ajouté", description: `Tous les ${format(selectedDay, 'EEEE', { locale: fr })}s` });
+    loadTimeSlots();
+    setRecurringSlot({ start_time: '09:00', end_time: '10:00', mode: 'domicile' });
+  };
+
+  const removeWeeklySlot = async (slotId: string) => {
+    const { error } = await supabase
+      .from('calendar_settings')
+      .delete()
+      .eq('id', slotId);
+
+    if (error) {
+      toast({ title: "Erreur", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Créneau récurrent supprimé" });
+    loadTimeSlots();
+  };
+
   const removeOverride = async (overrideId: string) => {
     const { error } = await supabase
       .from('date_overrides')
@@ -418,15 +458,13 @@ export const CalendarSlotsManager = () => {
                             {slotModeLabels[slot.mode || 'both']}
                           </Badge>
                         </span>
-                        {slot.isOverride && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => removeOverride(slot.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => slot.isOverride ? removeOverride(slot.id) : removeWeeklySlot(slot.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                     {getBookingsForDay(selectedDay).map((booking) => (
@@ -490,6 +528,37 @@ export const CalendarSlotsManager = () => {
                 <p className="text-xs text-muted-foreground">
                   Tu peux ouvrir n'importe quelle heure, y compris la nuit (ex. 22:00 → 00:00).
                 </p>
+              </div>
+
+              {/* Add recurring weekly slot for this day of week */}
+              <div className="space-y-2 pt-4 border-t">
+                <Label>Ajouter un créneau récurrent (tous les {selectedDay && format(selectedDay, 'EEEE', { locale: fr })}s)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="time"
+                    value={recurringSlot.start_time}
+                    onChange={(e) => setRecurringSlot(prev => ({ ...prev, start_time: e.target.value }))}
+                  />
+                  <Input
+                    type="time"
+                    value={recurringSlot.end_time}
+                    onChange={(e) => setRecurringSlot(prev => ({ ...prev, end_time: e.target.value }))}
+                  />
+                </div>
+                <Select value={recurringSlot.mode} onValueChange={(v) => setRecurringSlot(prev => ({ ...prev, mode: v as typeof prev.mode }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Type de prestation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="both">Les deux</SelectItem>
+                    <SelectItem value="domicile">🏠 Le client se déplace</SelectItem>
+                    <SelectItem value="deplacement">🚗 LCS Barber se déplace</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={() => addRecurringSlot()} className="w-full">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter chaque semaine
+                </Button>
               </div>
             </div>
           )}
