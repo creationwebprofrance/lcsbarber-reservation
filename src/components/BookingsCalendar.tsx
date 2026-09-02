@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -31,6 +32,7 @@ export const BookingsCalendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedDateBookings, setSelectedDateBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -117,7 +119,16 @@ export const BookingsCalendar = () => {
     return <div>Chargement...</div>;
   }
 
+  const searched = bookings.filter((b) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return [b.client_name, b.client_email, b.client_phone, b.client_address, b.services?.name, b.appointment_date]
+      .filter(Boolean)
+      .some((v) => String(v).toLowerCase().includes(q));
+  });
+
   return (
+    <div className="space-y-6">
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Calendar */}
       <Card>
@@ -258,6 +269,48 @@ export const BookingsCalendar = () => {
                 );
               })
 
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+      {/* Liste complète : aucune réservation ne peut être invisible */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <span>Toutes les réservations ({bookings.length})</span>
+            <Input
+              placeholder="Rechercher un client, un email, une date..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="sm:max-w-xs"
+            />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="max-h-[500px] overflow-y-auto divide-y">
+            {searched.length === 0 ? (
+              <p className="py-6 text-center text-muted-foreground">Aucune réservation trouvée</p>
+            ) : (
+              searched.map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => setSelectedDate(new Date(b.appointment_date))}
+                  className="w-full text-left py-3 flex items-center justify-between gap-3 hover:bg-muted/50 px-2 rounded"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{b.client_name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {format(new Date(b.appointment_date), 'd MMM yyyy', { locale: fr })} · {b.appointment_time?.slice(0, 5)} · {b.services?.name ?? 'Prestation'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-sm font-semibold">{b.total_price}€</span>
+                    <Badge className={getStatusColor(b.status)}>{getStatusLabel(b.status)}</Badge>
+                  </div>
+                </button>
+              ))
             )}
           </div>
         </CardContent>
