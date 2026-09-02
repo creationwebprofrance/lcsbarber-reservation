@@ -251,7 +251,7 @@ export const CalendarSlotsManager = () => {
     
     toast({ title: "Créneau ajouté" });
     loadDateOverrides();
-    setNewSlot({ start_time: '09:00', end_time: '10:00', mode: 'both' });
+    setNewSlot({ start_time: '09:00', end_time: '10:00', mode: 'deplacement' });
   };
 
   const removeOverride = async (overrideId: string) => {
