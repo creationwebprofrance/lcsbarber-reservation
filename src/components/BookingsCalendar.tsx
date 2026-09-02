@@ -3,11 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calendar as CalendarIcon, User, Mail, Phone, MapPin, Clock, Euro } from "lucide-react";
+import { Calendar as CalendarIcon, User, Mail, Phone, MapPin, Clock, Euro, RotateCcw, Loader2 } from "lucide-react";
 
 interface Booking {
   id: string;
@@ -22,10 +33,12 @@ interface Booking {
   travel_fee: number;
   status: string;
   notes: string;
+  deposit_paid: boolean;
   services: {
     name: string;
   };
 }
+
 
 export const BookingsCalendar = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
