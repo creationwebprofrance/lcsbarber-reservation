@@ -1,4 +1,4 @@
-const LOUVRES_COORDINATES = [2.5047, 49.0447]; // Longitude, Latitude de Louvres 95
+const LOUVRES_COORDINATES = [2.6336, 49.0425]; // Gare de Louvres, 95380 Louvres (point de départ LCS Barber)
 
 export interface TravelCalculation {
   duration: number; // en minutes

@@ -9,6 +9,7 @@ import { DatePicker } from "./DatePicker";
 import { TimeSlotSelector } from "./TimeSlotSelector";
 import { MultiBookingForm } from "./MultiBookingForm";
 import { BookingCart, type BookingItem } from "./BookingCart";
+import { BookingRouteMap } from "./BookingRouteMap";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { usePricingSettings } from "@/hooks/usePricingSettings";
@@ -362,6 +363,7 @@ export const BookingTool = () => {
                     domicileMode={mode === "domicile"}
                     domicileServices={DOMICILE_SERVICES}
                   />
+                  {mode && <BookingRouteMap mode={mode} />}
                 </>
               )}
 
