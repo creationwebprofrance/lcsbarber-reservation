@@ -362,6 +362,7 @@ export const BookingTool = () => {
                     domicileMode={mode === "domicile"}
                     domicileServices={DOMICILE_SERVICES}
                   />
+                  {mode && <BookingRouteMap mode={mode} />}
                 </>
               )}
 
