@@ -15,10 +15,11 @@ interface ServiceSelectorProps {
   selectedService: Service | null;
   onServiceSelect: (service: Service) => void;
   onBack?: () => void;
+  domicileMode?: boolean;
+  domicileServices?: Record<string, { label: string; price: number }>;
 }
 
-export const ServiceSelector = ({ selectedService, onServiceSelect, onBack }: ServiceSelectorProps) => {
-
+export const ServiceSelector = ({ selectedService, onServiceSelect, onBack, domicileMode, domicileServices }: ServiceSelectorProps) => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,8 +36,19 @@ export const ServiceSelector = ({ selectedService, onServiceSelect, onBack }: Se
         .order('name');
 
       if (error) throw error;
-      setServices(data || []);
-
+      let list = data || [];
+      // Mode domicile : uniquement les prestations éligibles avec tarifs réduits
+      if (domicileMode && domicileServices) {
+        list = list
+          .filter((s) => domicileServices[s.name])
+          .map((s) => ({
+            ...s,
+            name: domicileServices[s.name].label,
+            price: domicileServices[s.name].price,
+            description: s.description,
+          }));
+      }
+      setServices(list);
     } catch (error) {
       console.error('Error loading services:', error);
     } finally {
