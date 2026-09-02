@@ -52,21 +52,21 @@ export const BookingsCalendar = () => {
   const [refunding, setRefunding] = useState(false);
   const { toast } = useToast();
 
-  const canRefund = (b: Booking) =>
-    b.deposit_paid && /cs_[A-Za-z0-9_]+/.test(b.notes ?? "") && !/Acompte remboursé/i.test(b.notes ?? "");
+  const isRefunded = (b: Booking) => /Acompte remboursé/i.test(b.notes ?? "");
+  const canRefund = (b: Booking) => b.deposit_paid && !isRefunded(b);
 
   const handleRefund = async () => {
     if (!refundTarget) return;
     setRefunding(true);
     try {
       const { data, error } = await supabase.functions.invoke("refund-deposit", {
-        body: { booking_id: refundTarget.id, cancel_booking: true },
+        body: { booking_id: refundTarget.id, cancel_booking: cancelOnRefund },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
       toast({
         title: "Acompte remboursé",
-        description: `${(data as any)?.amount ?? ""}€ remboursés à ${refundTarget.client_name}. Le rendez-vous est annulé.`,
+        description: `${(data as any)?.amount ?? ""}€ remboursés à ${refundTarget.client_name}.${cancelOnRefund ? " Le rendez-vous est annulé (conservé dans l'historique)." : " Le rendez-vous est conservé."}`,
       });
       setRefundTarget(null);
       await loadBookings();
