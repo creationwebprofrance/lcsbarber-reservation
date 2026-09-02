@@ -401,15 +401,58 @@ export const BookingsCalendar = () => {
         </CardContent>
       </Card>
 
+      {/* Historique des rendez-vous annulés */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Historique des rendez-vous annulés ({cancelled.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="max-h-[400px] overflow-y-auto divide-y">
+            {cancelled.length === 0 ? (
+              <p className="py-6 text-center text-muted-foreground">Aucun rendez-vous annulé</p>
+            ) : (
+              cancelled.map((b) => (
+                <div key={b.id} className="py-3 px-2 space-y-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium truncate">{b.client_name}</p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-sm font-semibold">{b.total_price}€</span>
+                      <Badge className="bg-red-500">Annulé</Badge>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(b.appointment_date), 'd MMM yyyy', { locale: fr })} · {b.appointment_time?.slice(0, 5)} · {b.services?.name ?? 'Prestation'} · {b.client_email}
+                  </p>
+                  {isRefunded(b) && (
+                    <p className="text-xs" style={{ color: '#C58B52' }}>
+                      {(b.notes ?? '').split('\n').filter((l) => /Acompte remboursé/i.test(l)).join(' ')}
+                    </p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <AlertDialog open={!!refundTarget} onOpenChange={(o) => !o && setRefundTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Rembourser l'acompte ?</AlertDialogTitle>
             <AlertDialogDescription>
-              L'acompte de {refundTarget?.client_name} sera remboursé via Stripe, le rendez-vous
-              sera annulé et le client recevra un email d'information. Action irréversible.
+              L'acompte de {refundTarget?.client_name} sera remboursé via Stripe et le client
+              recevra un email d'information. Le rendez-vous n'est jamais supprimé : il reste
+              consultable dans l'historique.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={cancelOnRefund}
+              onChange={(e) => setCancelOnRefund(e.target.checked)}
+            />
+            Annuler aussi le rendez-vous
+          </label>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={refunding}>Annuler</AlertDialogCancel>
             <AlertDialogAction
