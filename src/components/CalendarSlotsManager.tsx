@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus, Trash2, X, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2, Clock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -53,8 +53,6 @@ interface Booking {
 }
 
 const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const fullDayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-
 export const CalendarSlotsManager = () => {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [dateOverrides, setDateOverrides] = useState<DateOverride[]>([]);
@@ -79,19 +77,27 @@ export const CalendarSlotsManager = () => {
   };
 
   const loadTimeSlots = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('calendar_settings')
       .select('*')
       .order('day_of_week')
       .order('start_time');
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible de charger les créneaux récurrents.", variant: "destructive" });
+      return;
+    }
     setTimeSlots(data || []);
   };
 
   const loadDateOverrides = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('date_overrides')
       .select('*')
       .order('date');
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible de charger les créneaux spécifiques.", variant: "destructive" });
+      return;
+    }
     setDateOverrides(data || []);
   };
 
@@ -114,17 +120,13 @@ export const CalendarSlotsManager = () => {
     // Check for date overrides first
     const overrides = dateOverrides.filter(o => o.date === dateStr);
     
-    // If there's a blocking override (is_available = false without times), day is blocked
-    const blockingOverride = overrides.find(o => !o.is_available && !o.start_time);
-    if (blockingOverride) return [];
-    
     // Get custom slots from overrides
     const overrideSlots = overrides
       .filter(o => o.is_available && o.start_time && o.end_time)
       .map(o => ({ 
         id: o.id, 
-        start_time: o.start_time!, 
-        end_time: o.end_time!, 
+        start_time: o.start_time ?? '', 
+        end_time: o.end_time ?? '', 
         is_available: true,
         mode: o.mode || 'both',
         isOverride: true 
@@ -134,6 +136,10 @@ export const CalendarSlotsManager = () => {
     if (overrideSlots.length > 0) {
       return overrideSlots;
     }
+
+    // A blocking marker only closes the day when no available timed override exists.
+    const blockingOverride = overrides.find(o => !o.is_available && !o.start_time);
+    if (blockingOverride) return [];
     
     // Otherwise, use regular weekly slots
     return timeSlots
@@ -150,12 +156,12 @@ export const CalendarSlotsManager = () => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const overrides = dateOverrides.filter(o => o.date === dateStr);
     
-    // Check if there's a blocking override
+    // If there are available overrides with times, day is not blocked
+    if (overrides.some(o => o.is_available && o.start_time && o.end_time)) return false;
+
+    // A marker without hours explicitly blocks the complete day.
     const blockingOverride = overrides.find(o => !o.is_available && !o.start_time);
     if (blockingOverride) return true;
-    
-    // If there are available overrides with times, day is not blocked
-    if (overrides.some(o => o.is_available && o.start_time)) return false;
     
     const dayOfWeek = date.getDay();
     const daySlots = timeSlots.filter(s => s.day_of_week === dayOfWeek && s.is_available);
@@ -164,14 +170,16 @@ export const CalendarSlotsManager = () => {
 
   const toggleDayAvailability = async (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const existingOverride = dateOverrides.find(o => o.date === dateStr);
+    const blockingOverride = dateOverrides.find(
+      o => o.date === dateStr && !o.is_available && !o.start_time && !o.end_time
+    );
     
-    if (existingOverride) {
-      // Toggle existing override
+    if (blockingOverride) {
+      // Reopening a day removes only its blocking marker, never a timed slot.
       const { error } = await supabase
         .from('date_overrides')
-        .update({ is_available: !existingOverride.is_available })
-        .eq('id', existingOverride.id);
+        .delete()
+        .eq('id', blockingOverride.id);
         
       if (error) {
         toast({ title: "Erreur", variant: "destructive" });
@@ -201,6 +209,23 @@ export const CalendarSlotsManager = () => {
     if (!selectedDay) return;
     
     const dateStr = format(selectedDay, 'yyyy-MM-dd');
+
+    // A newly added slot reopens the day and removes stale full-day blockers.
+    const blockerIds = dateOverrides
+      .filter(o => o.date === dateStr && !o.is_available && !o.start_time && !o.end_time)
+      .map(o => o.id);
+
+    if (blockerIds.length > 0) {
+      const { error: blockerError } = await supabase
+        .from('date_overrides')
+        .delete()
+        .in('id', blockerIds);
+
+      if (blockerError) {
+        toast({ title: "Erreur", description: "Impossible de rouvrir cette journée.", variant: "destructive" });
+        return;
+      }
+    }
     
     // Always create a new override for additional slots
     const { error } = await supabase
@@ -271,7 +296,8 @@ export const CalendarSlotsManager = () => {
       </div>
 
       {/* Week Grid */}
-      <div className="grid grid-cols-7 gap-2">
+      <div className="overflow-x-auto pb-2">
+      <div className="grid min-w-[840px] grid-cols-7 gap-2">
         {weekDays.map((day, index) => {
           const slots = getSlotsForDay(day);
           const dayBookings = getBookingsForDay(day);
@@ -337,6 +363,7 @@ export const CalendarSlotsManager = () => {
             </Card>
           );
         })}
+      </div>
       </div>
 
       {/* Legend */}
