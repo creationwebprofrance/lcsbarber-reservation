@@ -14,7 +14,7 @@ interface TimeSlotSelectorProps {
   onBack: () => void;
   hideSupplements?: boolean;
   customSlots?: string[];
-  mode?: 'domicile' | 'deplacement';
+  mode?: 'deplacement';
 }
 
 interface TimeSlot {
@@ -25,8 +25,9 @@ interface TimeSlot {
   mode?: string;
 }
 
-const matchesMode = (slotMode: string | null | undefined, mode?: 'domicile' | 'deplacement') =>
-  !mode || !slotMode || slotMode === 'both' || slotMode === mode;
+const matchesMode = (slotMode: string | null | undefined, mode?: 'deplacement') =>
+  !mode || !slotMode || slotMode === mode;
+
 
 export const TimeSlotSelector = ({
   selectedDate,
