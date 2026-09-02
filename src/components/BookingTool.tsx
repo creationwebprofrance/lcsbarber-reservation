@@ -542,8 +542,9 @@ export const BookingTool = () => {
                       </>
                     )}
                     Ton rendez-vous est <span className="font-medium text-foreground">en attente</span> jusqu'à la
-                    vérification de l'acompte sur Revolut. Tu recevras un email dès qu'il sera confirmé.
+                    Ton acompte a bien été réglé par carte (Stripe). Tu recevras un email de confirmation.
                   </p>
+
 
                   <Button variant="outline" onClick={resetBooking}>
                     Prendre un autre rendez-vous
