@@ -62,6 +62,8 @@ const handler = async (req: Request): Promise<Response> => {
     });
     const formattedTime = booking.appointment_time.slice(0, 5);
 
+    const trackingUrl = `https://lcsbarber.com/mes-rendez-vous?suivi=${booking.id}`;
+
     const etaHtml =
       typeof etaMinutes === "number"
         ? `<p style="margin:0 0 16px;font-size:15px;color:#F4F1EA;">Arrivée estimée dans <strong style="color:#C58B52;">${etaMinutes} min</strong>.</p>`
@@ -83,6 +85,10 @@ const handler = async (req: Request): Promise<Response> => {
         <div style="background:#0B0B0B;border:1px solid #2a2a2a;border-radius:12px;padding:16px;margin:8px 0 20px;">
           <p style="margin:0 0 6px;font-size:14px;color:#9a9a9a;">📅 ${escapeHtml(formattedDate)} à ${escapeHtml(formattedTime)}</p>
           ${booking.client_address ? `<p style="margin:0;font-size:14px;color:#9a9a9a;">📍 ${escapeHtml(booking.client_address)}</p>` : ""}
+        </div>
+        <div style="text-align:center;margin:0 0 20px;">
+          <a href="${trackingUrl}" style="display:inline-block;background:#C58B52;color:#0B0B0B;font-weight:700;font-size:15px;text-decoration:none;padding:14px 26px;border-radius:10px;">Suivre mon arrivée en direct 📍</a>
+          <p style="margin:10px 0 0;font-size:12px;color:#9a9a9a;">Autorise la localisation sur la page pour partager la tienne : je verrai exactement où te rejoindre.</p>
         </div>
         <p style="margin:0;font-size:13px;color:#9a9a9a;">Prépare-toi, j'arrive ! À tout de suite ✂️</p>
       </div>

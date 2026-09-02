@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { format, parseISO, isBefore, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ArrowLeft, Calendar, Clock, Scissors, MapPin, Euro } from "lucide-react";
@@ -34,6 +34,8 @@ const statusLabel: Record<string, string> = {
 
 export default function MesRendezVous() {
   const { user, loading: authLoading } = useAuth();
+  const [searchParams] = useSearchParams();
+  const trackedId = searchParams.get("suivi");
   const [bookings, setBookings] = useState<ClientBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,7 +68,10 @@ export default function MesRendezVous() {
   const BookingCard = ({ b }: { b: ClientBooking }) => {
     const event = eventName(b.notes);
     return (
-      <Card className="border-border/60">
+      <Card
+        id={`rdv-${b.id}`}
+        className={`border-border/60 ${trackedId === b.id ? "ring-2 ring-primary" : ""}`}
+      >
         <CardContent className="p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="space-y-2">
@@ -105,6 +110,7 @@ export default function MesRendezVous() {
               appointmentDate={b.appointment_date}
               appointmentTime={b.appointment_time}
               peerLabel="LCS Barber"
+              autoStart={trackedId === b.id}
             />
           )}
         </CardContent>
