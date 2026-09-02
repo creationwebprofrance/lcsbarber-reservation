@@ -271,6 +271,9 @@ export const LiveTrackingPanel = ({
         .extend([peerPos.lng, peerPos.lat]);
       m.fitBounds(bounds, { padding: 70, maxZoom: 15 });
       fitted.current = true;
+    } else if (!myPos && peerPos && !fitted.current) {
+      // Pas de position perso (refusée) : on suit quand même le peer
+      m.easeTo({ center: [peerPos.lng, peerPos.lat], zoom: 14 });
     }
   }, [myPos, peerPos, role, peerRole, peerLabel]);
 
