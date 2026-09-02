@@ -71,7 +71,22 @@ export const DepositPanel = ({
       if (error || !data?.url) throw error ?? new Error("no url");
 
       setSessionId(data.sessionId);
-      window.open(data.url, "_blank", "noopener,noreferrer");
+
+      // Ouvre Stripe Checkout en popup centrée (pas de nouvel onglet)
+      const w = 500;
+      const h = 700;
+      const left = window.screenX + (window.outerWidth - w) / 2;
+      const top = window.screenY + (window.outerHeight - h) / 2;
+      const popup = window.open(
+        data.url,
+        "stripe-checkout",
+        `popup=yes,width=${w},height=${h},left=${left},top=${top},noopener,noreferrer`,
+      );
+      // Fallback si le navigateur bloque la popup : redirection dans la même page
+      if (!popup) {
+        window.location.href = data.url;
+        return;
+      }
       setChecking(true);
 
       if (pollRef.current) window.clearInterval(pollRef.current);
