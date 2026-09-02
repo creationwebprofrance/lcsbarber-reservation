@@ -30,12 +30,14 @@ interface CurrentSelection {
 
 type BookingMode = "domicile" | "deplacement" | null;
 
-// Tarifs spéciaux "à côté du domicile" — pas de frais de déplacement
+// Tarifs spéciaux "le client se déplace" — pas de frais de déplacement
 const DOMICILE_SERVICES: Record<string, { label: string; price: number }> = {
   "Contours": { label: "Contours", price: 10 },
   "Coupe classique": { label: "Coupe", price: 15 },
   "Coupe + barbe": { label: "Coupe + barbe", price: 20 },
 };
+
+const DOMICILE_ADDRESS = "Imp. des Hirondelles Prolongée, 95380 Puiseux-en-France";
 
 export const BookingTool = () => {
   const [mode, setMode] = useState<BookingMode>(null);
@@ -111,7 +113,7 @@ export const BookingTool = () => {
     }
   };
 
-  // Réservation directe "à côté du domicile" : pas de formulaire, on utilise le compte connecté
+  // Réservation directe "le client se déplace" : pas de formulaire, on utilise le compte connecté
   const handleDirectDomicileBooking = async (time: string) => {
     if (!currentSelection.service || !currentSelection.date || !user?.email) return;
 
@@ -149,10 +151,10 @@ export const BookingTool = () => {
           client_name: clientName,
           client_email: user.email,
           client_phone: "Non renseigné",
-          client_address: "À côté du domicile (95)",
+          client_address: DOMICILE_ADDRESS,
           total_price: totalPrice,
           travel_fee: 0,
-          notes: "Réservation à côté du domicile",
+          notes: "Réservation — le client se déplace",
           deposit_paid: true,
         },
       });
@@ -167,7 +169,7 @@ export const BookingTool = () => {
           clientName,
           clientEmail: user.email,
           clientPhone: "Non renseigné",
-          clientAddress: "À côté du domicile (95)",
+          clientAddress: DOMICILE_ADDRESS,
           clientPostalCode: "",
           clientCity: "",
           serviceName: currentSelection.service.name,
@@ -176,14 +178,14 @@ export const BookingTool = () => {
           appointmentTime: time,
           totalPrice,
           travelFee: 0,
-          message: "Réservation à côté du domicile",
+          message: "Réservation — le client se déplace",
         },
       });
 
       setCurrentSelection({ ...currentSelection, time });
       setIsConfirmed(true);
     } catch (error: any) {
-      console.error("Erreur réservation à côté du domicile:", error);
+      console.error("Erreur réservation 'le client se déplace':", error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors de la réservation.",
@@ -238,8 +240,8 @@ export const BookingTool = () => {
               : bookingItems.length > 0
               ? `${bookingItems.length} rendez-vous sélectionné${bookingItems.length > 1 ? 's' : ''} - Ajoutez-en d'autres ou continuez`
               : mode === "domicile"
-              ? "À côté du domicile — tarifs réduits, sans frais de déplacement"
-              : "En déplacement — je me déplace chez vous"
+              ? "Le client se déplace — tarifs réduits, sans frais de déplacement"
+              : "LCS Barber se déplace — je me déplace chez toi"
             }
           </p>
           <p className="mt-1 text-xs text-muted-foreground/80">
@@ -247,7 +249,7 @@ export const BookingTool = () => {
           </p>
         </div>
 
-        {/* Choix du mode : à côté du domicile ou en déplacement */}
+        {/* Choix du mode : le client se déplace ou LCS Barber se déplace */}
         {mode === null && !isConfirmed && (
           <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto">
             <Card
@@ -258,9 +260,9 @@ export const BookingTool = () => {
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                   <Home className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold mb-1">À côté du domicile</h3>
+                <h3 className="text-lg font-semibold mb-1">Le client se déplace</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  À côté du domicile (95) — réservation instantanée, sans formulaire
+                  {DOMICILE_ADDRESS} — réservation instantanée, sans formulaire
                 </p>
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>Contours : <span className="text-primary font-semibold">10€</span></p>
@@ -278,9 +280,9 @@ export const BookingTool = () => {
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                   <Car className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold mb-1">En déplacement</h3>
+                <h3 className="text-lg font-semibold mb-1">LCS Barber se déplace</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Je me déplace chez vous — frais de déplacement selon la distance
+                  Je me déplace chez toi — frais de déplacement selon la distance
                 </p>
                 <div className="text-xs text-muted-foreground">
                   <p>Tarifs classiques + frais de déplacement</p>
@@ -410,13 +412,15 @@ export const BookingTool = () => {
                   <p className="mb-6 text-muted-foreground">
                     {mode === "domicile" ? (
                       <>
-                        Ton rendez-vous à côté du domicile a été enregistré
+                        Ton rendez-vous « Le client se déplace » a été enregistré
                         {currentSelection.service && currentSelection.date && currentSelection.time && (
                           <>
                             <br />
                             <span className="font-medium text-foreground">
                               {currentSelection.service.name} — {format(currentSelection.date, "EEEE d MMMM", { locale: fr })} à {currentSelection.time}
                             </span>
+                            <br />
+                            <span className="font-medium text-foreground">{DOMICILE_ADDRESS}</span>
                           </>
                         )}
                         <br />

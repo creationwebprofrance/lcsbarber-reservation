@@ -21,8 +21,8 @@ interface TimeSlot {
 
 const modeLabels: Record<string, string> = {
   both: 'Les deux',
-  domicile: 'À côté du domicile',
-  deplacement: 'En déplacement',
+  domicile: 'Le client se déplace',
+  deplacement: 'LCS Barber se déplace',
 };
 
 const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
@@ -177,8 +177,8 @@ export const TimeSlotsManager = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="both">Les deux</SelectItem>
-                <SelectItem value="domicile">À côté du domicile</SelectItem>
-                <SelectItem value="deplacement">En déplacement</SelectItem>
+                <SelectItem value="domicile">Le client se déplace</SelectItem>
+                <SelectItem value="deplacement">LCS Barber se déplace</SelectItem>
               </SelectContent>
             </Select>
           </div>
