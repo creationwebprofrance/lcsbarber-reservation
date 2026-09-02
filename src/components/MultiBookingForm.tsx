@@ -183,12 +183,9 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
   const totalSupplements = pricingDetails.reduce((sum, { pricing }) => sum + pricing.supplement + pricing.sameDayFee + pricing.sundayFee, 0);
   const totalPrice = totalBasePrice + totalSupplements + travelCalculation.fees;
   
-  const requiresDeposit = totalPrice > 50;
-  const depositAmount = 10;
-  
-  const generatePayPalLink = () => {
-    return `https://www.paypal.me/lczzz/${depositAmount}EUR`;
-  };
+  const depositAmount = calculateDeposit(totalPrice);
+  const requiresDeposit = depositAmount > 0;
+  const hideIdentity = isKnownClient && formData.name.trim().length >= 2 && !!formData.email;
 
   const validateForm = () => {
     try {
