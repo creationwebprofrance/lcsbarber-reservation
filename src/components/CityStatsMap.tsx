@@ -104,24 +104,16 @@ export function CityStatsMap({ cityStats, onCityUpdated }: CityStatsMapProps) {
       if (city.lat && city.lng) {
         const el = document.createElement("div");
         el.className = "city-marker";
-        el.innerHTML = `
-          <div style="
-            background: hsl(var(--primary));
-            color: white;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            white-space: nowrap;
-          ">
-            <span>${city.city}</span>
-            <span style="background: white; color: hsl(var(--primary)); padding: 2px 6px; border-radius: 10px; font-size: 10px;">${city.count}</span>
-          </div>
-        `;
+        const badge = document.createElement("div");
+        badge.style.cssText = "background: hsl(var(--primary)); color: white; padding: 4px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); white-space: nowrap;";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = city.city; // textContent = pas d'injection HTML possible
+        const countSpan = document.createElement("span");
+        countSpan.style.cssText = "background: white; color: hsl(var(--primary)); padding: 2px 6px; border-radius: 10px; font-size: 10px;";
+        countSpan.textContent = String(city.count);
+        badge.appendChild(nameSpan);
+        badge.appendChild(countSpan);
+        el.appendChild(badge);
 
         const marker = new mapboxgl.Marker(el)
           .setLngLat([city.lng, city.lat])
