@@ -46,7 +46,39 @@ export const BookingsCalendar = () => {
   const [selectedDateBookings, setSelectedDateBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [refundTarget, setRefundTarget] = useState<Booking | null>(null);
+  const [refunding, setRefunding] = useState(false);
   const { toast } = useToast();
+
+  const canRefund = (b: Booking) =>
+    b.deposit_paid && /cs_[A-Za-z0-9_]+/.test(b.notes ?? "") && !/Acompte remboursé/i.test(b.notes ?? "");
+
+  const handleRefund = async () => {
+    if (!refundTarget) return;
+    setRefunding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("refund-deposit", {
+        body: { booking_id: refundTarget.id, cancel_booking: true },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast({
+        title: "Acompte remboursé",
+        description: `${(data as any)?.amount ?? ""}€ remboursés à ${refundTarget.client_name}. Le rendez-vous est annulé.`,
+      });
+      setRefundTarget(null);
+      await loadBookings();
+    } catch (e: any) {
+      toast({
+        title: "Remboursement impossible",
+        description: e?.message ?? "Erreur lors du remboursement.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefunding(false);
+    }
+  };
+
 
   useEffect(() => {
     loadBookings();
