@@ -17,6 +17,7 @@ import { Auth } from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import { Admin } from "./pages/Admin";
+import AdminVehicules from "./pages/AdminVehicules";
 import { AuthProvider } from "./hooks/useAuth";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { ThemeProvider } from "next-themes";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/vehicules" element={<AdminVehicules />} />
             <Route path="/simulator" element={<Simulator />} />
             <Route path="/carnaval" element={<Carnaval />} />
             <Route path="/evenements" element={<Evenements />} />
