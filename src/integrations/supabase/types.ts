@@ -405,6 +405,56 @@ export type Database = {
         }
         Relationships: []
       }
+      odometer_readings: {
+        Row: {
+          confirmed: boolean
+          created_at: string
+          id: string
+          is_correction: boolean
+          is_replacement: boolean
+          notes: string | null
+          reading_date: string
+          source: string
+          unit: string
+          value: number
+          vehicle_id: string
+        }
+        Insert: {
+          confirmed?: boolean
+          created_at?: string
+          id?: string
+          is_correction?: boolean
+          is_replacement?: boolean
+          notes?: string | null
+          reading_date?: string
+          source?: string
+          unit?: string
+          value: number
+          vehicle_id: string
+        }
+        Update: {
+          confirmed?: boolean
+          created_at?: string
+          id?: string
+          is_correction?: boolean
+          is_replacement?: boolean
+          notes?: string | null
+          reading_date?: string
+          source?: string
+          unit?: string
+          value?: number
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "odometer_readings_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pending_bookings: {
         Row: {
           appointment_date: string
@@ -658,6 +708,607 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_api_quota: {
+        Row: {
+          call_count: number
+          id: string
+          max_calls: number
+          period: string
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          call_count?: number
+          id?: string
+          max_calls?: number
+          period: string
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          call_count?: number
+          id?: string
+          max_calls?: number
+          period?: string
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vehicle_documents: {
+        Row: {
+          created_at: string
+          doc_date: string | null
+          doc_type: string
+          id: string
+          mime_type: string | null
+          notes: string | null
+          size_bytes: number | null
+          storage_path: string
+          title: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          doc_date?: string | null
+          doc_type?: string
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          title?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          doc_date?: string | null
+          doc_type?: string
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          title?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_documents_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          currency: string
+          document_path: string | null
+          expense_date: string
+          id: string
+          is_estimate: boolean
+          notes: string | null
+          quantity: number | null
+          quantity_unit: string | null
+          trip_id: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          amount?: number
+          category?: string
+          created_at?: string
+          currency?: string
+          document_path?: string | null
+          expense_date?: string
+          id?: string
+          is_estimate?: boolean
+          notes?: string | null
+          quantity?: number | null
+          quantity_unit?: string | null
+          trip_id?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          currency?: string
+          document_path?: string | null
+          expense_date?: string
+          id?: string
+          is_estimate?: boolean
+          notes?: string | null
+          quantity?: number | null
+          quantity_unit?: string | null
+          trip_id?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_expenses_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_expenses_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_field_sources: {
+        Row: {
+          confirmed_by_user: boolean
+          created_at: string
+          field_name: string
+          id: string
+          original_value: string | null
+          retained_value: string | null
+          source: string
+          source_date: string | null
+          status: string
+          vehicle_id: string
+        }
+        Insert: {
+          confirmed_by_user?: boolean
+          created_at?: string
+          field_name: string
+          id?: string
+          original_value?: string | null
+          retained_value?: string | null
+          source: string
+          source_date?: string | null
+          status?: string
+          vehicle_id: string
+        }
+        Update: {
+          confirmed_by_user?: boolean
+          created_at?: string
+          field_name?: string
+          id?: string
+          original_value?: string | null
+          retained_value?: string | null
+          source?: string
+          source_date?: string | null
+          status?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_field_sources_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_maintenance_events: {
+        Row: {
+          action_type: string
+          cost: number | null
+          created_at: string
+          event_date: string
+          id: string
+          notes: string | null
+          odometer: number | null
+          odometer_unit: string
+          operation: string
+          provider: string | null
+          rule_id: string | null
+          source: string
+          vehicle_id: string
+        }
+        Insert: {
+          action_type?: string
+          cost?: number | null
+          created_at?: string
+          event_date?: string
+          id?: string
+          notes?: string | null
+          odometer?: number | null
+          odometer_unit?: string
+          operation: string
+          provider?: string | null
+          rule_id?: string | null
+          source?: string
+          vehicle_id: string
+        }
+        Update: {
+          action_type?: string
+          cost?: number | null
+          created_at?: string
+          event_date?: string
+          id?: string
+          notes?: string | null
+          odometer?: number | null
+          odometer_unit?: string
+          operation?: string
+          provider?: string | null
+          rule_id?: string | null
+          source?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_maintenance_events_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_maintenance_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_maintenance_events_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_maintenance_rules: {
+        Row: {
+          action_type: string
+          applicability: string | null
+          category: string
+          component: string | null
+          condition_based: boolean
+          created_at: string
+          estimated_budget: number | null
+          first_interval_km: number | null
+          first_interval_months: number | null
+          fixed_due_date: string | null
+          id: string
+          interval_km: number | null
+          interval_months: number | null
+          is_active: boolean
+          notes: string | null
+          operation: string
+          reference_date: string | null
+          reference_odometer: number | null
+          source: string
+          source_reference: string | null
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          action_type?: string
+          applicability?: string | null
+          category: string
+          component?: string | null
+          condition_based?: boolean
+          created_at?: string
+          estimated_budget?: number | null
+          first_interval_km?: number | null
+          first_interval_months?: number | null
+          fixed_due_date?: string | null
+          id?: string
+          interval_km?: number | null
+          interval_months?: number | null
+          is_active?: boolean
+          notes?: string | null
+          operation: string
+          reference_date?: string | null
+          reference_odometer?: number | null
+          source?: string
+          source_reference?: string | null
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          action_type?: string
+          applicability?: string | null
+          category?: string
+          component?: string | null
+          condition_based?: boolean
+          created_at?: string
+          estimated_budget?: number | null
+          first_interval_km?: number | null
+          first_interval_months?: number | null
+          fixed_due_date?: string | null
+          id?: string
+          interval_km?: number | null
+          interval_months?: number | null
+          is_active?: boolean
+          notes?: string | null
+          operation?: string
+          reference_date?: string | null
+          reference_odometer?: number | null
+          source?: string
+          source_reference?: string | null
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_maintenance_rules_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_trip_legs: {
+        Row: {
+          address: string | null
+          arrival_at: string | null
+          booking_id: string | null
+          created_at: string
+          id: string
+          label: string | null
+          latitude: number | null
+          longitude: number | null
+          position: number
+          trip_id: string
+        }
+        Insert: {
+          address?: string | null
+          arrival_at?: string | null
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          label?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          position?: number
+          trip_id: string
+        }
+        Update: {
+          address?: string | null
+          arrival_at?: string | null
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          label?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          position?: number
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_trip_legs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_trip_legs_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicle_trips: {
+        Row: {
+          booking_id: string | null
+          business_share: number
+          created_at: string
+          declared_distance_km: number | null
+          distance_is_estimate: boolean
+          ended_at: string | null
+          event_id: string | null
+          gps_distance_km: number | null
+          id: string
+          notes: string | null
+          odometer_distance_km: number | null
+          planned_distance_km: number | null
+          retained_distance_km: number | null
+          retained_distance_source: string | null
+          started_at: string | null
+          state: string
+          title: string | null
+          trip_type: string
+          updated_at: string
+          usage: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          business_share?: number
+          created_at?: string
+          declared_distance_km?: number | null
+          distance_is_estimate?: boolean
+          ended_at?: string | null
+          event_id?: string | null
+          gps_distance_km?: number | null
+          id?: string
+          notes?: string | null
+          odometer_distance_km?: number | null
+          planned_distance_km?: number | null
+          retained_distance_km?: number | null
+          retained_distance_source?: string | null
+          started_at?: string | null
+          state?: string
+          title?: string | null
+          trip_type?: string
+          updated_at?: string
+          usage?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          business_share?: number
+          created_at?: string
+          declared_distance_km?: number | null
+          distance_is_estimate?: boolean
+          ended_at?: string | null
+          event_id?: string | null
+          gps_distance_km?: number | null
+          id?: string
+          notes?: string | null
+          odometer_distance_km?: number | null
+          planned_distance_km?: number | null
+          retained_distance_km?: number | null
+          retained_distance_source?: string | null
+          started_at?: string | null
+          state?: string
+          title?: string | null
+          trip_type?: string
+          updated_at?: string
+          usage?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_trips_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_trips_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_trips_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          ademe_ref: string | null
+          archived: boolean
+          body_type: string | null
+          cnit: string | null
+          created_at: string
+          displacement_cm3: number | null
+          electrification: string | null
+          engine_code: string | null
+          engine_version: string | null
+          first_registration: string | null
+          fiscal_power: number | null
+          fuel: string | null
+          gearbox_code: string | null
+          gearbox_gears: number | null
+          gearbox_type: string | null
+          generation: string | null
+          id: string
+          is_default: boolean
+          label: string | null
+          make: string | null
+          model: string | null
+          model_year: number | null
+          notes: string | null
+          odometer_unit: string
+          owner_id: string
+          phase: string | null
+          plate: string | null
+          plate_country: string
+          plate_raw: string | null
+          power_kw: number | null
+          production_end: string | null
+          production_start: string | null
+          status: string
+          tvv: string | null
+          updated_at: string
+          vin: string | null
+          visual_meta: Json | null
+          visual_source: string | null
+        }
+        Insert: {
+          ademe_ref?: string | null
+          archived?: boolean
+          body_type?: string | null
+          cnit?: string | null
+          created_at?: string
+          displacement_cm3?: number | null
+          electrification?: string | null
+          engine_code?: string | null
+          engine_version?: string | null
+          first_registration?: string | null
+          fiscal_power?: number | null
+          fuel?: string | null
+          gearbox_code?: string | null
+          gearbox_gears?: number | null
+          gearbox_type?: string | null
+          generation?: string | null
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          make?: string | null
+          model?: string | null
+          model_year?: number | null
+          notes?: string | null
+          odometer_unit?: string
+          owner_id?: string
+          phase?: string | null
+          plate?: string | null
+          plate_country?: string
+          plate_raw?: string | null
+          power_kw?: number | null
+          production_end?: string | null
+          production_start?: string | null
+          status?: string
+          tvv?: string | null
+          updated_at?: string
+          vin?: string | null
+          visual_meta?: Json | null
+          visual_source?: string | null
+        }
+        Update: {
+          ademe_ref?: string | null
+          archived?: boolean
+          body_type?: string | null
+          cnit?: string | null
+          created_at?: string
+          displacement_cm3?: number | null
+          electrification?: string | null
+          engine_code?: string | null
+          engine_version?: string | null
+          first_registration?: string | null
+          fiscal_power?: number | null
+          fuel?: string | null
+          gearbox_code?: string | null
+          gearbox_gears?: number | null
+          gearbox_type?: string | null
+          generation?: string | null
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          make?: string | null
+          model?: string | null
+          model_year?: number | null
+          notes?: string | null
+          odometer_unit?: string
+          owner_id?: string
+          phase?: string | null
+          plate?: string | null
+          plate_country?: string
+          plate_raw?: string | null
+          power_kw?: number | null
+          production_end?: string | null
+          production_start?: string | null
+          status?: string
+          tvv?: string | null
+          updated_at?: string
+          vin?: string | null
+          visual_meta?: Json | null
+          visual_source?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       public_reviews: {
@@ -701,6 +1352,10 @@ export type Database = {
     }
     Functions: {
       cleanup_expired_pending_bookings: { Args: never; Returns: undefined }
+      consume_vehicle_api_quota: {
+        Args: { _max_calls: number; _provider: string }
+        Returns: Json
+      }
       create_booking_from_pending: {
         Args: { p_verification_token: string }
         Returns: Json
