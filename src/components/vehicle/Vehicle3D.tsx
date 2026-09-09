@@ -19,12 +19,28 @@ export const Vehicle3D = ({ modelUrl, fallback, watermarked, caption }: Props) =
   useEffect(() => {
     if (!modelUrl) return;
     let cancelled = false;
-    // Chargement paresseux : le moteur 3D n'est téléchargé que si un modèle existe
-    import("@google/model-viewer")
-      .then(() => !cancelled && setReady(true))
-      .catch(() => !cancelled && setReady(false));
+    // Chargement paresseux via CDN : le moteur 3D n'est téléchargé que si un modèle existe
+    const SRC = "https://unpkg.com/@google/model-viewer@4.0.0/dist/model-viewer.min.js";
+    if (customElements.get("model-viewer")) {
+      setReady(true);
+      return;
+    }
+    let script = document.querySelector<HTMLScriptElement>(`script[data-model-viewer]`);
+    if (!script) {
+      script = document.createElement("script");
+      script.type = "module";
+      script.src = SRC;
+      script.dataset.modelViewer = "true";
+      document.head.appendChild(script);
+    }
+    const onLoad = () => !cancelled && setReady(true);
+    const onError = () => !cancelled && setReady(false);
+    script.addEventListener("load", onLoad);
+    script.addEventListener("error", onError);
     return () => {
       cancelled = true;
+      script?.removeEventListener("load", onLoad);
+      script?.removeEventListener("error", onError);
     };
   }, [modelUrl]);
 
