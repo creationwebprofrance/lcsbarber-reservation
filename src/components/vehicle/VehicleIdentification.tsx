@@ -91,21 +91,28 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
     if (error) throw new Error(error.message);
     return data as {
       provider: string; status: string; message?: string;
-      fields?: Record<string, unknown>; quota?: { used: number; max: number };
+      fields?: Record<string, unknown>; candidates?: Variant[];
+      quota?: { used: number; max: number };
     };
   };
+
+  const toCandidates = (fields: Record<string, unknown>, provider: string) =>
+    Object.entries(fields)
+      .filter(([, v]) => v !== null && v !== "" && v !== undefined)
+      .map(([key, v]) => ({ key, value: String(v), provider, keep: true }));
 
   const handleResult = (res: Awaited<ReturnType<typeof call>>) => {
     const label = STATUS_LABELS[res.status] ?? res.status;
     const quota = res.quota ? ` — ${res.quota.used}/${res.quota.max} appels ce mois` : "";
     setStatus({ label: `${SOURCE_LABELS[res.provider] ?? res.provider} : ${label}${quota}`, detail: res.message });
-    if (res.fields) {
-      setCandidates(
-        Object.entries(res.fields)
-          .filter(([, v]) => v !== null && v !== "" && v !== undefined)
-          .map(([key, v]) => ({ key, value: String(v), provider: res.provider, keep: true })),
-      );
+    if (res.candidates?.length) {
+      setVariants(res.candidates);
+      setCandidates([]);
+    } else if (res.fields) {
+      setVariants([]);
+      setCandidates(toCandidates(res.fields, res.provider));
     } else {
+      setVariants([]);
       setCandidates([]);
     }
   };
@@ -113,6 +120,7 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const runLookup = async (payload: Record<string, unknown>) => {
     setLoading(true);
     setCandidates([]);
+    setVariants([]);
     setStatus(null);
     try {
       handleResult(await call(payload));
@@ -122,6 +130,7 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
       setLoading(false);
     }
   };
+
 
   const runOcr = async (file: File) => {
     setOcrProgress(0);
