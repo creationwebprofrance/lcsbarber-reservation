@@ -220,15 +220,12 @@ export const AdminVehicules = () => {
 
                 <div className="space-y-3">
                   <Vehicle3D
-                    modelUrl={visual?.model_url ?? null}
-                    fallback={visual?.fallback}
-                    watermarked={visual?.watermarked}
+                    make={current.make}
+                    model={current.model}
+                    year={current.model_year ?? (current.first_registration
+                      ? Number(current.first_registration.slice(0, 4))
+                      : null)}
                   />
-                  <Button variant="outline" size="sm" disabled={visualBusy || !current.make || !current.model}
-                    onClick={fetchVisual}>
-                    {visualBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Chercher un visuel 3D
-                  </Button>
                 </div>
               </div>
 
