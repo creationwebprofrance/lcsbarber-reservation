@@ -18,6 +18,7 @@ import { energyKind } from "@/lib/vehicle-maintenance-catalog";
 
 const DRIVETRAINS = ["Traction (FWD)", "Propulsion (RWD)", "Intégrale (AWD)", "4 roues motrices (4WD)", "Je ne sais pas"];
 const HYBRID_TYPES = ["Aucune", "Hybride léger (MHEV)", "Hybride (HEV)", "Hybride rechargeable (PHEV)", "Je ne sais pas"];
+const GEARBOXES = ["Manuelle", "Automatique", "Je ne sais pas"];
 
 interface Props {
   vehicle: Vehicle;
