@@ -76,32 +76,6 @@ export const AdminVehicules = () => {
   };
   useEffect(() => { if (allowed) loadQuotas(); }, [allowed]);
 
-  const fetchVisual = async () => {
-    if (!current?.make || !current?.model) return;
-    setVisualBusy(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("vehicle-lookup", {
-        body: { action: "visual", make: current.make, model: current.model, generation: current.generation },
-      });
-      if (error) throw new Error(error.message);
-      const res = data as { status: string; fields?: Record<string, unknown> };
-      if (res.status === "matched" || res.status === "fallback") {
-        await supabase.from("vehicles").update({
-          visual_source: "carimages",
-          visual_meta: res.fields as never,
-        }).eq("id", current.id);
-        await loadVehicles();
-      } else {
-        toast({ title: STATUS_LABELS[res.status] ?? res.status });
-      }
-      loadQuotas();
-    } catch (e) {
-      toast({ title: "Visuel indisponible", description: (e as Error).message, variant: "destructive" });
-    } finally {
-      setVisualBusy(false);
-    }
-  };
-
   const setDefault = async (id: string) => {
     await supabase.from("vehicles").update({ is_default: true }).eq("id", id);
     loadVehicles();
