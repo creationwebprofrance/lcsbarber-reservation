@@ -30,10 +30,36 @@ const verificationEmailSchema = z.object({
 
 type VerificationEmailRequest = z.infer<typeof verificationEmailSchema>;
 
+// Domaines autorisés pour le lien de vérification (anti-phishing)
+const ALLOWED_APP_ORIGINS = [
+  "https://lcsbarber.com",
+  "https://www.lcsbarber.com",
+  "https://lcsbarber-reservation.lovable.app",
+];
+
+const resolveAppUrl = (candidate: string): string | null => {
+  try {
+    const url = new URL(candidate);
+    const origin = url.origin.toLowerCase();
+    if (ALLOWED_APP_ORIGINS.includes(origin)) return origin;
+    // Autorise les URL de prévisualisation Lovable du projet
+    if (/^https:\/\/[a-z0-9-]+\.lovable\.app$/.test(origin)) return origin;
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const escapeHtml = (v: unknown): string =>
+  String(v ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string
+  );
+
 // Function to replace template variables
 const replaceTemplateVars = (template: string, data: VerificationEmailRequest): string => {
-  const verificationLink = `${data.appUrl}/verify-booking?token=${data.verificationToken}`;
+  const verificationLink = `${data.appUrl}/verify-booking?token=${encodeURIComponent(data.verificationToken)}`;
   const depositAmount = data.totalPrice ? Math.round(data.totalPrice * 0.5) : 0;
+  
   
   let result = template
     .replace(/\{\{clientName\}\}/g, data.clientName || '')
