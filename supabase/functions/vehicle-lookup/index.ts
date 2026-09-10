@@ -92,6 +92,23 @@ async function lookupPlate(plate: string, country: string): Promise<AdapterResul
       },
     );
     if (res.status === 404) return { provider: "apiplaque", status: "no_match", quota };
+    if (res.status === 403) {
+      return {
+        provider: "apiplaque",
+        status: "temporary_error",
+        message:
+          "Clé RapidAPI non abonnée à l'API « API Plaque Immatriculation SIV ». Sur rapidapi.com, ouvre la page de l'API api-plaque-immatriculation-siv et clique « Subscribe » (plan gratuit), puis réessaie.",
+        quota,
+      };
+    }
+    if (res.status === 429) {
+      return {
+        provider: "apiplaque",
+        status: "quota_exceeded",
+        message: "Quota RapidAPI du mois atteint.",
+        quota,
+      };
+    }
     if (!res.ok) {
       return {
         provider: "apiplaque",
