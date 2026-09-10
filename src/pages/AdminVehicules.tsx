@@ -7,7 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Car, ArrowLeft, Loader2, Gauge, Wrench } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Car, ArrowLeft, Loader2, Gauge, Wrench, Plus, Trash2 } from "lucide-react";
 import { VehicleIdentification } from "@/components/vehicle/VehicleIdentification";
 import { Vehicle3D } from "@/components/vehicle/Vehicle3D";
 import { VehicleForecast, buildForecasts } from "@/components/vehicle/VehicleForecast";
@@ -90,6 +95,18 @@ export const AdminVehicules = () => {
   const archive = async (id: string) => {
     await supabase.from("vehicles").update({ archived: true, is_default: false }).eq("id", id);
     toast({ title: "Véhicule archivé" });
+    setCurrentId(null);
+    loadVehicles();
+  };
+
+  const remove = async (id: string) => {
+    const { error } = await supabase.from("vehicles").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Suppression impossible", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Véhicule supprimé" });
+    setDetails(false);
     setCurrentId(null);
     loadVehicles();
   };
@@ -200,18 +217,40 @@ export const AdminVehicules = () => {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button onClick={() => setDetails(true)}>Détails du véhicule</Button>
+                    <Button onClick={() => setDetails(true)}>Voir / modifier les détails</Button>
                     {!current.is_default && (
                       <Button variant="outline" onClick={() => setDefault(current.id)}>
                         Définir comme principal
                       </Button>
                     )}
                     <Button variant="outline" onClick={() => setAdding(true)}>
-                      Ajouter un véhicule
+                      <Plus className="mr-2 h-4 w-4" /> Ajouter un véhicule
                     </Button>
                     <Button variant="ghost" onClick={() => archive(current.id)}>
                       Archiver
                     </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive">
+                          <Trash2 className="mr-2 h-4 w-4" /> Supprimer
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer {vehicleName(current)} ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Le véhicule, son kilométrage, ses entretiens, ses dépenses et ses documents
+                            seront définitivement effacés. Cette action est irréversible.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => remove(current.id)}>
+                            Supprimer définitivement
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardContent>
               </Card>
