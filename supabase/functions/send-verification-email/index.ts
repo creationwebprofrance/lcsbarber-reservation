@@ -62,19 +62,19 @@ const replaceTemplateVars = (template: string, data: VerificationEmailRequest): 
   
   
   let result = template
-    .replace(/\{\{clientName\}\}/g, data.clientName || '')
-    .replace(/\{\{clientEmail\}\}/g, data.clientEmail || '')
-    .replace(/\{\{clientPhone\}\}/g, data.clientPhone || '')
-    .replace(/\{\{clientAddress\}\}/g, data.clientAddress || '')
-    .replace(/\{\{serviceName\}\}/g, data.serviceName || '')
+    .replace(/\{\{clientName\}\}/g, escapeHtml(data.clientName))
+    .replace(/\{\{clientEmail\}\}/g, escapeHtml(data.clientEmail))
+    .replace(/\{\{clientPhone\}\}/g, escapeHtml(data.clientPhone))
+    .replace(/\{\{clientAddress\}\}/g, escapeHtml(data.clientAddress))
+    .replace(/\{\{serviceName\}\}/g, escapeHtml(data.serviceName))
     .replace(/\{\{servicePrice\}\}/g, String(data.servicePrice || 0))
-    .replace(/\{\{appointmentDate\}\}/g, data.appointmentDate || '')
-    .replace(/\{\{appointmentTime\}\}/g, data.appointmentTime || '')
+    .replace(/\{\{appointmentDate\}\}/g, escapeHtml(data.appointmentDate))
+    .replace(/\{\{appointmentTime\}\}/g, escapeHtml(data.appointmentTime))
     .replace(/\{\{totalPrice\}\}/g, String(data.totalPrice || 0))
     .replace(/\{\{travelFee\}\}/g, String(data.travelFee || 0))
     .replace(/\{\{depositAmount\}\}/g, String(depositAmount))
     .replace(/\{\{verificationLink\}\}/g, verificationLink)
-    .replace(/\{\{notes\}\}/g, data.notes || '');
+    .replace(/\{\{notes\}\}/g, escapeHtml(data.notes));
 
   // Handle conditional blocks for travelFee
   if (data.travelFee && data.travelFee > 0) {
