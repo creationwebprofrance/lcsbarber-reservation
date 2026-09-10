@@ -111,16 +111,20 @@ export function buildForecasts(
       } else status = "later";
     }
 
+    const approx = isEstimate ? "≈ " : "";
     let phrase = "Intervalle à renseigner";
     if (remainingKm !== null && dueKm !== null) {
       phrase = remainingKm >= 0
-        ? `Dans ${fmt(remainingKm)} km, vers ${fmt(dueKm)} km`
-        : `Dépassé de ${fmt(-remainingKm)} km (prévu vers ${fmt(dueKm)} km)`;
+        ? `${approx}Dans ${fmt(remainingKm)} km, vers ${fmt(dueKm)} km`
+        : `${approx}Dépassé de ${fmt(-remainingKm)} km (prévu vers ${fmt(dueKm)} km)`;
     } else if (dueKm !== null) {
-      phrase = `Vers ${fmt(dueKm)} km`;
+      phrase = `${approx}Vers ${fmt(dueKm)} km`;
     }
     if (dueDate) {
-      phrase += ` · avant le ${new Date(dueDate).toLocaleDateString("fr-FR")}`;
+      phrase += ` · ${isEstimate ? "vers" : "avant"} le ${new Date(dueDate).toLocaleDateString("fr-FR")}`;
+    }
+    if (isEstimate && (dueKm !== null || dueDate)) {
+      phrase += " (estimation)";
     }
 
     return { item, rule, lastEvent, referenceKm, dueKm, dueDate, remainingKm, status, phrase };
