@@ -255,13 +255,22 @@ export default function Home() {
 
 
       {/* Footer */}
-      <footer className="border-t border-border/40 py-8">
-        <div className="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <footer className="border-t border-border/40 py-10">
+        <div className="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row sm:items-start justify-between gap-8">
           <img src={lcsBarberLogo} alt="LCS Barber" className="h-12 opacity-60" />
-          <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} LCS Barber — {t("footer.rights")}
-          </p>
+          <nav aria-label="Informations légales">
+            <h2 className="font-display text-base text-foreground mb-3">Informations légales</h2>
+            <ul className="space-y-2 text-sm">
+              <li><Link to="/mentions-legales" className="text-muted-foreground hover:text-primary transition-colors">Mentions légales</Link></li>
+              <li><Link to="/cgv" className="text-muted-foreground hover:text-primary transition-colors">CGV</Link></li>
+              <li><Link to="/politique-de-confidentialite" className="text-muted-foreground hover:text-primary transition-colors">Politique de confidentialité</Link></li>
+              <li><Link to="/droit-de-retractation" className="text-muted-foreground hover:text-primary transition-colors">Droit de rétractation</Link></li>
+            </ul>
+          </nav>
         </div>
+        <p className="max-w-6xl mx-auto px-5 mt-8 text-xs text-muted-foreground">
+          © {new Date().getFullYear()} LCS Barber — {t("footer.rights")}
+        </p>
       </footer>
     </div>
   );
