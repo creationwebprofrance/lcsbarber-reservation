@@ -32,40 +32,44 @@ const val = (v: unknown) => (v === null || v === undefined || v === "" ? "Non re
 export const VehicleDetailsDialog = ({ vehicle, open, onOpenChange, onSaved, currentKm }: Props) => {
   const { toast } = useToast();
   const electric = energyKind(vehicle) === "electrique";
-  const [form, setForm] = useState({
-    segment: vehicle.segment ?? "",
-    body_type: vehicle.body_type ?? "",
-    drivetrain: vehicle.drivetrain ?? "",
-    hybrid_type: vehicle.hybrid_type ?? "",
-    trim_level: vehicle.trim_level ?? "",
-    doors: vehicle.doors != null ? String(vehicle.doors) : "",
-    seats: vehicle.seats != null ? String(vehicle.seats) : "",
-    consumption_l_100km: vehicle.consumption_l_100km != null ? String(vehicle.consumption_l_100km) : "",
-    fuel_price_per_l: vehicle.fuel_price_per_l != null ? String(vehicle.fuel_price_per_l) : "",
-    consumption_kwh_100km: vehicle.consumption_kwh_100km != null ? String(vehicle.consumption_kwh_100km) : "",
-    elec_price_per_kwh: vehicle.elec_price_per_kwh != null ? String(vehicle.elec_price_per_kwh) : "",
+  const initial = (v: Vehicle) => ({
+    label: v.label ?? "",
+    make: v.make ?? "",
+    model: v.model ?? "",
+    model_year: v.model_year != null ? String(v.model_year) : "",
+    plate: v.plate ?? "",
+    vin: v.vin ?? "",
+    fuel: v.fuel ?? "",
+    gearbox_type: v.gearbox_type ?? "",
+    segment: v.segment ?? "",
+    body_type: v.body_type ?? "",
+    drivetrain: v.drivetrain ?? "",
+    hybrid_type: v.hybrid_type ?? "",
+    trim_level: v.trim_level ?? "",
+    doors: v.doors != null ? String(v.doors) : "",
+    seats: v.seats != null ? String(v.seats) : "",
+    consumption_l_100km: v.consumption_l_100km != null ? String(v.consumption_l_100km) : "",
+    fuel_price_per_l: v.fuel_price_per_l != null ? String(v.fuel_price_per_l) : "",
+    consumption_kwh_100km: v.consumption_kwh_100km != null ? String(v.consumption_kwh_100km) : "",
+    elec_price_per_kwh: v.elec_price_per_kwh != null ? String(v.elec_price_per_kwh) : "",
   });
 
-  useEffect(() => {
-    setForm({
-      segment: vehicle.segment ?? "",
-      body_type: vehicle.body_type ?? "",
-      drivetrain: vehicle.drivetrain ?? "",
-      hybrid_type: vehicle.hybrid_type ?? "",
-      trim_level: vehicle.trim_level ?? "",
-      doors: vehicle.doors != null ? String(vehicle.doors) : "",
-      seats: vehicle.seats != null ? String(vehicle.seats) : "",
-      consumption_l_100km: vehicle.consumption_l_100km != null ? String(vehicle.consumption_l_100km) : "",
-      fuel_price_per_l: vehicle.fuel_price_per_l != null ? String(vehicle.fuel_price_per_l) : "",
-      consumption_kwh_100km: vehicle.consumption_kwh_100km != null ? String(vehicle.consumption_kwh_100km) : "",
-      elec_price_per_kwh: vehicle.elec_price_per_kwh != null ? String(vehicle.elec_price_per_kwh) : "",
-    });
-  }, [vehicle]);
+  const [form, setForm] = useState(() => initial(vehicle));
+
+  useEffect(() => { setForm(initial(vehicle)); }, [vehicle]);
 
   const num = (s: string) => (s.trim() === "" ? null : parseFloat(s.replace(",", ".")));
 
   const save = async () => {
     const { error } = await supabase.from("vehicles").update({
+      label: form.label.trim() || null,
+      make: form.make.trim() || null,
+      model: form.model.trim() || null,
+      model_year: form.model_year ? parseInt(form.model_year, 10) : null,
+      plate: form.plate.trim().toUpperCase() || null,
+      vin: form.vin.trim().toUpperCase() || null,
+      fuel: form.fuel || null,
+      gearbox_type: form.gearbox_type || null,
       segment: form.segment || null,
       body_type: form.body_type || null,
       drivetrain: form.drivetrain || null,
