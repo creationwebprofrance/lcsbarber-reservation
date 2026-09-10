@@ -75,8 +75,10 @@ export function buildForecasts(
         ? Number(rule.reference_odometer)
         : currentKm;
 
-    const intervalKm = rule?.interval_km ?? null;
-    const intervalMonths = rule?.interval_months ?? null;
+    // Priorité à la règle saisie ; sinon ordre de grandeur générique du catalogue.
+    const isEstimate = !(rule?.interval_km || rule?.interval_months);
+    const intervalKm = rule?.interval_km ?? item.default_interval_km ?? null;
+    const intervalMonths = rule?.interval_months ?? item.default_interval_months ?? null;
 
     const dueKm = intervalKm && referenceKm != null ? referenceKm + intervalKm : null;
     let dueDate: string | null = null;
@@ -87,6 +89,13 @@ export function buildForecasts(
         d.setMonth(d.getMonth() + intervalMonths);
         dueDate = d.toISOString().slice(0, 10);
       }
+    }
+    // Si seule une échéance km est connue, on estime une date approximative
+    // sur la base d'un rythme générique de 15 000 km/an.
+    if (!dueDate && dueKm != null && currentKm != null && dueKm > currentKm) {
+      const days = ((dueKm - currentKm) / 15000) * 365;
+      const d = new Date(Date.now() + days * 86400000);
+      dueDate = d.toISOString().slice(0, 10);
     }
     const remainingKm = dueKm != null && currentKm != null ? dueKm - currentKm : null;
     const remainingDays = dueDate
