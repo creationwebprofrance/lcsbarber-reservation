@@ -107,8 +107,8 @@ export const CalendarSlotsManager = () => {
       .from('bookings')
       .select('id, appointment_date, appointment_time, client_name, status, services(name)')
       .in('status', ['confirmed', 'pending'])
-      .order('appointment_date')
-      .order('appointment_time');
+      .order('appointment_date', { ascending: false })
+      .order('appointment_time', { ascending: false });
     setBookings(data || []);
   };
 
