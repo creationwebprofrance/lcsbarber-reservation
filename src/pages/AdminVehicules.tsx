@@ -33,7 +33,7 @@ export const AdminVehicules = () => {
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [readings, setReadings] = useState<OdometerReading[]>([]);
   const [quotas, setQuotas] = useState<QuotaRow[]>([]);
-  const [visualBusy, setVisualBusy] = useState(false);
+  
 
   const current = vehicles.find((v) => v.id === currentId) ?? null;
 
@@ -76,32 +76,6 @@ export const AdminVehicules = () => {
   };
   useEffect(() => { if (allowed) loadQuotas(); }, [allowed]);
 
-  const fetchVisual = async () => {
-    if (!current?.make || !current?.model) return;
-    setVisualBusy(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("vehicle-lookup", {
-        body: { action: "visual", make: current.make, model: current.model, generation: current.generation },
-      });
-      if (error) throw new Error(error.message);
-      const res = data as { status: string; fields?: Record<string, unknown> };
-      if (res.status === "matched" || res.status === "fallback") {
-        await supabase.from("vehicles").update({
-          visual_source: "carimages",
-          visual_meta: res.fields as never,
-        }).eq("id", current.id);
-        await loadVehicles();
-      } else {
-        toast({ title: STATUS_LABELS[res.status] ?? res.status });
-      }
-      loadQuotas();
-    } catch (e) {
-      toast({ title: "Visuel indisponible", description: (e as Error).message, variant: "destructive" });
-    } finally {
-      setVisualBusy(false);
-    }
-  };
-
   const setDefault = async (id: string) => {
     await supabase.from("vehicles").update({ is_default: true }).eq("id", id);
     loadVehicles();
@@ -122,9 +96,6 @@ export const AdminVehicules = () => {
   if (!allowed) return null;
 
   const est = estimateOdometer(readings);
-  const visual = (current?.visual_meta ?? null) as
-    | { model_url?: string; fallback?: boolean; watermarked?: boolean }
-    | null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -220,15 +191,12 @@ export const AdminVehicules = () => {
 
                 <div className="space-y-3">
                   <Vehicle3D
-                    modelUrl={visual?.model_url ?? null}
-                    fallback={visual?.fallback}
-                    watermarked={visual?.watermarked}
+                    make={current.make}
+                    model={current.model}
+                    year={current.model_year ?? (current.first_registration
+                      ? Number(current.first_registration.slice(0, 4))
+                      : null)}
                   />
-                  <Button variant="outline" size="sm" disabled={visualBusy || !current.make || !current.model}
-                    onClick={fetchVisual}>
-                    {visualBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Chercher un visuel 3D
-                  </Button>
                 </div>
               </div>
 
