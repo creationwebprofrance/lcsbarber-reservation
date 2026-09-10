@@ -44,6 +44,8 @@ interface Props {
 }
 
 type Candidate = { key: string; value: string; provider: string; keep: boolean };
+type Variant = { label: string; fields: Record<string, unknown> };
+
 
 export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const { toast } = useToast();
@@ -53,7 +55,10 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const [vin, setVin] = useState("");
   const [status, setStatus] = useState<{ label: string; detail?: string } | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [variants, setVariants] = useState<Variant[]>([]);
+  const [ademe, setAdeme] = useState({ make: "", model: "", makeOther: "", modelOther: "" });
   const [ocrText, setOcrText] = useState("");
+
   const [ocrProgress, setOcrProgress] = useState<number | null>(null);
   const [manual, setManual] = useState({
     make: "", makeOther: "", model: "", modelOther: "", generation: "",
@@ -64,6 +69,9 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const finalMake = manual.make === OTHER ? manual.makeOther.trim() : manual.make;
   const finalModel = manual.model === OTHER ? manual.modelOther.trim() : manual.model;
   const modelChoices = VEHICLE_MODELS[manual.make] ?? [];
+  const ademeMake = ademe.make === OTHER ? ademe.makeOther.trim() : ademe.make;
+  const ademeModel = ademe.model === OTHER ? ademe.modelOther.trim() : ademe.model;
+
 
   const saveGuided = () => {
     const extra: Record<string, unknown> = {
@@ -86,21 +94,28 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
     if (error) throw new Error(error.message);
     return data as {
       provider: string; status: string; message?: string;
-      fields?: Record<string, unknown>; quota?: { used: number; max: number };
+      fields?: Record<string, unknown>; candidates?: Variant[];
+      quota?: { used: number; max: number };
     };
   };
+
+  const toCandidates = (fields: Record<string, unknown>, provider: string) =>
+    Object.entries(fields)
+      .filter(([, v]) => v !== null && v !== "" && v !== undefined)
+      .map(([key, v]) => ({ key, value: String(v), provider, keep: true }));
 
   const handleResult = (res: Awaited<ReturnType<typeof call>>) => {
     const label = STATUS_LABELS[res.status] ?? res.status;
     const quota = res.quota ? ` — ${res.quota.used}/${res.quota.max} appels ce mois` : "";
     setStatus({ label: `${SOURCE_LABELS[res.provider] ?? res.provider} : ${label}${quota}`, detail: res.message });
-    if (res.fields) {
-      setCandidates(
-        Object.entries(res.fields)
-          .filter(([, v]) => v !== null && v !== "" && v !== undefined)
-          .map(([key, v]) => ({ key, value: String(v), provider: res.provider, keep: true })),
-      );
+    if (res.candidates?.length) {
+      setVariants(res.candidates);
+      setCandidates([]);
+    } else if (res.fields) {
+      setVariants([]);
+      setCandidates(toCandidates(res.fields, res.provider));
     } else {
+      setVariants([]);
       setCandidates([]);
     }
   };
@@ -108,6 +123,7 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const runLookup = async (payload: Record<string, unknown>) => {
     setLoading(true);
     setCandidates([]);
+    setVariants([]);
     setStatus(null);
     try {
       handleResult(await call(payload));
@@ -117,6 +133,7 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
       setLoading(false);
     }
   };
+
 
   const runOcr = async (file: File) => {
     setOcrProgress(0);
@@ -225,9 +242,11 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
         <Tabs defaultValue="plate">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="plate">Plaque</TabsTrigger>
+            <TabsTrigger value="ademe">Marque &amp; modèle</TabsTrigger>
             <TabsTrigger value="vin">VIN</TabsTrigger>
             <TabsTrigger value="guided">Saisie guidée</TabsTrigger>
             <TabsTrigger value="ocr">Photo du document</TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="plate" className="space-y-3 pt-4">
@@ -257,26 +276,96 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
             </Button>
           </TabsContent>
 
+          <TabsContent value="ademe" className="space-y-3 pt-4">
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Recherche dans la base publique ADEME (véhicules commercialisés en France).
+                Choisis la marque et le modèle, puis la version exacte.
+              </AlertDescription>
+            </Alert>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Marque</Label>
+                <Select
+                  value={ademe.make}
+                  onValueChange={(v) => setAdeme((a) => ({ ...a, make: v, model: "", modelOther: "" }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="Choisir une marque" /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {VEHICLE_MAKES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                    <SelectItem value={OTHER}>Autre marque…</SelectItem>
+                  </SelectContent>
+                </Select>
+                {ademe.make === OTHER && (
+                  <Input
+                    className="mt-2"
+                    placeholder="Nom de la marque"
+                    value={ademe.makeOther}
+                    onChange={(e) => setAdeme((a) => ({ ...a, makeOther: e.target.value }))}
+                  />
+                )}
+              </div>
+              <div>
+                <Label>Modèle</Label>
+                <Select
+                  value={ademe.model}
+                  onValueChange={(v) => setAdeme((a) => ({ ...a, model: v }))}
+                  disabled={!ademe.make}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={ademe.make ? "Choisir un modèle" : "Choisis d'abord la marque"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {(VEHICLE_MODELS[ademe.make] ?? []).map((m) => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                    <SelectItem value={OTHER}>Autre modèle…</SelectItem>
+                  </SelectContent>
+                </Select>
+                {ademe.model === OTHER && (
+                  <Input
+                    className="mt-2"
+                    placeholder="Nom du modèle"
+                    value={ademe.modelOther}
+                    onChange={(e) => setAdeme((a) => ({ ...a, modelOther: e.target.value }))}
+                  />
+                )}
+              </div>
+            </div>
+            <Button
+              disabled={loading || !ademeMake || !ademeModel}
+              onClick={() => runLookup({ action: "ademe", make: ademeMake, model: ademeModel })}
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Rechercher dans la base ADEME
+            </Button>
+          </TabsContent>
+
           <TabsContent value="vin" className="space-y-3 pt-4">
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                La recherche par VIN européen est suspendue pour le moment. Utilise l'onglet
+                « Marque &amp; modèle » (base ADEME). Le VIN reste utile pour les véhicules
+                importés des États-Unis, et il est enregistré sur la fiche.
+              </AlertDescription>
+            </Alert>
             <Label>Numéro VIN (17 caractères)</Label>
             <Input value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} maxLength={17} />
             {vin.length > 0 && !isValidVin(vin) && (
               <p className="text-xs text-destructive">VIN incomplet ou contenant I, O ou Q.</p>
             )}
-            <div className="flex flex-wrap gap-2">
-              <Button disabled={loading || !isValidVin(vin)} onClick={() => runLookup({ action: "vin", vin })}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Rechercher (Europe)
-              </Button>
-              <Button
-                variant="outline"
-                disabled={loading || !isValidVin(vin)}
-                onClick={() => runLookup({ action: "vpic", vin })}
-              >
-                Véhicule importé des États-Unis
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              disabled={loading || !isValidVin(vin)}
+              onClick={() => runLookup({ action: "vpic", vin })}
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Véhicule importé des États-Unis
+            </Button>
           </TabsContent>
+
 
           <TabsContent value="guided" className="space-y-3 pt-4">
             <p className="text-xs text-muted-foreground">
@@ -423,7 +512,29 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
           </Alert>
         )}
 
+        {variants.length > 0 && (
+          <div className="space-y-2 rounded-lg border p-4">
+            <p className="text-sm font-medium">Choisis la version qui correspond à ta voiture</p>
+            <div className="grid gap-2 max-h-72 overflow-auto">
+              {variants.map((v, i) => (
+                <Button
+                  key={i}
+                  variant="outline"
+                  className="justify-start text-left h-auto py-2"
+                  onClick={() => {
+                    setCandidates(toCandidates(v.fields, "ademe"));
+                    setVariants([]);
+                  }}
+                >
+                  {v.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {candidates.length > 0 && (
+
           <div className="space-y-3 rounded-lg border p-4">
             <p className="text-sm font-medium">Informations proposées — coche celles que tu valides</p>
             <div className="grid gap-2 sm:grid-cols-2">

@@ -134,47 +134,96 @@ async function lookupPlate(plate: string, country: string): Promise<AdapterResul
   }
 }
 
-// ------------------------------------------------------------------ AutoRef
-async function lookupVin(vin: string): Promise<AdapterResult> {
-  const key = Deno.env.get("AUTOREF_API_KEY");
-  if (!key) return { provider: "autoref", status: "not_configured" };
+// ------------------------------------------------------- Base ADEME (France)
+// Jeu de données public « ADEME - Car Labelling » : marque + modèle -> versions
+const ADEME_BASE =
+  "https://data.ademe.fr/data-fair/api/v1/datasets/ademe-car-labelling";
 
-  const quota = await consumeQuota("autoref", LIMITS.autoref);
-  if (!quota.allowed) return { provider: "autoref", status: "quota_exceeded", quota };
+// La base ADEME écrit certaines marques différemment
+const ADEME_MAKE_ALIASES: Record<string, string> = {
+  "bmw": "B.M.W.",
+  "mercedes-benz": "MERCEDES",
+  "mercedes": "MERCEDES",
+  "mg": "M.G.",
+  "citroën": "CITROEN",
+  "land rover": "LAND ROVER",
+  "alfa romeo": "ALFA ROMEO",
+};
+
+const GEARBOX_MAP: Record<string, string> = {
+  MECANIQUE: "Manuelle",
+  AUTOMATIQUE: "Automatique",
+  "VARIATION CONTINUE": "Automatique",
+};
+
+const titleCase = (s: string) =>
+  s.toLowerCase().replace(/(^|[\s\-'/])([a-zà-ÿ])/g, (_m, a, b) => a + b.toUpperCase());
+
+async function lookupAdeme(make: string, model: string): Promise<AdapterResult> {
+  if (!make || !model) {
+    return {
+      provider: "ademe",
+      status: "not_supported",
+      message: "Marque et modèle nécessaires.",
+    };
+  }
+  const adMake = ADEME_MAKE_ALIASES[make.toLowerCase().trim()] ?? make.toUpperCase().trim();
+  const qs = `Marque:"${adMake.replace(/"/g, "")}" AND Modèle:"${model.replace(/"/g, "")}"`;
+  const url = `${ADEME_BASE}/lines?size=30&qs=${encodeURIComponent(qs)}`;
 
   const t = timeout(12000);
   try {
-    const res = await fetch(`https://api.autoref.eu/vehicles/${encodeURIComponent(vin)}`, {
-      headers: { "X-API-Key": key },
-      signal: t.signal,
-    });
-    if (res.status === 404) return { provider: "autoref", status: "no_match", quota };
+    const headers: Record<string, string> = {};
+    const key = Deno.env.get("ADEME_API_KEY");
+    if (key) headers["x-apiKey"] = key;
+    const res = await fetch(url, { headers, signal: t.signal });
     if (!res.ok) {
-      return { provider: "autoref", status: "temporary_error", message: `Réponse ${res.status}`, quota };
+      return { provider: "ademe", status: "temporary_error", message: `Réponse ${res.status}` };
     }
-    const d = await res.json().catch(() => null) as Record<string, unknown> | null;
-    if (!d) return { provider: "autoref", status: "temporary_error", quota };
-    const src = (d.data ?? d) as Record<string, string>;
-    const fields = {
-      make: src.make ?? src.brand ?? null,
-      model: src.model ?? null,
-      model_year: src.year ?? src.modelYear ?? null,
-      fuel: src.fuel ?? src.fuelType ?? null,
-      body_type: src.bodyType ?? src.body ?? null,
-      engine_version: src.engine ?? null,
-      displacement_cm3: src.displacement ?? null,
-      power_kw: src.powerKw ?? null,
-      gearbox_type: src.transmission ?? null,
+    const body = await res.json().catch(() => null) as
+      | { results?: Record<string, unknown>[] }
+      | null;
+    const rows = body?.results ?? [];
+    if (rows.length === 0) return { provider: "ademe", status: "no_match" };
+
+    const variants = rows.map((r) => {
+      const g = String(r["Type_de_boite"] ?? "").toUpperCase();
+      const fuel = String(r["Energie"] ?? "");
+      const fields: Record<string, unknown> = {
+        make: titleCase(String(r["Marque"] ?? adMake)),
+        model: String(r["Modèle"] ?? model),
+        fuel: fuel ? titleCase(fuel) : null,
+        body_type: r["Carrosserie"] ? titleCase(String(r["Carrosserie"])) : null,
+        gearbox_type: GEARBOX_MAP[g] ?? (g ? titleCase(g) : null),
+        displacement_cm3: r["Cylindrée"] ?? null,
+        power_kw: r["Puissance_maximale"] ?? null,
+        fiscal_power: r["Puissance_fiscale"] ?? null,
+        engine_version: r["Description_Commerciale"] ?? null,
+      };
+      const label = [
+        r["Description_Commerciale"] ?? `${r["Marque"]} ${r["Modèle"]}`,
+        fuel ? titleCase(fuel) : null,
+        GEARBOX_MAP[g] ?? null,
+      ].filter(Boolean).join(" · ");
+      return { label, fields };
+    });
+
+    if (variants.length === 1) {
+      return { provider: "ademe", status: "matched", fields: variants[0].fields };
+    }
+    return {
+      provider: "ademe",
+      status: "ambiguous",
+      message: `${variants.length} versions trouvées — choisis la tienne.`,
+      candidates: variants as unknown as Record<string, unknown>[],
     };
-    const known = Object.values(fields).filter((v) => v !== null && v !== "").length;
-    if (known === 0) return { provider: "autoref", status: "no_match", quota };
-    return { provider: "autoref", status: known >= 5 ? "matched" : "partial", fields, quota };
   } catch (_e) {
-    return { provider: "autoref", status: "temporary_error", message: "Service injoignable", quota };
+    return { provider: "ademe", status: "temporary_error", message: "Service injoignable" };
   } finally {
     t.clear();
   }
 }
+
 
 // -------------------------------------------------------------- NHTSA vPIC
 async function lookupVpic(vin: string): Promise<AdapterResult> {
@@ -296,7 +345,8 @@ serve(async (req) => {
         limits: LIMITS,
         configured: {
           apiplaque: Boolean(Deno.env.get("APIPLAQUE_RAPIDAPI_KEY")),
-          autoref: Boolean(Deno.env.get("AUTOREF_API_KEY")),
+          autoref: false,
+          ademe: true,
           carimages: Boolean(
             Deno.env.get("CARIMAGES_API_KEY") && Deno.env.get("CARIMAGES_API_SECRET"),
           ),
@@ -312,18 +362,34 @@ serve(async (req) => {
       return json(await lookupPlate(plate, country));
     }
 
-    if (action === "vin" || action === "vpic") {
+    if (action === "ademe") {
+      const make = String(body.make ?? "").trim();
+      const model = String(body.model ?? "").trim();
+      return json(await lookupAdeme(make, model));
+    }
+
+    // Recherche par VIN européen suspendue : on s'appuie sur la base ADEME.
+    if (action === "vin") {
+      return json({
+        provider: "autoref",
+        status: "not_supported",
+        message: "La recherche par VIN européen est suspendue. Utilise la base ADEME (marque + modèle).",
+      });
+    }
+
+    if (action === "vpic") {
       const vin = String(body.vin ?? "").trim().toUpperCase();
       if (vin.length < 6 || vin.length > 25) return json({ error: "VIN invalide" }, 400);
       if (/[IOQ]/.test(vin) && vin.length === 17) {
         return json({
-          provider: action,
+          provider: "vpic",
           status: "not_supported",
           message: "Ce VIN de 17 caractères contient I, O ou Q : à vérifier.",
         });
       }
-      return json(action === "vin" ? await lookupVin(vin) : await lookupVpic(vin));
+      return json(await lookupVpic(vin));
     }
+
 
     if (action === "visual") {
       const make = String(body.make ?? "").trim();
