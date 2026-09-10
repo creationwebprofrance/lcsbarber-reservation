@@ -10,15 +10,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ScanLine, Info } from "lucide-react";
+import { Loader2, Info } from "lucide-react";
+import { STATUS_LABELS, SOURCE_LABELS, normalizePlate, formatPlateFr } from "@/lib/vehicle";
 import {
-  STATUS_LABELS, SOURCE_LABELS, isValidVin, normalizePlate, formatPlateFr,
-} from "@/lib/vehicle";
-import {
-  OTHER, VEHICLE_MAKES, VEHICLE_MODELS, FUEL_OPTIONS,
-  PLATE_COUNTRIES, registrationYears,
+  OTHER, VEHICLE_MAKES, VEHICLE_MODELS, FUEL_OPTIONS, registrationYears,
 } from "@/lib/vehicle-options";
-import { BODY_TYPES, SEGMENT_OPTIONS, SEGMENT_TO_BODIES } from "@/lib/vehicle-normalize";
 
 const SIMPLE_GEARBOX = ["Manuelle", "Automatique", "Je ne sais pas"];
 
@@ -28,16 +24,8 @@ const FIELD_LABELS: Record<string, string> = {
   generation: "Génération",
   body_type: "Carrosserie",
   first_registration: "1re mise en circulation",
-  model_year: "Année-modèle",
-  vin: "VIN",
-  cnit: "CNIT / type mine",
-  tvv: "TVV",
+  model_year: "Année",
   fuel: "Énergie",
-  engine_version: "Version moteur",
-  engine_code: "Code moteur",
-  displacement_cm3: "Cylindrée (cm³)",
-  power_kw: "Puissance (kW)",
-  fiscal_power: "Puissance fiscale",
   gearbox_type: "Boîte de vitesses",
 };
 
@@ -49,23 +37,17 @@ interface Props {
 type Candidate = { key: string; value: string; provider: string; keep: boolean };
 type Variant = { label: string; fields: Record<string, unknown> };
 
-
 export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [plate, setPlate] = useState("");
-  const [country, setCountry] = useState("FR");
-  const [vin, setVin] = useState("");
   const [status, setStatus] = useState<{ label: string; detail?: string } | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
   const [ademe, setAdeme] = useState({ make: "", model: "", makeOther: "", modelOther: "" });
-  const [ocrText, setOcrText] = useState("");
-
-  const [ocrProgress, setOcrProgress] = useState<number | null>(null);
   const [manual, setManual] = useState({
-    make: "", makeOther: "", model: "", modelOther: "", generation: "",
-    fuel: "", segment: "", body_type: "", gearbox_type: "", year: "", odometer: "",
+    make: "", makeOther: "", model: "", modelOther: "",
+    fuel: "", gearbox_type: "", year: "", odometer: "",
   });
 
   const setM = (patch: Partial<typeof manual>) => setManual((m) => ({ ...m, ...patch }));
@@ -74,22 +56,11 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const modelChoices = VEHICLE_MODELS[manual.make] ?? [];
   const ademeMake = ademe.make === OTHER ? ademe.makeOther.trim() : ademe.make;
   const ademeModel = ademe.model === OTHER ? ademe.modelOther.trim() : ademe.model;
-  const bodyChoices = BODY_TYPES.filter(
-    (b) => !manual.segment || (SEGMENT_TO_BODIES[manual.segment] ?? []).includes(b.code),
-  );
-
 
   const saveGuided = async () => {
-    const extra: Record<string, unknown> = {
-      make: finalMake,
-      model: finalModel,
-    };
-    if (manual.generation.trim()) extra.generation = manual.generation.trim();
+    const extra: Record<string, unknown> = { make: finalMake, model: finalModel };
     if (manual.fuel) extra.fuel = manual.fuel;
-    if (manual.segment) extra.segment = manual.segment;
-    if (manual.body_type) extra.body_type = manual.body_type;
     if (manual.gearbox_type) extra.gearbox_type = manual.gearbox_type;
-    // L'année seule ne devient jamais une date complète.
     if (manual.year) extra.model_year = parseInt(manual.year, 10);
 
     const id = await save(extra, "manual");
@@ -119,13 +90,12 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
 
   const toCandidates = (fields: Record<string, unknown>, provider: string) =>
     Object.entries(fields)
-      .filter(([, v]) => v !== null && v !== "" && v !== undefined)
+      .filter(([k, v]) => v !== null && v !== "" && v !== undefined && FIELD_LABELS[k])
       .map(([key, v]) => ({ key, value: String(v), provider, keep: true }));
 
   const handleResult = (res: Awaited<ReturnType<typeof call>>) => {
     const label = STATUS_LABELS[res.status] ?? res.status;
-    const quota = res.quota ? ` — ${res.quota.used}/${res.quota.max} appels ce mois` : "";
-    setStatus({ label: `${SOURCE_LABELS[res.provider] ?? res.provider} : ${label}${quota}`, detail: res.message });
+    setStatus({ label: `${SOURCE_LABELS[res.provider] ?? res.provider} : ${label}`, detail: res.message });
     if (res.candidates?.length) {
       setVariants(res.candidates);
       setCandidates([]);
@@ -152,42 +122,12 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
     }
   };
 
-
-  const runOcr = async (file: File) => {
-    setOcrProgress(0);
-    setOcrText("");
-    try {
-      const { default: Tesseract } = await import("tesseract.js");
-      const { data } = await Tesseract.recognize(file, "fra", {
-        logger: (m: { status: string; progress: number }) => {
-          if (m.status === "recognizing text") setOcrProgress(Math.round(m.progress * 100));
-        },
-      });
-      const text = data.text ?? "";
-      setOcrText(text);
-      const vinMatch = text.toUpperCase().match(/\b[A-HJ-NPR-Z0-9]{17}\b/);
-      const plateMatch = text.toUpperCase().match(/\b[A-Z]{2}[- ]?\d{3}[- ]?[A-Z]{2}\b/);
-      if (vinMatch) setVin(vinMatch[0]);
-      if (plateMatch) setPlate(normalizePlate(plateMatch[0]));
-      if (!vinMatch && !plateMatch) {
-        toast({ title: "Rien de reconnu", description: "Saisis les informations à la main." });
-      }
-    } catch (e) {
-      toast({ title: "Lecture impossible", description: (e as Error).message, variant: "destructive" });
-    } finally {
-      setOcrProgress(null);
-    }
-  };
-
   const save = async (extra: Record<string, unknown> = {}, provider = "manual") => {
     const kept = candidates.filter((c) => c.keep);
     const payload: Record<string, unknown> = { ...extra };
     for (const c of kept) {
-      if (["displacement_cm3", "fiscal_power", "model_year"].includes(c.key)) {
+      if (c.key === "model_year") {
         const n = parseInt(c.value.replace(/\D/g, ""), 10);
-        if (!Number.isNaN(n)) payload[c.key] = n;
-      } else if (c.key === "power_kw") {
-        const n = parseFloat(c.value.replace(",", "."));
         if (!Number.isNaN(n)) payload[c.key] = n;
       } else if (c.key === "first_registration") {
         const d = c.value.match(/(\d{4})-(\d{2})-(\d{2})/) ??
@@ -199,8 +139,6 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
     }
     if (plate) payload.plate = formatPlateFr(plate);
     if (plate) payload.plate_raw = normalizePlate(plate);
-    if (country) payload.plate_country = country;
-    if (vin && isValidVin(vin)) payload.vin = vin.toUpperCase();
     if (Object.keys(payload).length === 0) {
       toast({ title: "Rien à enregistrer", variant: "destructive" });
       return null;
@@ -237,7 +175,7 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
           })) as never,
         );
       }
-      toast({ title: "Fiche enregistrée" });
+      toast({ title: "Véhicule enregistré" });
       setCandidates([]);
       onSaved();
       return id;
@@ -249,50 +187,79 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
     }
   };
 
+  const makeSelect = (
+    value: string, otherValue: string,
+    onChange: (v: string) => void, onOther: (v: string) => void,
+  ) => (
+    <>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger><SelectValue placeholder="Choisir une marque" /></SelectTrigger>
+        <SelectContent className="max-h-72">
+          {VEHICLE_MAKES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+          <SelectItem value={OTHER}>Autre marque…</SelectItem>
+        </SelectContent>
+      </Select>
+      {value === OTHER && (
+        <Input className="mt-2" placeholder="Nom de la marque" value={otherValue}
+          onChange={(e) => onOther(e.target.value)} />
+      )}
+    </>
+  );
+
+  const modelSelect = (
+    make: string, value: string, otherValue: string,
+    onChange: (v: string) => void, onOther: (v: string) => void,
+  ) => (
+    <>
+      <Select value={value} onValueChange={onChange} disabled={!make}>
+        <SelectTrigger>
+          <SelectValue placeholder={make ? "Choisir un modèle" : "Choisis d'abord la marque"} />
+        </SelectTrigger>
+        <SelectContent className="max-h-72">
+          {(VEHICLE_MODELS[make] ?? []).map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+          <SelectItem value={OTHER}>Autre modèle…</SelectItem>
+        </SelectContent>
+      </Select>
+      {value === OTHER && (
+        <Input className="mt-2" placeholder="Nom du modèle" value={otherValue}
+          onChange={(e) => onOther(e.target.value)} />
+      )}
+    </>
+  );
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Identifier le véhicule</CardTitle>
+        <CardTitle>Ajouter mon véhicule</CardTitle>
         <CardDescription>
-          Aucune donnée n'est devinée : chaque information proposée doit être confirmée par toi
-          avant d'être enregistrée, et sa provenance est conservée.
+          Trois façons simples de retrouver ta voiture. Rien n'est enregistré sans ta confirmation.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <Tabs defaultValue="plate">
           <TabsList className="flex flex-wrap h-auto">
-            <TabsTrigger value="plate">Plaque</TabsTrigger>
+            <TabsTrigger value="plate">Ma plaque</TabsTrigger>
             <TabsTrigger value="ademe">Marque &amp; modèle</TabsTrigger>
-            <TabsTrigger value="vin">VIN</TabsTrigger>
-            <TabsTrigger value="guided">Saisie guidée</TabsTrigger>
-            <TabsTrigger value="ocr">Photo du document</TabsTrigger>
-
+            <TabsTrigger value="guided">Saisie simple</TabsTrigger>
           </TabsList>
 
           <TabsContent value="plate" className="space-y-3 pt-4">
-            <div className="grid gap-3 sm:grid-cols-[1fr_120px]">
-              <div>
-                <Label>Immatriculation</Label>
-                <Input value={plate} onChange={(e) => setPlate(e.target.value.toUpperCase())} placeholder="AA-123-BB" />
-              </div>
-              <div>
-                <Label>Pays</Label>
-                <Select value={country} onValueChange={setCountry}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {PLATE_COUNTRIES.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Entre ta plaque d'immatriculation : on retrouve la voiture pour toi.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label>Plaque d'immatriculation</Label>
+              <Input value={plate} onChange={(e) => setPlate(e.target.value.toUpperCase())} placeholder="AA-123-BB" />
             </div>
             <Button
               disabled={loading || plate.length < 4}
-              onClick={() => runLookup({ action: "plate", plate: normalizePlate(plate), country })}
+              onClick={() => runLookup({ action: "plate", plate: normalizePlate(plate), country: "FR" })}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Rechercher
+              Retrouver ma voiture
             </Button>
           </TabsContent>
 
@@ -300,56 +267,24 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Recherche dans la base publique ADEME (véhicules commercialisés en France).
-                Choisis la marque et le modèle, puis la version exacte.
+                Choisis la marque et le modèle, puis sélectionne ta voiture dans la liste proposée.
               </AlertDescription>
             </Alert>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <Label>Marque</Label>
-                <Select
-                  value={ademe.make}
-                  onValueChange={(v) => setAdeme((a) => ({ ...a, make: v, model: "", modelOther: "" }))}
-                >
-                  <SelectTrigger><SelectValue placeholder="Choisir une marque" /></SelectTrigger>
-                  <SelectContent className="max-h-72">
-                    {VEHICLE_MAKES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                    <SelectItem value={OTHER}>Autre marque…</SelectItem>
-                  </SelectContent>
-                </Select>
-                {ademe.make === OTHER && (
-                  <Input
-                    className="mt-2"
-                    placeholder="Nom de la marque"
-                    value={ademe.makeOther}
-                    onChange={(e) => setAdeme((a) => ({ ...a, makeOther: e.target.value }))}
-                  />
+                {makeSelect(
+                  ademe.make, ademe.makeOther,
+                  (v) => setAdeme((a) => ({ ...a, make: v, model: "", modelOther: "" })),
+                  (v) => setAdeme((a) => ({ ...a, makeOther: v })),
                 )}
               </div>
               <div>
                 <Label>Modèle</Label>
-                <Select
-                  value={ademe.model}
-                  onValueChange={(v) => setAdeme((a) => ({ ...a, model: v }))}
-                  disabled={!ademe.make}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={ademe.make ? "Choisir un modèle" : "Choisis d'abord la marque"} />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-72">
-                    {(VEHICLE_MODELS[ademe.make] ?? []).map((m) => (
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                    ))}
-                    <SelectItem value={OTHER}>Autre modèle…</SelectItem>
-                  </SelectContent>
-                </Select>
-                {ademe.model === OTHER && (
-                  <Input
-                    className="mt-2"
-                    placeholder="Nom du modèle"
-                    value={ademe.modelOther}
-                    onChange={(e) => setAdeme((a) => ({ ...a, modelOther: e.target.value }))}
-                  />
+                {modelSelect(
+                  ademe.make, ademe.model, ademe.modelOther,
+                  (v) => setAdeme((a) => ({ ...a, model: v })),
+                  (v) => setAdeme((a) => ({ ...a, modelOther: v })),
                 )}
               </div>
             </div>
@@ -358,89 +293,33 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
               onClick={() => runLookup({ action: "ademe", make: ademeMake, model: ademeModel })}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Rechercher dans la base ADEME
+              Rechercher ma voiture
             </Button>
           </TabsContent>
-
-          <TabsContent value="vin" className="space-y-3 pt-4">
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                La recherche par VIN européen est suspendue pour le moment. Utilise l'onglet
-                « Marque &amp; modèle » (base ADEME). Le VIN reste utile pour les véhicules
-                importés des États-Unis, et il est enregistré sur la fiche.
-              </AlertDescription>
-            </Alert>
-            <Label>Numéro VIN (17 caractères)</Label>
-            <Input value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} maxLength={17} />
-            {vin.length > 0 && !isValidVin(vin) && (
-              <p className="text-xs text-destructive">VIN incomplet ou contenant I, O ou Q.</p>
-            )}
-            <Button
-              variant="outline"
-              disabled={loading || !isValidVin(vin)}
-              onClick={() => runLookup({ action: "vpic", vin })}
-            >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Véhicule importé des États-Unis
-            </Button>
-          </TabsContent>
-
 
           <TabsContent value="guided" className="space-y-3 pt-4">
             <p className="text-xs text-muted-foreground">
-              Choisis dans les listes. Si une valeur manque, sélectionne « Autre » pour la saisir toi-même.
+              Choisis dans les listes. Si une valeur manque, sélectionne « Autre » pour l'écrire toi-même.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <Label>Marque</Label>
-                <Select
-                  value={manual.make}
-                  onValueChange={(v) => setM({ make: v, model: "", modelOther: "" })}
-                >
-                  <SelectTrigger><SelectValue placeholder="Choisir une marque" /></SelectTrigger>
-                  <SelectContent className="max-h-72">
-                    {VEHICLE_MAKES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                    <SelectItem value={OTHER}>Autre marque…</SelectItem>
-                  </SelectContent>
-                </Select>
-                {manual.make === OTHER && (
-                  <Input
-                    className="mt-2"
-                    placeholder="Nom de la marque"
-                    value={manual.makeOther}
-                    onChange={(e) => setM({ makeOther: e.target.value })}
-                  />
+                {makeSelect(
+                  manual.make, manual.makeOther,
+                  (v) => setM({ make: v, model: "", modelOther: "" }),
+                  (v) => setM({ makeOther: v }),
                 )}
               </div>
-
               <div>
                 <Label>Modèle</Label>
-                <Select
-                  value={manual.model}
-                  onValueChange={(v) => setM({ model: v })}
-                  disabled={!manual.make}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={manual.make ? "Choisir un modèle" : "Choisis d'abord la marque"} />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-72">
-                    {modelChoices.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                    <SelectItem value={OTHER}>Autre modèle…</SelectItem>
-                  </SelectContent>
-                </Select>
-                {manual.model === OTHER && (
-                  <Input
-                    className="mt-2"
-                    placeholder="Nom du modèle"
-                    value={manual.modelOther}
-                    onChange={(e) => setM({ modelOther: e.target.value })}
-                  />
+                {modelSelect(
+                  manual.make, manual.model, manual.modelOther,
+                  (v) => setM({ model: v }),
+                  (v) => setM({ modelOther: v }),
                 )}
               </div>
-
               <div>
-                <Label>Année de 1re mise en circulation</Label>
+                <Label>Année</Label>
                 <Select value={manual.year} onValueChange={(v) => setM({ year: v })}>
                   <SelectTrigger><SelectValue placeholder="Choisir une année" /></SelectTrigger>
                   <SelectContent className="max-h-72">
@@ -450,106 +329,34 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <Label>Énergie</Label>
+                <Label>Carburant / énergie</Label>
                 <Select value={manual.fuel} onValueChange={(v) => setM({ fuel: v })}>
-                  <SelectTrigger><SelectValue placeholder="Choisir une énergie" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
                   <SelectContent>
                     {FUEL_OPTIONS.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <Label>Catégorie</Label>
-                <Select
-                  value={manual.segment}
-                  onValueChange={(v) => setM({ segment: v, body_type: "" })}
-                >
-                  <SelectTrigger><SelectValue placeholder="Choisir une catégorie" /></SelectTrigger>
-                  <SelectContent className="max-h-72">
-                    {SEGMENT_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                <Label>Boîte de vitesses</Label>
+                <Select value={manual.gearbox_type} onValueChange={(v) => setM({ gearbox_type: v })}>
+                  <SelectTrigger><SelectValue placeholder="Je ne sais pas" /></SelectTrigger>
+                  <SelectContent>
+                    {SIMPLE_GEARBOX.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
                 <Label>Kilométrage actuel (km)</Label>
-                <Input
-                  inputMode="numeric"
-                  placeholder="Ex. 110000"
-                  value={manual.odometer}
-                  onChange={(e) => setM({ odometer: e.target.value })}
-                />
+                <Input inputMode="numeric" placeholder="Ex. 110000" value={manual.odometer}
+                  onChange={(e) => setM({ odometer: e.target.value })} />
               </div>
             </div>
-
-            <details className="rounded-md border p-3">
-              <summary className="cursor-pointer text-sm font-medium">
-                Informations complémentaires (facultatif)
-              </summary>
-              <div className="grid gap-3 pt-3 sm:grid-cols-2">
-                <div>
-                  <Label>Carrosserie exacte</Label>
-                  <Select value={manual.body_type} onValueChange={(v) => setM({ body_type: v })}>
-                    <SelectTrigger><SelectValue placeholder="Je ne sais pas" /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {bodyChoices.map((b) => (
-                        <SelectItem key={b.label} value={b.label}>{b.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Boîte de vitesses</Label>
-                  <Select value={manual.gearbox_type} onValueChange={(v) => setM({ gearbox_type: v })}>
-                    <SelectTrigger><SelectValue placeholder="Je ne sais pas" /></SelectTrigger>
-                    <SelectContent>
-                      {SIMPLE_GEARBOX.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="sm:col-span-2">
-                  <Label>Génération / phase / finition</Label>
-                  <Input
-                    placeholder="Ex. Phase 2, GTI, Business…"
-                    value={manual.generation}
-                    onChange={(e) => setM({ generation: e.target.value })}
-                  />
-                </div>
-              </div>
-            </details>
             <Button disabled={loading || !finalMake || !finalModel} onClick={saveGuided}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Enregistrer la saisie
+              Enregistrer mon véhicule
             </Button>
-          </TabsContent>
-
-          <TabsContent value="ocr" className="space-y-3 pt-4">
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                La lecture automatique sert seulement à pré-remplir la plaque ou le VIN.
-                Rien n'est enregistré sans ta confirmation.
-              </AlertDescription>
-            </Alert>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => e.target.files?.[0] && runOcr(e.target.files[0])}
-            />
-            {ocrProgress !== null && (
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ScanLine className="h-4 w-4 animate-pulse" /> Lecture en cours… {ocrProgress}%
-              </p>
-            )}
-            {ocrText && (
-              <pre className="max-h-40 overflow-auto rounded-md bg-muted p-3 text-xs">{ocrText}</pre>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Pour un PDF, prends d'abord une capture d'écran ou une photo de la page.
-            </p>
           </TabsContent>
         </Tabs>
 
@@ -564,7 +371,7 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
 
         {variants.length > 0 && (
           <div className="space-y-2 rounded-lg border p-4">
-            <p className="text-sm font-medium">Choisis la version qui correspond à ta voiture</p>
+            <p className="text-sm font-medium">Laquelle est ta voiture ?</p>
             <div className="grid gap-2 max-h-72 overflow-auto">
               {variants.map((v, i) => (
                 <Button
@@ -584,9 +391,8 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
         )}
 
         {candidates.length > 0 && (
-
           <div className="space-y-3 rounded-lg border p-4">
-            <p className="text-sm font-medium">Informations proposées — coche celles que tu valides</p>
+            <p className="text-sm font-medium">Vérifie les informations trouvées</p>
             <div className="grid gap-2 sm:grid-cols-2">
               {candidates.map((c, i) => (
                 <label key={c.key} className="flex items-start gap-3 rounded-md border p-2 text-sm">
@@ -609,7 +415,7 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
             </div>
             <Button disabled={loading} onClick={() => save()}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Confirmer et enregistrer
+              C'est bien ma voiture
             </Button>
           </div>
         )}
