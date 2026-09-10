@@ -202,8 +202,19 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
-    const data = validationResult.data;
-    console.log("Verification data:", { ...data, verificationToken: "[REDACTED]" });
+    const parsed = validationResult.data;
+
+    // Anti-phishing : seul un domaine autorisé peut servir de base au lien de vérification
+    const safeAppUrl = resolveAppUrl(parsed.appUrl);
+    if (!safeAppUrl) {
+      console.warn("Rejected appUrl (not allow-listed)");
+      return new Response(
+        JSON.stringify({ error: "Invalid application URL" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    const data: VerificationEmailRequest = { ...parsed, appUrl: safeAppUrl };
+    console.log("Verification data validated");
 
     // Initialize Supabase client
     const supabase = createClient(
@@ -211,10 +222,37 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    // Anti-relais ouvert : le token doit correspondre à une pré-réservation réelle,
+    // non expirée, appartenant à l'adresse email fournie.
+    const { data: pending, error: pendingError } = await supabase
+      .from("pending_bookings")
+      .select("id, client_email")
+      .eq("verification_token", data.verificationToken)
+      .eq("client_email", data.clientEmail)
+      .eq("verified", false)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+
+    if (pendingError) {
+      console.error("Pending booking lookup error:", pendingError.message);
+      return new Response(
+        JSON.stringify({ error: "Unable to verify booking" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!pending) {
+      console.warn("No matching pending booking — refusing to send");
+      return new Response(
+        JSON.stringify({ error: "No matching booking found" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Rate limiting: Check how many pending bookings this email has created in the last hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     
-    const { data: recentBookings, error: countError } = await supabase
+    const { count: recentCount, error: countError } = await supabase
       .from("pending_bookings")
       .select("id", { count: "exact", head: true })
       .eq("client_email", data.clientEmail)
@@ -222,8 +260,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (countError) {
       console.error("Error checking rate limit:", countError);
-    } else if (recentBookings && recentBookings.length >= 5) {
-      console.warn(`Rate limit exceeded for email: ${data.clientEmail}`);
+    } else if ((recentCount ?? 0) > 5) {
+      console.warn("Rate limit exceeded for this email");
       return new Response(
         JSON.stringify({ 
           error: "Too many booking attempts. Please try again later." 
