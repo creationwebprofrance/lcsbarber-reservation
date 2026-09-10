@@ -159,8 +159,18 @@ export const AdminVehicules = () => {
           Espace strictement privé : aucune de ces informations n'apparaît côté client.
         </p>
 
-        {!current ? (
-          <VehicleIdentification vehicleId={null} onSaved={refresh} />
+        {adding || !current ? (
+          <div className="space-y-3">
+            {adding && vehicles.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={() => setAdding(false)}>
+                ← Revenir à {current ? vehicleName(current) : "mes véhicules"}
+              </Button>
+            )}
+            <VehicleIdentification
+              vehicleId={null}
+              onSaved={() => { setAdding(false); refresh(); }}
+            />
+          </div>
         ) : (
           <>
             <div className="grid gap-6 lg:grid-cols-2">
