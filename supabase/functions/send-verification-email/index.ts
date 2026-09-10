@@ -118,7 +118,7 @@ const getFallbackTemplate = (data: VerificationEmailRequest) => `
       <h2>Vérification de votre rendez-vous</h2>
     </div>
     <div class="content">
-      <p>Bonjour <strong>${data.clientName}</strong>,</p>
+      <p>Bonjour <strong>${escapeHtml(data.clientName)}</strong>,</p>
       
       <p>Merci d'avoir réservé un rendez-vous avec LCS Barber !</p>
       
@@ -126,7 +126,7 @@ const getFallbackTemplate = (data: VerificationEmailRequest) => `
         <h3>🔐 Confirmez votre email</h3>
         <p>Pour finaliser votre réservation, veuillez cliquer sur le bouton ci-dessous :</p>
         
-        <a href="${data.appUrl}/verify-booking?token=${data.verificationToken}" class="verify-button">
+        <a href="${data.appUrl}/verify-booking?token=${encodeURIComponent(data.verificationToken)}" class="verify-button">
           ✅ Vérifier mon email
         </a>
         
@@ -138,18 +138,18 @@ const getFallbackTemplate = (data: VerificationEmailRequest) => `
       <h3>📅 Récapitulatif de votre rendez-vous :</h3>
       
       <div class="detail-row">
-        <strong>Service :</strong> ${data.serviceName}
+        <strong>Service :</strong> ${escapeHtml(data.serviceName)}
       </div>
       
       <div class="detail-row">
-        <strong>Date :</strong> ${data.appointmentDate}
+        <strong>Date :</strong> ${escapeHtml(data.appointmentDate)}
       </div>
       
       <div class="detail-row">
-        <strong>Heure :</strong> ${data.appointmentTime}
+        <strong>Heure :</strong> ${escapeHtml(data.appointmentTime)}
       </div>
       
-      ${data.clientAddress ? `<div class="detail-row"><strong>Adresse :</strong> ${data.clientAddress}</div>` : ''}
+      ${data.clientAddress ? `<div class="detail-row"><strong>Adresse :</strong> ${escapeHtml(data.clientAddress)}</div>` : ''}
       
       <div class="detail-row">
         <strong>Prix du service :</strong> ${data.servicePrice || 0}€
