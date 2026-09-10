@@ -94,6 +94,18 @@ export const AdminVehicules = () => {
     loadVehicles();
   };
 
+  const remove = async (id: string) => {
+    const { error } = await supabase.from("vehicles").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Suppression impossible", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Véhicule supprimé" });
+    setDetails(false);
+    setCurrentId(null);
+    loadVehicles();
+  };
+
   if (checking) {
     return (
       <div className="flex min-h-screen items-center justify-center">
