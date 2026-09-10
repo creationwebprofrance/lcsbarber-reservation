@@ -203,7 +203,7 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
     if (vin && isValidVin(vin)) payload.vin = vin.toUpperCase();
     if (Object.keys(payload).length === 0) {
       toast({ title: "Rien à enregistrer", variant: "destructive" });
-      return;
+      return null;
     }
     payload.status = payload.make && payload.model ? "identified" : "partial";
 
@@ -240,8 +240,10 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
       toast({ title: "Fiche enregistrée" });
       setCandidates([]);
       onSaved();
+      return id;
     } catch (e) {
       toast({ title: "Enregistrement impossible", description: (e as Error).message, variant: "destructive" });
+      return null;
     } finally {
       setLoading(false);
     }
