@@ -62,7 +62,7 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const [ocrProgress, setOcrProgress] = useState<number | null>(null);
   const [manual, setManual] = useState({
     make: "", makeOther: "", model: "", modelOther: "", generation: "",
-    fuel: "", body_type: "", gearbox_type: "", year: "",
+    fuel: "", segment: "", body_type: "", gearbox_type: "", year: "", odometer: "",
   });
 
   const setM = (patch: Partial<typeof manual>) => setManual((m) => ({ ...m, ...patch }));
@@ -71,22 +71,37 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const modelChoices = VEHICLE_MODELS[manual.make] ?? [];
   const ademeMake = ademe.make === OTHER ? ademe.makeOther.trim() : ademe.make;
   const ademeModel = ademe.model === OTHER ? ademe.modelOther.trim() : ademe.model;
+  const bodyChoices = BODY_TYPES.filter(
+    (b) => !manual.segment || (SEGMENT_TO_BODIES[manual.segment] ?? []).includes(b.code),
+  );
 
 
-  const saveGuided = () => {
+  const saveGuided = async () => {
     const extra: Record<string, unknown> = {
       make: finalMake,
       model: finalModel,
     };
     if (manual.generation.trim()) extra.generation = manual.generation.trim();
     if (manual.fuel) extra.fuel = manual.fuel;
+    if (manual.segment) extra.segment = manual.segment;
     if (manual.body_type) extra.body_type = manual.body_type;
     if (manual.gearbox_type) extra.gearbox_type = manual.gearbox_type;
-    if (manual.year) {
-      extra.model_year = parseInt(manual.year, 10);
-      extra.first_registration = `${manual.year}-01-01`;
+    // L'année seule ne devient jamais une date complète.
+    if (manual.year) extra.model_year = parseInt(manual.year, 10);
+
+    const id = await save(extra, "manual");
+    const km = manual.odometer ? parseFloat(manual.odometer.replace(",", ".")) : NaN;
+    if (id && !Number.isNaN(km)) {
+      await supabase.from("odometer_readings").insert({
+        vehicle_id: id,
+        value: km,
+        unit: "km",
+        reading_date: new Date().toISOString().slice(0, 10),
+        source: "manual",
+        confirmed: true,
+      } as never);
+      onSaved();
     }
-    save(extra, "manual");
   };
 
   const call = async (payload: Record<string, unknown>) => {
