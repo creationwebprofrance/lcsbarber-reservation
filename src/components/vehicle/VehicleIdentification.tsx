@@ -512,7 +512,29 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
           </Alert>
         )}
 
+        {variants.length > 0 && (
+          <div className="space-y-2 rounded-lg border p-4">
+            <p className="text-sm font-medium">Choisis la version qui correspond à ta voiture</p>
+            <div className="grid gap-2 max-h-72 overflow-auto">
+              {variants.map((v, i) => (
+                <Button
+                  key={i}
+                  variant="outline"
+                  className="justify-start text-left h-auto py-2"
+                  onClick={() => {
+                    setCandidates(toCandidates(v.fields, "ademe"));
+                    setVariants([]);
+                  }}
+                >
+                  {v.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {candidates.length > 0 && (
+
           <div className="space-y-3 rounded-lg border p-4">
             <p className="text-sm font-medium">Informations proposées — coche celles que tu valides</p>
             <div className="grid gap-2 sm:grid-cols-2">
