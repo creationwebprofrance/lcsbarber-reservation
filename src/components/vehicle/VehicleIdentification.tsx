@@ -239,9 +239,11 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
         <Tabs defaultValue="plate">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="plate">Plaque</TabsTrigger>
+            <TabsTrigger value="ademe">Marque &amp; modèle</TabsTrigger>
             <TabsTrigger value="vin">VIN</TabsTrigger>
             <TabsTrigger value="guided">Saisie guidée</TabsTrigger>
             <TabsTrigger value="ocr">Photo du document</TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="plate" className="space-y-3 pt-4">
