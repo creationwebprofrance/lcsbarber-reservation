@@ -18,6 +18,11 @@ import {
   type OdometerReading, type Vehicle,
 } from "@/lib/vehicle";
 
+const NEW = "__new__";
+
+const vehicleName = (v: Vehicle) =>
+  v.label || [v.make, v.model].filter(Boolean).join(" ") || "Véhicule sans nom";
+
 export const AdminVehicules = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -30,6 +35,7 @@ export const AdminVehicules = () => {
   const [events, setEvents] = useState<MaintenanceEvent[]>([]);
   const [details, setDetails] = useState(false);
   const [allForecasts, setAllForecasts] = useState(false);
+  const [adding, setAdding] = useState(false);
 
   const current = vehicles.find((v) => v.id === currentId) ?? null;
 
@@ -75,6 +81,19 @@ export const AdminVehicules = () => {
 
   const refresh = () => { loadVehicles(); loadVehicleData(currentId); };
 
+  const setDefault = async (id: string) => {
+    await supabase.from("vehicles").update({ is_default: true }).eq("id", id);
+    toast({ title: "Véhicule principal mis à jour" });
+    loadVehicles();
+  };
+
+  const archive = async (id: string) => {
+    await supabase.from("vehicles").update({ archived: true, is_default: false }).eq("id", id);
+    toast({ title: "Véhicule archivé" });
+    setCurrentId(null);
+    loadVehicles();
+  };
+
   if (checking) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -107,16 +126,24 @@ export const AdminVehicules = () => {
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <Car className="h-6 w-6" /> Mon véhicule
           </h1>
-          <div className="flex items-center gap-2">
-            {vehicles.length > 1 && (
-              <Select value={currentId ?? ""} onValueChange={setCurrentId}>
-                <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+          <div className="flex flex-wrap items-center gap-2">
+            {vehicles.length > 0 && (
+              <Select
+                value={adding ? NEW : currentId ?? ""}
+                onValueChange={(v) => {
+                  if (v === NEW) { setAdding(true); return; }
+                  setAdding(false);
+                  setCurrentId(v);
+                }}
+              >
+                <SelectTrigger className="w-56"><SelectValue placeholder="Choisir un véhicule" /></SelectTrigger>
                 <SelectContent>
                   {vehicles.map((v) => (
                     <SelectItem key={v.id} value={v.id}>
-                      {v.label || [v.make, v.model].filter(Boolean).join(" ") || "Véhicule sans nom"}
+                      {vehicleName(v)}{v.is_default ? " ★" : ""}
                     </SelectItem>
                   ))}
+                  <SelectItem value={NEW}>+ Ajouter un véhicule</SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -132,8 +159,18 @@ export const AdminVehicules = () => {
           Espace strictement privé : aucune de ces informations n'apparaît côté client.
         </p>
 
-        {!current ? (
-          <VehicleIdentification vehicleId={null} onSaved={refresh} />
+        {adding || !current ? (
+          <div className="space-y-3">
+            {adding && vehicles.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={() => setAdding(false)}>
+                ← Revenir à {current ? vehicleName(current) : "mes véhicules"}
+              </Button>
+            )}
+            <VehicleIdentification
+              vehicleId={null}
+              onSaved={() => { setAdding(false); refresh(); }}
+            />
+          </div>
         ) : (
           <>
             <div className="grid gap-6 lg:grid-cols-2">
@@ -162,7 +199,20 @@ export const AdminVehicules = () => {
                       </p>
                     </div>
                   </div>
-                  <Button onClick={() => setDetails(true)}>Détails du véhicule</Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button onClick={() => setDetails(true)}>Détails du véhicule</Button>
+                    {!current.is_default && (
+                      <Button variant="outline" onClick={() => setDefault(current.id)}>
+                        Définir comme principal
+                      </Button>
+                    )}
+                    <Button variant="outline" onClick={() => setAdding(true)}>
+                      Ajouter un véhicule
+                    </Button>
+                    <Button variant="ghost" onClick={() => archive(current.id)}>
+                      Archiver
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
