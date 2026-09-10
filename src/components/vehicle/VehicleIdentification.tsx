@@ -69,6 +69,9 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const finalMake = manual.make === OTHER ? manual.makeOther.trim() : manual.make;
   const finalModel = manual.model === OTHER ? manual.modelOther.trim() : manual.model;
   const modelChoices = VEHICLE_MODELS[manual.make] ?? [];
+  const ademeMake = ademe.make === OTHER ? ademe.makeOther.trim() : ademe.make;
+  const ademeModel = ademe.model === OTHER ? ademe.modelOther.trim() : ademe.model;
+
 
   const saveGuided = () => {
     const extra: Record<string, unknown> = {
