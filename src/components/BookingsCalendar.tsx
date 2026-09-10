@@ -123,8 +123,8 @@ export const BookingsCalendar = () => {
             name
           )
         `)
-        .order('appointment_date', { ascending: true })
-        .order('appointment_time', { ascending: true });
+        .order('appointment_date', { ascending: false })
+        .order('appointment_time', { ascending: false });
 
       if (error) throw error;
       setBookings(data || []);
