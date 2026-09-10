@@ -55,7 +55,31 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [ocrText, setOcrText] = useState("");
   const [ocrProgress, setOcrProgress] = useState<number | null>(null);
-  const [manual, setManual] = useState({ make: "", model: "", generation: "", fuel: "", first_registration: "" });
+  const [manual, setManual] = useState({
+    make: "", makeOther: "", model: "", modelOther: "", generation: "",
+    fuel: "", body_type: "", gearbox_type: "", year: "",
+  });
+
+  const setM = (patch: Partial<typeof manual>) => setManual((m) => ({ ...m, ...patch }));
+  const finalMake = manual.make === OTHER ? manual.makeOther.trim() : manual.make;
+  const finalModel = manual.model === OTHER ? manual.modelOther.trim() : manual.model;
+  const modelChoices = VEHICLE_MODELS[manual.make] ?? [];
+
+  const saveGuided = () => {
+    const extra: Record<string, unknown> = {
+      make: finalMake,
+      model: finalModel,
+    };
+    if (manual.generation.trim()) extra.generation = manual.generation.trim();
+    if (manual.fuel) extra.fuel = manual.fuel;
+    if (manual.body_type) extra.body_type = manual.body_type;
+    if (manual.gearbox_type) extra.gearbox_type = manual.gearbox_type;
+    if (manual.year) {
+      extra.model_year = parseInt(manual.year, 10);
+      extra.first_registration = `${manual.year}-01-01`;
+    }
+    save(extra, "manual");
+  };
 
   const call = async (payload: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke("vehicle-lookup", { body: payload });
