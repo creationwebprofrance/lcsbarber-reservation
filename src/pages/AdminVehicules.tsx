@@ -107,16 +107,24 @@ export const AdminVehicules = () => {
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <Car className="h-6 w-6" /> Mon véhicule
           </h1>
-          <div className="flex items-center gap-2">
-            {vehicles.length > 1 && (
-              <Select value={currentId ?? ""} onValueChange={setCurrentId}>
-                <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+          <div className="flex flex-wrap items-center gap-2">
+            {vehicles.length > 0 && (
+              <Select
+                value={adding ? NEW : currentId ?? ""}
+                onValueChange={(v) => {
+                  if (v === NEW) { setAdding(true); return; }
+                  setAdding(false);
+                  setCurrentId(v);
+                }}
+              >
+                <SelectTrigger className="w-56"><SelectValue placeholder="Choisir un véhicule" /></SelectTrigger>
                 <SelectContent>
                   {vehicles.map((v) => (
                     <SelectItem key={v.id} value={v.id}>
-                      {v.label || [v.make, v.model].filter(Boolean).join(" ") || "Véhicule sans nom"}
+                      {vehicleName(v)}{v.is_default ? " ★" : ""}
                     </SelectItem>
                   ))}
+                  <SelectItem value={NEW}>+ Ajouter un véhicule</SelectItem>
                 </SelectContent>
               </Select>
             )}
