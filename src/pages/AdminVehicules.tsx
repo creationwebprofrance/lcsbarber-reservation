@@ -18,6 +18,11 @@ import {
   type OdometerReading, type Vehicle,
 } from "@/lib/vehicle";
 
+const NEW = "__new__";
+
+const vehicleName = (v: Vehicle) =>
+  v.label || [v.make, v.model].filter(Boolean).join(" ") || "Véhicule sans nom";
+
 export const AdminVehicules = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -30,6 +35,7 @@ export const AdminVehicules = () => {
   const [events, setEvents] = useState<MaintenanceEvent[]>([]);
   const [details, setDetails] = useState(false);
   const [allForecasts, setAllForecasts] = useState(false);
+  const [adding, setAdding] = useState(false);
 
   const current = vehicles.find((v) => v.id === currentId) ?? null;
 
