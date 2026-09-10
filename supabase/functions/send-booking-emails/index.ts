@@ -247,7 +247,7 @@ const handler = async (req: Request): Promise<Response> => {
       
       <div class="client-info">
         <p><strong>👤 Client:</strong> ${booking.clientName}</p>
-        <p><strong>📧 Email:</strong> ${booking.clientEmail}</p>
+        <p><strong>📧 Email:</strong> ${esc(booking.clientEmail)}</p>
         <p><strong>📱 Téléphone:</strong> ${booking.clientPhone}</p>
       </div>
       
@@ -349,7 +349,7 @@ const handler = async (req: Request): Promise<Response> => {
 
           <table style="width:100%; border-collapse:collapse; color:#CFC9BE; font-size:14px;">
             ${clientRow('Client', booking.clientName)}
-            ${clientRow('Email', booking.clientEmail)}
+            ${clientRow('Email', esc(booking.clientEmail))}
             ${clientRow('Téléphone', booking.clientPhone)}
             ${clientRow('Date', booking.appointmentDate)}
             ${clientRow('Heure', booking.appointmentTime)}
