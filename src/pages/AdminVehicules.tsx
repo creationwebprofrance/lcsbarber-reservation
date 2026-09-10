@@ -200,18 +200,40 @@ export const AdminVehicules = () => {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button onClick={() => setDetails(true)}>Détails du véhicule</Button>
+                    <Button onClick={() => setDetails(true)}>Voir / modifier les détails</Button>
                     {!current.is_default && (
                       <Button variant="outline" onClick={() => setDefault(current.id)}>
                         Définir comme principal
                       </Button>
                     )}
                     <Button variant="outline" onClick={() => setAdding(true)}>
-                      Ajouter un véhicule
+                      <Plus className="mr-2 h-4 w-4" /> Ajouter un véhicule
                     </Button>
                     <Button variant="ghost" onClick={() => archive(current.id)}>
                       Archiver
                     </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive">
+                          <Trash2 className="mr-2 h-4 w-4" /> Supprimer
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer {vehicleName(current)} ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Le véhicule, son kilométrage, ses entretiens, ses dépenses et ses documents
+                            seront définitivement effacés. Cette action est irréversible.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => remove(current.id)}>
+                            Supprimer définitivement
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardContent>
               </Card>
