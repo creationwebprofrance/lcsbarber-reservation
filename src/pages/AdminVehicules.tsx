@@ -96,9 +96,6 @@ export const AdminVehicules = () => {
   if (!allowed) return null;
 
   const est = estimateOdometer(readings);
-  const visual = (current?.visual_meta ?? null) as
-    | { model_url?: string; fallback?: boolean; watermarked?: boolean }
-    | null;
 
   return (
     <div className="min-h-screen bg-background">
