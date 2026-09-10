@@ -15,9 +15,12 @@ import {
   STATUS_LABELS, SOURCE_LABELS, isValidVin, normalizePlate, formatPlateFr,
 } from "@/lib/vehicle";
 import {
-  OTHER, VEHICLE_MAKES, VEHICLE_MODELS, FUEL_OPTIONS, BODY_TYPE_OPTIONS,
-  GEARBOX_OPTIONS, PLATE_COUNTRIES, registrationYears,
+  OTHER, VEHICLE_MAKES, VEHICLE_MODELS, FUEL_OPTIONS,
+  PLATE_COUNTRIES, registrationYears,
 } from "@/lib/vehicle-options";
+import { BODY_TYPES, SEGMENT_OPTIONS, SEGMENT_TO_BODIES } from "@/lib/vehicle-normalize";
+
+const SIMPLE_GEARBOX = ["Manuelle", "Automatique", "Je ne sais pas"];
 
 const FIELD_LABELS: Record<string, string> = {
   make: "Marque",
