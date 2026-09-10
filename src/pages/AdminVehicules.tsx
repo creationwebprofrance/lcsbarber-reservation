@@ -7,7 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Car, ArrowLeft, Loader2, Gauge, Wrench } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Car, ArrowLeft, Loader2, Gauge, Wrench, Plus, Trash2 } from "lucide-react";
 import { VehicleIdentification } from "@/components/vehicle/VehicleIdentification";
 import { Vehicle3D } from "@/components/vehicle/Vehicle3D";
 import { VehicleForecast, buildForecasts } from "@/components/vehicle/VehicleForecast";
