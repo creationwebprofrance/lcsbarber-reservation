@@ -152,8 +152,6 @@ export const VehicleForecast = ({ vehicle, currentKm, compact, onShowAll }: Prop
   const [bulkDate, setBulkDate] = useState(new Date().toISOString().slice(0, 10));
   const [bulkKm, setBulkKm] = useState(currentKm != null ? String(currentKm) : "");
   const [bulkConfirm, setBulkConfirm] = useState(false);
-  const [planKm, setPlanKm] = useState("");
-  const [planMonths, setPlanMonths] = useState("");
 
   const load = useCallback(async () => {
     const [r, e] = await Promise.all([
@@ -185,53 +183,9 @@ export const VehicleForecast = ({ vehicle, currentKm, compact, onShowAll }: Prop
     } as never);
   };
 
-  const upsertRule = async (item: CatalogItem, patch: Record<string, unknown>) => {
-    const rule = rules.find((r) => r.operation === item.label) ?? null;
-    if (rule) {
-      await supabase.from("vehicle_maintenance_rules").update(patch).eq("id", rule.id);
-    } else {
-      await supabase.from("vehicle_maintenance_rules").insert({
-        vehicle_id: vehicle.id,
-        category: item.nature,
-        operation: item.label,
-        component: item.zone,
-        action_type: item.nature,
-        source: "personnel",
-        reference_odometer: currentKm,
-        reference_date: new Date().toISOString().slice(0, 10),
-        condition_based: true,
-        ...patch,
-      } as never);
-    }
-  };
-
   const markDone = async (f: Forecast) => {
     await insertEvent(f.item, new Date().toISOString().slice(0, 10), currentKm);
     toast({ title: "Opération enregistrée comme faite" });
-    setDetail(null);
-    load();
-  };
-
-  const plan = async (f: Forecast) => {
-    const km = planKm ? parseInt(planKm, 10) : null;
-    const months = planMonths ? parseInt(planMonths, 10) : null;
-    if (!km && !months) {
-      toast({ title: "Indique un intervalle", description: "En kilomètres ou en mois.", variant: "destructive" });
-      return;
-    }
-    await upsertRule(f.item, {
-      interval_km: km, interval_months: months, condition_based: false,
-      reference_odometer: f.referenceKm ?? currentKm,
-    });
-    setPlanKm(""); setPlanMonths("");
-    toast({ title: "Échéance planifiée" });
-    setDetail(null);
-    load();
-  };
-
-  const askCheck = async (f: Forecast) => {
-    await upsertRule(f.item, { condition_based: true, notes: "Contrôle demandé" });
-    toast({ title: "Contrôle demandé", description: "Ajouté à la liste des points à surveiller." });
     setDetail(null);
     load();
   };
@@ -277,9 +231,7 @@ export const VehicleForecast = ({ vehicle, currentKm, compact, onShowAll }: Prop
             )}
             <button className="flex-1 text-left" onClick={() => setDetail(f)}>
               <p className="font-medium">{f.item.label}</p>
-              <p className="text-xs text-muted-foreground">
-                {ZONE_LABELS[f.item.zone] ?? f.item.zone} · {NATURE_TEXT[f.item.nature]}
-              </p>
+              <p className="text-xs text-muted-foreground">{NATURE_TEXT[f.item.nature]}</p>
               <p className="text-xs text-muted-foreground">{f.phrase}</p>
             </button>
             <Badge variant="outline" className={STATUS_STYLE[f.status]}>
@@ -340,13 +292,6 @@ export const VehicleForecast = ({ vehicle, currentKm, compact, onShowAll }: Prop
               </DialogHeader>
 
               <div className="space-y-3 text-sm">
-                <div className="rounded-md border border-dashed p-4 text-center text-xs text-muted-foreground">
-                  <p className="mb-1 font-medium text-foreground">{ZONE_LABELS[detail.item.zone] ?? detail.item.zone}</p>
-                  <p>{GENERIC_PART_DISCLAIMER}</p>
-                  <p className="mt-1">{PART_COMPAT_DISCLAIMER}</p>
-                </div>
-
-                <p><strong>Nature :</strong> {NATURE_TEXT[detail.item.nature]}</p>
                 <p>
                   <strong>Dernier entretien connu :</strong>{" "}
                   {detail.lastEvent
@@ -355,21 +300,7 @@ export const VehicleForecast = ({ vehicle, currentKm, compact, onShowAll }: Prop
                       }`
                     : "Inconnu"}
                 </p>
-                <p><strong>Kilométrage de référence :</strong> {detail.referenceKm != null ? `${fmt(detail.referenceKm)} km` : "Kilométrage inconnu"}</p>
-                <p><strong>Intervalle :</strong> {detail.rule?.interval_km ? `${fmt(detail.rule.interval_km)} km` : detail.rule?.interval_months ? `${detail.rule.interval_months} mois` : "Intervalle à renseigner"}</p>
-                <p><strong>Prochaine suggestion :</strong> {detail.phrase}</p>
-                <p><strong>Statut :</strong> {STATUS_TEXT[detail.status]}</p>
-
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <div>
-                    <Label>Planifier tous les (km)</Label>
-                    <Input inputMode="numeric" value={planKm} onChange={(e) => setPlanKm(e.target.value)} />
-                  </div>
-                  <div>
-                    <Label>ou tous les (mois)</Label>
-                    <Input inputMode="numeric" value={planMonths} onChange={(e) => setPlanMonths(e.target.value)} />
-                  </div>
-                </div>
+                <p><strong>Prochaine échéance :</strong> {detail.phrase}</p>
 
                 <Alert><AlertDescription className="text-xs">{PRO_DISCLAIMER}</AlertDescription></Alert>
                 {detail.item.safety && (
@@ -381,12 +312,6 @@ export const VehicleForecast = ({ vehicle, currentKm, compact, onShowAll }: Prop
               </div>
 
               <DialogFooter className="flex-wrap gap-2">
-                <Button variant="outline" onClick={() => askCheck(detail)}>
-                  <Search className="mr-2 h-4 w-4" /> Demander un contrôle
-                </Button>
-                <Button variant="outline" onClick={() => plan(detail)}>
-                  <CalendarClock className="mr-2 h-4 w-4" /> Planifier
-                </Button>
                 <Button onClick={() => markDone(detail)}>
                   <CheckCircle2 className="mr-2 h-4 w-4" /> Marquer comme fait
                 </Button>
