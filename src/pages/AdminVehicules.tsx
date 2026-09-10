@@ -81,6 +81,19 @@ export const AdminVehicules = () => {
 
   const refresh = () => { loadVehicles(); loadVehicleData(currentId); };
 
+  const setDefault = async (id: string) => {
+    await supabase.from("vehicles").update({ is_default: true }).eq("id", id);
+    toast({ title: "Véhicule principal mis à jour" });
+    loadVehicles();
+  };
+
+  const archive = async (id: string) => {
+    await supabase.from("vehicles").update({ archived: true, is_default: false }).eq("id", id);
+    toast({ title: "Véhicule archivé" });
+    setCurrentId(null);
+    loadVehicles();
+  };
+
   if (checking) {
     return (
       <div className="flex min-h-screen items-center justify-center">
