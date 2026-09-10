@@ -199,7 +199,20 @@ export const AdminVehicules = () => {
                       </p>
                     </div>
                   </div>
-                  <Button onClick={() => setDetails(true)}>Détails du véhicule</Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button onClick={() => setDetails(true)}>Détails du véhicule</Button>
+                    {!current.is_default && (
+                      <Button variant="outline" onClick={() => setDefault(current.id)}>
+                        Définir comme principal
+                      </Button>
+                    )}
+                    <Button variant="outline" onClick={() => setAdding(true)}>
+                      Ajouter un véhicule
+                    </Button>
+                    <Button variant="ghost" onClick={() => archive(current.id)}>
+                      Archiver
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
