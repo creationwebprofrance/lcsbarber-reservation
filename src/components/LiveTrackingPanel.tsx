@@ -173,38 +173,60 @@ export const LiveTrackingPanel = ({
       return;
     }
 
-    const channel = supabase.channel(`tracking:${bookingId}`, {
-      config: { presence: { key: role } },
-    });
-    channelRef.current = channel;
-
+    let cancelled = false;
     let subscribed = false;
     let lastPos: Position | null = null;
+    let watchId: number | null = null;
+    let keepAlive: ReturnType<typeof setInterval> | null = null;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
     const pushPos = (p: Position) => {
       lastPos = p;
-      if (subscribed) void channel.track({ role, ...p });
+      if (subscribed) void channel?.track({ role, ...p });
     };
 
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState() as Record<string, Array<Record<string, unknown>>>;
-        const entry = state[peerRole]?.[0];
-        if (entry && typeof entry.lng === "number" && typeof entry.lat === "number") {
-          setPeerPos({ lng: entry.lng as number, lat: entry.lat as number, at: Number(entry.at) || Date.now() });
-        } else {
-          setPeerPos(null);
-        }
-      })
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          subscribed = true;
-          // Envoie la dernière position connue même si elle est arrivée avant l'abonnement
-          if (lastPos) void channel.track({ role, ...lastPos });
-        }
+    (async () => {
+      // Le nom du canal est délivré par le serveur uniquement au client propriétaire
+      // du rendez-vous ou à l'admin : le booking id seul ne donne aucun accès.
+      const { data, error: authError } = await supabase.functions.invoke("authorize-tracking", {
+        body: { bookingId },
       });
+      if (cancelled) return;
+      const channelName = (data as { channel?: string } | null)?.channel;
+      if (authError || !channelName) {
+        setError("Suivi indisponible : tu n'es pas autorisé à suivre ce rendez-vous.");
+        return;
+      }
 
-    let watchId: number | null = null;
+      channel = supabase.channel(channelName, {
+        config: { presence: { key: role } },
+      });
+      channelRef.current = channel;
+
+      channel
+        .on("presence", { event: "sync" }, () => {
+          const state = channel!.presenceState() as Record<string, Array<Record<string, unknown>>>;
+          const entry = state[peerRole]?.[0];
+          if (entry && typeof entry.lng === "number" && typeof entry.lat === "number") {
+            setPeerPos({ lng: entry.lng as number, lat: entry.lat as number, at: Number(entry.at) || Date.now() });
+          } else {
+            setPeerPos(null);
+          }
+        })
+        .subscribe((status) => {
+          if (status === "SUBSCRIBED") {
+            subscribed = true;
+            // Envoie la dernière position connue même si elle est arrivée avant l'abonnement
+            if (lastPos) void channel!.track({ role, ...lastPos });
+          }
+        });
+
+      // Ré-émission périodique : garde la présence à jour même sans nouveau point GPS
+      keepAlive = setInterval(() => {
+        if (subscribed && lastPos) void channel!.track({ role, ...lastPos, at: Date.now() });
+      }, 15_000);
+    })();
+
     if (!navigator.geolocation) {
       setError("La géolocalisation n'est pas supportée par ton navigateur.");
     } else {
@@ -226,18 +248,15 @@ export const LiveTrackingPanel = ({
       );
     }
 
-    // Ré-émission périodique : garde la présence à jour même sans nouveau point GPS
-    const keepAlive = setInterval(() => {
-      if (subscribed && lastPos) void channel.track({ role, ...lastPos, at: Date.now() });
-    }, 15_000);
-
     return () => {
-      clearInterval(keepAlive);
+      cancelled = true;
+      if (keepAlive) clearInterval(keepAlive);
       if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
       channelRef.current = null;
     };
   }, [active, bookingId, role, peerRole]);
+
 
   // Carte : s'initialise dès qu'on a une position (la mienne OU celle du peer)
   useEffect(() => {
