@@ -35,6 +35,12 @@ const bookingEmailSchema = z.object({
 
 type BookingEmailRequest = z.infer<typeof bookingEmailSchema>;
 
+// Échappe toute valeur interpolée dans le HTML des emails (anti-XSS / injection HTML)
+const esc = (v: unknown): string =>
+  String(v ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string
+  );
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -56,7 +62,47 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
-    const booking = validationResult.data;
+    const raw = validationResult.data;
+    // Toutes les valeurs interpolées sont échappées
+    const booking = {
+      ...raw,
+      clientName: esc(raw.clientName),
+      clientEmail: raw.clientEmail, // utilisé comme destinataire, validé par zod
+      clientPhone: esc(raw.clientPhone),
+      clientAddress: esc(raw.clientAddress),
+      clientPostalCode: esc(raw.clientPostalCode),
+      clientCity: esc(raw.clientCity),
+      serviceName: esc(raw.serviceName),
+      appointmentDate: esc(raw.appointmentDate),
+      appointmentTime: esc(raw.appointmentTime),
+      message: raw.message ? esc(raw.message) : raw.message,
+    };
+
+    // Anti-relais ouvert : l'email ne peut être envoyé que pour une réservation
+    // réellement créée côté serveur pour cette adresse dans les dernières 30 minutes.
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    const { count: realBookingCount, error: lookupError } = await supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("client_email", raw.clientEmail)
+      .gte("created_at", thirtyMinAgo);
+
+    if (lookupError) {
+      console.error("Booking lookup error:", lookupError.message);
+      return new Response(
+        JSON.stringify({ error: "Unable to verify booking" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!realBookingCount) {
+      console.warn("No recent booking found for requested email — refusing to send");
+      return new Response(
+        JSON.stringify({ error: "No matching booking found" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const hasAddress = !!(booking.clientAddress && booking.clientAddress.trim().length > 0);
     const fullAddress = hasAddress ? [booking.clientAddress, booking.clientPostalCode, booking.clientCity].filter(Boolean).join(', ') : '';
     const addressHtml = hasAddress
@@ -65,7 +111,8 @@ const handler = async (req: Request): Promise<Response> => {
         : booking.clientAddress)
       : '';
     const addressRow = hasAddress ? `<div class="detail-row"><span class="label">📍 Adresse</span><span class="value">${addressHtml}</span></div>` : '';
-    console.log("Booking data validated for:", booking.clientName);
+    console.log("Booking data validated");
+
 
     // Rate limiting: max 3 emails per hour, 5 per day per client email
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
