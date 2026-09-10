@@ -7,12 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ScanLine, Info } from "lucide-react";
 import {
   STATUS_LABELS, SOURCE_LABELS, isValidVin, normalizePlate, formatPlateFr,
 } from "@/lib/vehicle";
+import {
+  OTHER, VEHICLE_MAKES, VEHICLE_MODELS, FUEL_OPTIONS, BODY_TYPE_OPTIONS,
+  GEARBOX_OPTIONS, PLATE_COUNTRIES, registrationYears,
+} from "@/lib/vehicle-options";
 
 const FIELD_LABELS: Record<string, string> = {
   make: "Marque",
