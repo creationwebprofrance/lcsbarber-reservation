@@ -33,7 +33,7 @@ export const AdminVehicules = () => {
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [readings, setReadings] = useState<OdometerReading[]>([]);
   const [quotas, setQuotas] = useState<QuotaRow[]>([]);
-  const [visualBusy, setVisualBusy] = useState(false);
+  
 
   const current = vehicles.find((v) => v.id === currentId) ?? null;
 
