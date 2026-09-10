@@ -279,33 +279,110 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
           </TabsContent>
 
           <TabsContent value="guided" className="space-y-3 pt-4">
+            <p className="text-xs text-muted-foreground">
+              Choisis dans les listes. Si une valeur manque, sélectionne « Autre » pour la saisir toi-même.
+            </p>
             <div className="grid gap-3 sm:grid-cols-2">
-              {(["make", "model", "generation", "fuel"] as const).map((k) => (
-                <div key={k}>
-                  <Label>{FIELD_LABELS[k] ?? k}</Label>
-                  <Input
-                    value={manual[k]}
-                    onChange={(e) => setManual({ ...manual, [k]: e.target.value })}
-                  />
-                </div>
-              ))}
               <div>
-                <Label>1re mise en circulation</Label>
+                <Label>Marque</Label>
+                <Select
+                  value={manual.make}
+                  onValueChange={(v) => setM({ make: v, model: "", modelOther: "" })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Choisir une marque" /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {VEHICLE_MAKES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                    <SelectItem value={OTHER}>Autre marque…</SelectItem>
+                  </SelectContent>
+                </Select>
+                {manual.make === OTHER && (
+                  <Input
+                    className="mt-2"
+                    placeholder="Nom de la marque"
+                    value={manual.makeOther}
+                    onChange={(e) => setM({ makeOther: e.target.value })}
+                  />
+                )}
+              </div>
+
+              <div>
+                <Label>Modèle</Label>
+                <Select
+                  value={manual.model}
+                  onValueChange={(v) => setM({ model: v })}
+                  disabled={!manual.make}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={manual.make ? "Choisir un modèle" : "Choisis d'abord la marque"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {modelChoices.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                    <SelectItem value={OTHER}>Autre modèle…</SelectItem>
+                  </SelectContent>
+                </Select>
+                {manual.model === OTHER && (
+                  <Input
+                    className="mt-2"
+                    placeholder="Nom du modèle"
+                    value={manual.modelOther}
+                    onChange={(e) => setM({ modelOther: e.target.value })}
+                  />
+                )}
+              </div>
+
+              <div>
+                <Label>Année de 1re mise en circulation</Label>
+                <Select value={manual.year} onValueChange={(v) => setM({ year: v })}>
+                  <SelectTrigger><SelectValue placeholder="Choisir une année" /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {registrationYears().map((y) => (
+                      <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Énergie</Label>
+                <Select value={manual.fuel} onValueChange={(v) => setM({ fuel: v })}>
+                  <SelectTrigger><SelectValue placeholder="Choisir une énergie" /></SelectTrigger>
+                  <SelectContent>
+                    {FUEL_OPTIONS.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Carrosserie</Label>
+                <Select value={manual.body_type} onValueChange={(v) => setM({ body_type: v })}>
+                  <SelectTrigger><SelectValue placeholder="Choisir un type" /></SelectTrigger>
+                  <SelectContent>
+                    {BODY_TYPE_OPTIONS.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Boîte de vitesses</Label>
+                <Select value={manual.gearbox_type} onValueChange={(v) => setM({ gearbox_type: v })}>
+                  <SelectTrigger><SelectValue placeholder="Choisir une boîte" /></SelectTrigger>
+                  <SelectContent>
+                    {GEARBOX_OPTIONS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="sm:col-span-2">
+                <Label>Génération / finition (facultatif)</Label>
                 <Input
-                  type="date"
-                  value={manual.first_registration}
-                  onChange={(e) => setManual({ ...manual, first_registration: e.target.value })}
+                  placeholder="Ex. Phase 2, GTI, Business…"
+                  value={manual.generation}
+                  onChange={(e) => setM({ generation: e.target.value })}
                 />
               </div>
             </div>
-            <Button
-              disabled={loading || !manual.make || !manual.model}
-              onClick={() =>
-                save(
-                  Object.fromEntries(Object.entries(manual).filter(([, v]) => v !== "")),
-                  "manual",
-                )}
-            >
+            <Button disabled={loading || !finalMake || !finalModel} onClick={saveGuided}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Enregistrer la saisie
             </Button>
           </TabsContent>
