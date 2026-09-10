@@ -11,12 +11,10 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, CalendarClock, Search, ShieldAlert } from "lucide-react";
+import { CheckCircle2, ShieldAlert } from "lucide-react";
 import type { MaintenanceEvent, MaintenanceRule, Vehicle } from "@/lib/vehicle";
-import { applicableOperations, ZONE_LABELS, type CatalogItem } from "@/lib/vehicle-maintenance-catalog";
-import {
-  PRO_DISCLAIMER, SAFETY_DISCLAIMER, GENERIC_PART_DISCLAIMER, PART_COMPAT_DISCLAIMER,
-} from "@/lib/vehicle-normalize";
+import { applicableOperations, type CatalogItem } from "@/lib/vehicle-maintenance-catalog";
+import { PRO_DISCLAIMER, SAFETY_DISCLAIMER } from "@/lib/vehicle-normalize";
 
 export type ForecastStatus = "now" | "soon" | "later" | "unknown";
 
