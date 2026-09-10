@@ -238,7 +238,14 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
               </div>
               <div>
                 <Label>Pays</Label>
-                <Input value={country} onChange={(e) => setCountry(e.target.value.toUpperCase())} maxLength={2} />
+                <Select value={country} onValueChange={setCountry}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PLATE_COUNTRIES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <Button
