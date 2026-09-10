@@ -15,9 +15,12 @@ import {
   STATUS_LABELS, SOURCE_LABELS, isValidVin, normalizePlate, formatPlateFr,
 } from "@/lib/vehicle";
 import {
-  OTHER, VEHICLE_MAKES, VEHICLE_MODELS, FUEL_OPTIONS, BODY_TYPE_OPTIONS,
-  GEARBOX_OPTIONS, PLATE_COUNTRIES, registrationYears,
+  OTHER, VEHICLE_MAKES, VEHICLE_MODELS, FUEL_OPTIONS,
+  PLATE_COUNTRIES, registrationYears,
 } from "@/lib/vehicle-options";
+import { BODY_TYPES, SEGMENT_OPTIONS, SEGMENT_TO_BODIES } from "@/lib/vehicle-normalize";
+
+const SIMPLE_GEARBOX = ["Manuelle", "Automatique", "Je ne sais pas"];
 
 const FIELD_LABELS: Record<string, string> = {
   make: "Marque",
@@ -62,7 +65,7 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const [ocrProgress, setOcrProgress] = useState<number | null>(null);
   const [manual, setManual] = useState({
     make: "", makeOther: "", model: "", modelOther: "", generation: "",
-    fuel: "", body_type: "", gearbox_type: "", year: "",
+    fuel: "", segment: "", body_type: "", gearbox_type: "", year: "", odometer: "",
   });
 
   const setM = (patch: Partial<typeof manual>) => setManual((m) => ({ ...m, ...patch }));
@@ -71,22 +74,37 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const modelChoices = VEHICLE_MODELS[manual.make] ?? [];
   const ademeMake = ademe.make === OTHER ? ademe.makeOther.trim() : ademe.make;
   const ademeModel = ademe.model === OTHER ? ademe.modelOther.trim() : ademe.model;
+  const bodyChoices = BODY_TYPES.filter(
+    (b) => !manual.segment || (SEGMENT_TO_BODIES[manual.segment] ?? []).includes(b.code),
+  );
 
 
-  const saveGuided = () => {
+  const saveGuided = async () => {
     const extra: Record<string, unknown> = {
       make: finalMake,
       model: finalModel,
     };
     if (manual.generation.trim()) extra.generation = manual.generation.trim();
     if (manual.fuel) extra.fuel = manual.fuel;
+    if (manual.segment) extra.segment = manual.segment;
     if (manual.body_type) extra.body_type = manual.body_type;
     if (manual.gearbox_type) extra.gearbox_type = manual.gearbox_type;
-    if (manual.year) {
-      extra.model_year = parseInt(manual.year, 10);
-      extra.first_registration = `${manual.year}-01-01`;
+    // L'année seule ne devient jamais une date complète.
+    if (manual.year) extra.model_year = parseInt(manual.year, 10);
+
+    const id = await save(extra, "manual");
+    const km = manual.odometer ? parseFloat(manual.odometer.replace(",", ".")) : NaN;
+    if (id && !Number.isNaN(km)) {
+      await supabase.from("odometer_readings").insert({
+        vehicle_id: id,
+        value: km,
+        unit: "km",
+        reading_date: new Date().toISOString().slice(0, 10),
+        source: "manual",
+        confirmed: true,
+      } as never);
+      onSaved();
     }
-    save(extra, "manual");
   };
 
   const call = async (payload: Record<string, unknown>) => {
@@ -185,7 +203,7 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
     if (vin && isValidVin(vin)) payload.vin = vin.toUpperCase();
     if (Object.keys(payload).length === 0) {
       toast({ title: "Rien à enregistrer", variant: "destructive" });
-      return;
+      return null;
     }
     payload.status = payload.make && payload.model ? "identified" : "partial";
 
@@ -222,8 +240,10 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
       toast({ title: "Fiche enregistrée" });
       setCandidates([]);
       onSaved();
+      return id;
     } catch (e) {
       toast({ title: "Enregistrement impossible", description: (e as Error).message, variant: "destructive" });
+      return null;
     } finally {
       setLoading(false);
     }
@@ -442,34 +462,64 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
               </div>
 
               <div>
-                <Label>Carrosserie</Label>
-                <Select value={manual.body_type} onValueChange={(v) => setM({ body_type: v })}>
-                  <SelectTrigger><SelectValue placeholder="Choisir un type" /></SelectTrigger>
-                  <SelectContent>
-                    {BODY_TYPE_OPTIONS.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                <Label>Catégorie</Label>
+                <Select
+                  value={manual.segment}
+                  onValueChange={(v) => setM({ segment: v, body_type: "" })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Choisir une catégorie" /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {SEGMENT_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label>Boîte de vitesses</Label>
-                <Select value={manual.gearbox_type} onValueChange={(v) => setM({ gearbox_type: v })}>
-                  <SelectTrigger><SelectValue placeholder="Choisir une boîte" /></SelectTrigger>
-                  <SelectContent>
-                    {GEARBOX_OPTIONS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="sm:col-span-2">
-                <Label>Génération / finition (facultatif)</Label>
+                <Label>Kilométrage actuel (km)</Label>
                 <Input
-                  placeholder="Ex. Phase 2, GTI, Business…"
-                  value={manual.generation}
-                  onChange={(e) => setM({ generation: e.target.value })}
+                  inputMode="numeric"
+                  placeholder="Ex. 110000"
+                  value={manual.odometer}
+                  onChange={(e) => setM({ odometer: e.target.value })}
                 />
               </div>
             </div>
+
+            <details className="rounded-md border p-3">
+              <summary className="cursor-pointer text-sm font-medium">
+                Informations complémentaires (facultatif)
+              </summary>
+              <div className="grid gap-3 pt-3 sm:grid-cols-2">
+                <div>
+                  <Label>Carrosserie exacte</Label>
+                  <Select value={manual.body_type} onValueChange={(v) => setM({ body_type: v })}>
+                    <SelectTrigger><SelectValue placeholder="Je ne sais pas" /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {bodyChoices.map((b) => (
+                        <SelectItem key={b.label} value={b.label}>{b.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Boîte de vitesses</Label>
+                  <Select value={manual.gearbox_type} onValueChange={(v) => setM({ gearbox_type: v })}>
+                    <SelectTrigger><SelectValue placeholder="Je ne sais pas" /></SelectTrigger>
+                    <SelectContent>
+                      {SIMPLE_GEARBOX.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Génération / phase / finition</Label>
+                  <Input
+                    placeholder="Ex. Phase 2, GTI, Business…"
+                    value={manual.generation}
+                    onChange={(e) => setM({ generation: e.target.value })}
+                  />
+                </div>
+              </div>
+            </details>
             <Button disabled={loading || !finalMake || !finalModel} onClick={saveGuided}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Enregistrer la saisie

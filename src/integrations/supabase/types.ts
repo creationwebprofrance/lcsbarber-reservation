@@ -1192,18 +1192,25 @@ export type Database = {
           archived: boolean
           body_type: string | null
           cnit: string | null
+          consumption_kwh_100km: number | null
+          consumption_l_100km: number | null
           created_at: string
           displacement_cm3: number | null
+          doors: number | null
+          drivetrain: string | null
+          elec_price_per_kwh: number | null
           electrification: string | null
           engine_code: string | null
           engine_version: string | null
           first_registration: string | null
           fiscal_power: number | null
           fuel: string | null
+          fuel_price_per_l: number | null
           gearbox_code: string | null
           gearbox_gears: number | null
           gearbox_type: string | null
           generation: string | null
+          hybrid_type: string | null
           id: string
           is_default: boolean
           label: string | null
@@ -1220,7 +1227,10 @@ export type Database = {
           power_kw: number | null
           production_end: string | null
           production_start: string | null
+          seats: number | null
+          segment: string | null
           status: string
+          trim_level: string | null
           tvv: string | null
           updated_at: string
           vin: string | null
@@ -1232,18 +1242,25 @@ export type Database = {
           archived?: boolean
           body_type?: string | null
           cnit?: string | null
+          consumption_kwh_100km?: number | null
+          consumption_l_100km?: number | null
           created_at?: string
           displacement_cm3?: number | null
+          doors?: number | null
+          drivetrain?: string | null
+          elec_price_per_kwh?: number | null
           electrification?: string | null
           engine_code?: string | null
           engine_version?: string | null
           first_registration?: string | null
           fiscal_power?: number | null
           fuel?: string | null
+          fuel_price_per_l?: number | null
           gearbox_code?: string | null
           gearbox_gears?: number | null
           gearbox_type?: string | null
           generation?: string | null
+          hybrid_type?: string | null
           id?: string
           is_default?: boolean
           label?: string | null
@@ -1260,7 +1277,10 @@ export type Database = {
           power_kw?: number | null
           production_end?: string | null
           production_start?: string | null
+          seats?: number | null
+          segment?: string | null
           status?: string
+          trim_level?: string | null
           tvv?: string | null
           updated_at?: string
           vin?: string | null
@@ -1272,18 +1292,25 @@ export type Database = {
           archived?: boolean
           body_type?: string | null
           cnit?: string | null
+          consumption_kwh_100km?: number | null
+          consumption_l_100km?: number | null
           created_at?: string
           displacement_cm3?: number | null
+          doors?: number | null
+          drivetrain?: string | null
+          elec_price_per_kwh?: number | null
           electrification?: string | null
           engine_code?: string | null
           engine_version?: string | null
           first_registration?: string | null
           fiscal_power?: number | null
           fuel?: string | null
+          fuel_price_per_l?: number | null
           gearbox_code?: string | null
           gearbox_gears?: number | null
           gearbox_type?: string | null
           generation?: string | null
+          hybrid_type?: string | null
           id?: string
           is_default?: boolean
           label?: string | null
@@ -1300,7 +1327,10 @@ export type Database = {
           power_kw?: number | null
           production_end?: string | null
           production_start?: string | null
+          seats?: number | null
+          segment?: string | null
           status?: string
+          trim_level?: string | null
           tvv?: string | null
           updated_at?: string
           vin?: string | null

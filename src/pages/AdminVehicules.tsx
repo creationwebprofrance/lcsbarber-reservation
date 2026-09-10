@@ -3,26 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Car, ArrowLeft, Loader2, Gauge, Route, Wrench, Euro, FileText, Sparkles } from "lucide-react";
+import { Car, ArrowLeft, Loader2, Gauge, Wrench } from "lucide-react";
 import { VehicleIdentification } from "@/components/vehicle/VehicleIdentification";
 import { Vehicle3D } from "@/components/vehicle/Vehicle3D";
-import { OdometerTab } from "@/components/vehicle/OdometerTab";
-import { VehicleTrips } from "@/components/vehicle/VehicleTrips";
-import { VehicleMaintenance } from "@/components/vehicle/VehicleMaintenance";
-import { VehicleExpenses } from "@/components/vehicle/VehicleExpenses";
-import { VehicleDocuments } from "@/components/vehicle/VehicleDocuments";
+import { VehicleForecast, buildForecasts } from "@/components/vehicle/VehicleForecast";
+import { VehicleFuel } from "@/components/vehicle/VehicleFuel";
+import { VehicleDetailsDialog } from "@/components/vehicle/VehicleDetailsDialog";
 import {
-  completeness, estimateOdometer, STATUS_LABELS, SOURCE_LABELS,
+  estimateOdometer, type MaintenanceEvent, type MaintenanceRule,
   type OdometerReading, type Vehicle,
 } from "@/lib/vehicle";
-
-interface QuotaRow { provider: string; period: string; call_count: number; max_calls: number }
 
 export const AdminVehicules = () => {
   const navigate = useNavigate();
@@ -32,8 +26,10 @@ export const AdminVehicules = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [readings, setReadings] = useState<OdometerReading[]>([]);
-  const [quotas, setQuotas] = useState<QuotaRow[]>([]);
-  
+  const [rules, setRules] = useState<MaintenanceRule[]>([]);
+  const [events, setEvents] = useState<MaintenanceEvent[]>([]);
+  const [details, setDetails] = useState(false);
+  const [allForecasts, setAllForecasts] = useState(false);
 
   const current = vehicles.find((v) => v.id === currentId) ?? null;
 
@@ -42,7 +38,7 @@ export const AdminVehicules = () => {
       .eq("archived", false).order("is_default", { ascending: false }).order("created_at");
     const list = (data ?? []) as Vehicle[];
     setVehicles(list);
-    setCurrentId((prev) => prev && list.some((v) => v.id === prev) ? prev : list[0]?.id ?? null);
+    setCurrentId((prev) => (prev && list.some((v) => v.id === prev) ? prev : list[0]?.id ?? null));
   }, []);
 
   useEffect(() => {
@@ -63,28 +59,21 @@ export const AdminVehicules = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!currentId) { setReadings([]); return; }
-    supabase.from("odometer_readings").select("*").eq("vehicle_id", currentId)
-      .then(({ data }) => setReadings((data ?? []) as OdometerReading[]));
-  }, [currentId]);
+  const loadVehicleData = useCallback(async (id: string | null) => {
+    if (!id) { setReadings([]); setRules([]); setEvents([]); return; }
+    const [o, r, e] = await Promise.all([
+      supabase.from("odometer_readings").select("*").eq("vehicle_id", id),
+      supabase.from("vehicle_maintenance_rules").select("*").eq("vehicle_id", id),
+      supabase.from("vehicle_maintenance_events").select("*").eq("vehicle_id", id),
+    ]);
+    setReadings((o.data ?? []) as OdometerReading[]);
+    setRules((r.data ?? []) as MaintenanceRule[]);
+    setEvents((e.data ?? []) as MaintenanceEvent[]);
+  }, []);
 
-  const loadQuotas = async () => {
-    const { data, error } = await supabase.functions.invoke("vehicle-lookup", { body: { action: "quota" } });
-    if (error) return;
-    setQuotas(((data as { quotas: QuotaRow[] }).quotas ?? []).slice(0, 6));
-  };
-  useEffect(() => { if (allowed) loadQuotas(); }, [allowed]);
+  useEffect(() => { loadVehicleData(currentId); }, [currentId, loadVehicleData]);
 
-  const setDefault = async (id: string) => {
-    await supabase.from("vehicles").update({ is_default: true }).eq("id", id);
-    loadVehicles();
-  };
-
-  const archive = async (id: string) => {
-    await supabase.from("vehicles").update({ archived: true, is_default: false }).eq("id", id);
-    loadVehicles();
-  };
+  const refresh = () => { loadVehicles(); loadVehicleData(currentId); };
 
   if (checking) {
     return (
@@ -96,6 +85,20 @@ export const AdminVehicules = () => {
   if (!allowed) return null;
 
   const est = estimateOdometer(readings);
+  const kmLabel = est.value === null
+    ? "Kilométrage inconnu"
+    : `${est.value.toLocaleString("fr-FR")} ${current?.odometer_unit ?? "km"}${est.isEstimate ? " (estimation)" : ""}`;
+
+  const nextOp = current
+    ? buildForecasts(current, rules, events, est.value).find((f) => f.status !== "unknown") ?? null
+    : null;
+
+  const title = current
+    ? [current.make, current.model].filter(Boolean).join(" ") || current.label || "Véhicule"
+    : "";
+  const year = current?.model_year ?? (current?.first_registration
+    ? Number(current.first_registration.slice(0, 4))
+    : null);
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,7 +108,7 @@ export const AdminVehicules = () => {
             <Car className="h-6 w-6" /> Mon véhicule
           </h1>
           <div className="flex items-center gap-2">
-            {vehicles.length > 0 && (
+            {vehicles.length > 1 && (
               <Select value={currentId ?? ""} onValueChange={setCurrentId}>
                 <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -130,107 +133,73 @@ export const AdminVehicules = () => {
         </p>
 
         {!current ? (
-          <VehicleIdentification vehicleId={null} onSaved={loadVehicles} />
+          <VehicleIdentification vehicleId={null} onSaved={refresh} />
         ) : (
-          <Tabs defaultValue="overview" className="space-y-6">
-            <div className="-mx-4 overflow-x-auto px-4 pb-2">
-              <TabsList className="inline-flex w-max gap-1 p-1">
-                <TabsTrigger value="overview" className="gap-2"><Car className="h-4 w-4" />Vue d'ensemble</TabsTrigger>
-                <TabsTrigger value="identity" className="gap-2"><Sparkles className="h-4 w-4" />Identification</TabsTrigger>
-                <TabsTrigger value="odometer" className="gap-2"><Gauge className="h-4 w-4" />Kilométrage</TabsTrigger>
-                <TabsTrigger value="trips" className="gap-2"><Route className="h-4 w-4" />Déplacements</TabsTrigger>
-                <TabsTrigger value="maintenance" className="gap-2"><Wrench className="h-4 w-4" />Entretien</TabsTrigger>
-                <TabsTrigger value="expenses" className="gap-2"><Euro className="h-4 w-4" />Dépenses</TabsTrigger>
-                <TabsTrigger value="documents" className="gap-2"><FileText className="h-4 w-4" />Documents</TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="overview" className="space-y-6">
-              <div className="grid gap-6 lg:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>
-                      {current.label || [current.make, current.model].filter(Boolean).join(" ") || "Véhicule"}
-                    </CardTitle>
-                    <CardDescription>
-                      Fiche complétée à {completeness(current)} % ·{" "}
-                      {est.value !== null
-                        ? `${est.value.toLocaleString("fr-FR")} ${current.odometer_unit}${est.isEstimate ? " (estimation)" : ""}`
-                        : "kilométrage inconnu"}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {([
-                        ["Immatriculation", current.plate],
-                        ["VIN", current.vin],
-                        ["Énergie", current.fuel],
-                        ["Carrosserie", current.body_type],
-                        ["1re mise en circulation", current.first_registration],
-                        ["Version moteur", current.engine_version],
-                        ["Cylindrée", current.displacement_cm3 ? `${current.displacement_cm3} cm³` : null],
-                        ["Puissance", current.power_kw ? `${current.power_kw} kW` : null],
-                        ["Boîte", current.gearbox_type],
-                      ] as [string, string | number | null][]).map(([l, v]) => (
-                        <div key={l}>
-                          <p className="text-xs text-muted-foreground">{l}</p>
-                          <p className="font-medium">{v || "Non renseigné"}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {!current.is_default && (
-                        <Button variant="outline" size="sm" onClick={() => setDefault(current.id)}>
-                          Définir par défaut
-                        </Button>
-                      )}
-                      <Button variant="outline" size="sm" onClick={() => archive(current.id)}>Archiver</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <div className="space-y-3">
-                  <Vehicle3D
-                    make={current.make}
-                    model={current.model}
-                    year={current.model_year ?? (current.first_registration
-                      ? Number(current.first_registration.slice(0, 4))
-                      : null)}
-                  />
-                </div>
-              </div>
-
+          <>
+            <div className="grid gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Services externes gratuits</CardTitle>
-                  <CardDescription>
-                    Consommation du mois, plafonnée volontairement sous les quotas gratuits.
-                  </CardDescription>
+                  <CardTitle className="text-2xl">{title}</CardTitle>
+                  <CardDescription>{year ? `Année ${year}` : "Année non renseignée"}</CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-wrap gap-2">
-                  {quotas.length === 0 && (
-                    <p className="text-sm text-muted-foreground">Aucun appel enregistré ce mois-ci.</p>
-                  )}
-                  {quotas.map((q) => (
-                    <Badge key={`${q.provider}-${q.period}`} variant="outline">
-                      {SOURCE_LABELS[q.provider] ?? q.provider} : {q.call_count}/{q.max_calls}
-                    </Badge>
-                  ))}
+                <CardContent className="space-y-4 text-sm">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-md border p-3">
+                      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Gauge className="h-4 w-4" /> Kilométrage actuel
+                      </p>
+                      <p className="text-lg font-semibold">{kmLabel}</p>
+                    </div>
+                    <div className="rounded-md border p-3">
+                      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Wrench className="h-4 w-4" /> Prochain entretien
+                      </p>
+                      <p className="font-semibold">
+                        {nextOp ? nextOp.item.label : "À compléter"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {nextOp ? nextOp.phrase : "Renseigne un intervalle pour obtenir une projection."}
+                      </p>
+                    </div>
+                  </div>
+                  <Button onClick={() => setDetails(true)}>Détails du véhicule</Button>
                 </CardContent>
               </Card>
-            </TabsContent>
 
-            <TabsContent value="identity">
-              <VehicleIdentification vehicleId={current.id} onSaved={loadVehicles} />
-            </TabsContent>
-            <TabsContent value="odometer">
-              <OdometerTab vehicleId={current.id} unit={current.odometer_unit} />
-            </TabsContent>
-            <TabsContent value="trips"><VehicleTrips vehicleId={current.id} /></TabsContent>
-            <TabsContent value="maintenance"><VehicleMaintenance vehicleId={current.id} /></TabsContent>
-            <TabsContent value="expenses"><VehicleExpenses vehicleId={current.id} /></TabsContent>
-            <TabsContent value="documents"><VehicleDocuments vehicleId={current.id} /></TabsContent>
-          </Tabs>
+              <Vehicle3D
+                make={current.make}
+                model={current.model}
+                year={year}
+                expectedBody={current.body_type}
+              />
+            </div>
+
+            <VehicleForecast
+              vehicle={current}
+              currentKm={est.value}
+              compact
+              onShowAll={() => setAllForecasts(true)}
+            />
+
+            <VehicleFuel vehicle={current} onComplete={() => setDetails(true)} />
+
+            <VehicleDetailsDialog
+              vehicle={current}
+              open={details}
+              onOpenChange={(o) => { setDetails(o); if (!o) refresh(); }}
+              onSaved={refresh}
+              currentKm={est.value}
+            />
+
+            {allForecasts && (
+              <div className="space-y-3">
+                <VehicleForecast vehicle={current} currentKm={est.value} />
+                <Button variant="ghost" size="sm" onClick={() => setAllForecasts(false)}>
+                  Masquer les prévisions
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
