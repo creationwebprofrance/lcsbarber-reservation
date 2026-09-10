@@ -13,6 +13,10 @@ import Catalogue from "./pages/Catalogue";
 import MesRendezVous from "./pages/MesRendezVous";
 import AdminEvenements from "./pages/AdminEvenements";
 import NotFound from "./pages/NotFound";
+import MentionsLegales from "./pages/legal/MentionsLegales";
+import CGV from "./pages/legal/CGV";
+import Confidentialite from "./pages/legal/Confidentialite";
+import Retractation from "./pages/legal/Retractation";
 import { Auth } from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -54,6 +58,10 @@ const App = () => (
             <Route path="/catalogue" element={<Catalogue />} />
             <Route path="/mes-rendez-vous" element={<RequireAuth><MesRendezVous /></RequireAuth>} />
             <Route path="/admin-evenements" element={<AdminEvenements />} />
+            <Route path="/mentions-legales" element={<MentionsLegales />} />
+            <Route path="/cgv" element={<CGV />} />
+            <Route path="/politique-de-confidentialite" element={<Confidentialite />} />
+            <Route path="/droit-de-retractation" element={<Retractation />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
