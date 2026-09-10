@@ -273,26 +273,96 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
             </Button>
           </TabsContent>
 
+          <TabsContent value="ademe" className="space-y-3 pt-4">
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Recherche dans la base publique ADEME (véhicules commercialisés en France).
+                Choisis la marque et le modèle, puis la version exacte.
+              </AlertDescription>
+            </Alert>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Marque</Label>
+                <Select
+                  value={ademe.make}
+                  onValueChange={(v) => setAdeme((a) => ({ ...a, make: v, model: "", modelOther: "" }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="Choisir une marque" /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {VEHICLE_MAKES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                    <SelectItem value={OTHER}>Autre marque…</SelectItem>
+                  </SelectContent>
+                </Select>
+                {ademe.make === OTHER && (
+                  <Input
+                    className="mt-2"
+                    placeholder="Nom de la marque"
+                    value={ademe.makeOther}
+                    onChange={(e) => setAdeme((a) => ({ ...a, makeOther: e.target.value }))}
+                  />
+                )}
+              </div>
+              <div>
+                <Label>Modèle</Label>
+                <Select
+                  value={ademe.model}
+                  onValueChange={(v) => setAdeme((a) => ({ ...a, model: v }))}
+                  disabled={!ademe.make}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={ademe.make ? "Choisir un modèle" : "Choisis d'abord la marque"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {(VEHICLE_MODELS[ademe.make] ?? []).map((m) => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                    <SelectItem value={OTHER}>Autre modèle…</SelectItem>
+                  </SelectContent>
+                </Select>
+                {ademe.model === OTHER && (
+                  <Input
+                    className="mt-2"
+                    placeholder="Nom du modèle"
+                    value={ademe.modelOther}
+                    onChange={(e) => setAdeme((a) => ({ ...a, modelOther: e.target.value }))}
+                  />
+                )}
+              </div>
+            </div>
+            <Button
+              disabled={loading || !ademeMake || !ademeModel}
+              onClick={() => runLookup({ action: "ademe", make: ademeMake, model: ademeModel })}
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Rechercher dans la base ADEME
+            </Button>
+          </TabsContent>
+
           <TabsContent value="vin" className="space-y-3 pt-4">
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                La recherche par VIN européen est suspendue pour le moment. Utilise l'onglet
+                « Marque &amp; modèle » (base ADEME). Le VIN reste utile pour les véhicules
+                importés des États-Unis, et il est enregistré sur la fiche.
+              </AlertDescription>
+            </Alert>
             <Label>Numéro VIN (17 caractères)</Label>
             <Input value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} maxLength={17} />
             {vin.length > 0 && !isValidVin(vin) && (
               <p className="text-xs text-destructive">VIN incomplet ou contenant I, O ou Q.</p>
             )}
-            <div className="flex flex-wrap gap-2">
-              <Button disabled={loading || !isValidVin(vin)} onClick={() => runLookup({ action: "vin", vin })}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Rechercher (Europe)
-              </Button>
-              <Button
-                variant="outline"
-                disabled={loading || !isValidVin(vin)}
-                onClick={() => runLookup({ action: "vpic", vin })}
-              >
-                Véhicule importé des États-Unis
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              disabled={loading || !isValidVin(vin)}
+              onClick={() => runLookup({ action: "vpic", vin })}
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Véhicule importé des États-Unis
+            </Button>
           </TabsContent>
+
 
           <TabsContent value="guided" className="space-y-3 pt-4">
             <p className="text-xs text-muted-foreground">
