@@ -14,6 +14,7 @@ import { VehicleForecast } from "@/components/vehicle/VehicleForecast";
 import { VehicleIdentification } from "@/components/vehicle/VehicleIdentification";
 import type { Vehicle } from "@/lib/vehicle";
 import { BODY_TYPES, SEGMENT_OPTIONS } from "@/lib/vehicle-normalize";
+import { FUEL_OPTIONS, registrationYears } from "@/lib/vehicle-options";
 import { energyKind } from "@/lib/vehicle-maintenance-catalog";
 
 const DRIVETRAINS = ["Traction (FWD)", "Propulsion (RWD)", "Intégrale (AWD)", "4 roues motrices (4WD)", "Je ne sais pas"];
