@@ -75,8 +75,10 @@ export function buildForecasts(
         ? Number(rule.reference_odometer)
         : currentKm;
 
-    const intervalKm = rule?.interval_km ?? null;
-    const intervalMonths = rule?.interval_months ?? null;
+    // Priorité à la règle saisie ; sinon ordre de grandeur générique du catalogue.
+    const isEstimate = !(rule?.interval_km || rule?.interval_months);
+    const intervalKm = rule?.interval_km ?? item.default_interval_km ?? null;
+    const intervalMonths = rule?.interval_months ?? item.default_interval_months ?? null;
 
     const dueKm = intervalKm && referenceKm != null ? referenceKm + intervalKm : null;
     let dueDate: string | null = null;
@@ -87,6 +89,13 @@ export function buildForecasts(
         d.setMonth(d.getMonth() + intervalMonths);
         dueDate = d.toISOString().slice(0, 10);
       }
+    }
+    // Si seule une échéance km est connue, on estime une date approximative
+    // sur la base d'un rythme générique de 15 000 km/an.
+    if (!dueDate && dueKm != null && currentKm != null && dueKm > currentKm) {
+      const days = ((dueKm - currentKm) / 15000) * 365;
+      const d = new Date(Date.now() + days * 86400000);
+      dueDate = d.toISOString().slice(0, 10);
     }
     const remainingKm = dueKm != null && currentKm != null ? dueKm - currentKm : null;
     const remainingDays = dueDate
@@ -102,16 +111,20 @@ export function buildForecasts(
       } else status = "later";
     }
 
+    const approx = isEstimate ? "≈ " : "";
     let phrase = "Intervalle à renseigner";
     if (remainingKm !== null && dueKm !== null) {
       phrase = remainingKm >= 0
-        ? `Dans ${fmt(remainingKm)} km, vers ${fmt(dueKm)} km`
-        : `Dépassé de ${fmt(-remainingKm)} km (prévu vers ${fmt(dueKm)} km)`;
+        ? `${approx}Dans ${fmt(remainingKm)} km, vers ${fmt(dueKm)} km`
+        : `${approx}Dépassé de ${fmt(-remainingKm)} km (prévu vers ${fmt(dueKm)} km)`;
     } else if (dueKm !== null) {
-      phrase = `Vers ${fmt(dueKm)} km`;
+      phrase = `${approx}Vers ${fmt(dueKm)} km`;
     }
     if (dueDate) {
-      phrase += ` · avant le ${new Date(dueDate).toLocaleDateString("fr-FR")}`;
+      phrase += ` · ${isEstimate ? "vers" : "avant"} le ${new Date(dueDate).toLocaleDateString("fr-FR")}`;
+    }
+    if (isEstimate && (dueKm !== null || dueDate)) {
+      phrase += " (estimation)";
     }
 
     return { item, rule, lastEvent, referenceKm, dueKm, dueDate, remainingKm, status, phrase };
