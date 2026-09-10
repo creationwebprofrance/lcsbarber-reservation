@@ -44,6 +44,8 @@ interface Props {
 }
 
 type Candidate = { key: string; value: string; provider: string; keep: boolean };
+type Variant = { label: string; fields: Record<string, unknown> };
+
 
 export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const { toast } = useToast();
