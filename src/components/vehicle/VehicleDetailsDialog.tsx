@@ -136,6 +136,58 @@ export const VehicleDetailsDialog = ({ vehicle, open, onOpenChange, onSaved, cur
           </Card>
 
           <Card>
+            <CardHeader><CardTitle className="text-base">Modifier l'identité</CardTitle></CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <Label>Nom du véhicule (facultatif)</Label>
+                <Input value={form.label} placeholder="Ex. Voiture de tournée"
+                  onChange={(e) => setForm({ ...form, label: e.target.value })} />
+              </div>
+              <div><Label>Marque</Label>
+                <Input value={form.make} onChange={(e) => setForm({ ...form, make: e.target.value })} /></div>
+              <div><Label>Modèle</Label>
+                <Input value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} /></div>
+              <div>
+                <Label>Année</Label>
+                <Select value={form.model_year} onValueChange={(v) => setForm({ ...form, model_year: v })}>
+                  <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {registrationYears().map((y) => (
+                      <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Énergie</Label>
+                <Select value={form.fuel} onValueChange={(v) => setForm({ ...form, fuel: v })}>
+                  <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
+                  <SelectContent>
+                    {FUEL_OPTIONS.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Boîte de vitesses</Label>
+                <Select value={form.gearbox_type} onValueChange={(v) => setForm({ ...form, gearbox_type: v })}>
+                  <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
+                  <SelectContent>
+                    {GEARBOXES.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>Immatriculation</Label>
+                <Input value={form.plate} onChange={(e) => setForm({ ...form, plate: e.target.value })} /></div>
+              <div className="sm:col-span-2"><Label>VIN (facultatif)</Label>
+                <Input value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} /></div>
+              <div className="sm:col-span-2">
+                <Button onClick={save}>Enregistrer les modifications</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+
+          <Card>
             <CardHeader><CardTitle className="text-base">Informations complémentaires</CardTitle></CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2">
               <div>
