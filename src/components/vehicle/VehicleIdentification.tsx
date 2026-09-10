@@ -53,7 +53,10 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
   const [vin, setVin] = useState("");
   const [status, setStatus] = useState<{ label: string; detail?: string } | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [variants, setVariants] = useState<Variant[]>([]);
+  const [ademe, setAdeme] = useState({ make: "", model: "", makeOther: "", modelOther: "" });
   const [ocrText, setOcrText] = useState("");
+
   const [ocrProgress, setOcrProgress] = useState<number | null>(null);
   const [manual, setManual] = useState({
     make: "", makeOther: "", model: "", modelOther: "", generation: "",
