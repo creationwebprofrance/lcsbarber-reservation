@@ -462,34 +462,64 @@ export const VehicleIdentification = ({ vehicleId, onSaved }: Props) => {
               </div>
 
               <div>
-                <Label>Carrosserie</Label>
-                <Select value={manual.body_type} onValueChange={(v) => setM({ body_type: v })}>
-                  <SelectTrigger><SelectValue placeholder="Choisir un type" /></SelectTrigger>
-                  <SelectContent>
-                    {BODY_TYPE_OPTIONS.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                <Label>Catégorie</Label>
+                <Select
+                  value={manual.segment}
+                  onValueChange={(v) => setM({ segment: v, body_type: "" })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Choisir une catégorie" /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {SEGMENT_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label>Boîte de vitesses</Label>
-                <Select value={manual.gearbox_type} onValueChange={(v) => setM({ gearbox_type: v })}>
-                  <SelectTrigger><SelectValue placeholder="Choisir une boîte" /></SelectTrigger>
-                  <SelectContent>
-                    {GEARBOX_OPTIONS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="sm:col-span-2">
-                <Label>Génération / finition (facultatif)</Label>
+                <Label>Kilométrage actuel (km)</Label>
                 <Input
-                  placeholder="Ex. Phase 2, GTI, Business…"
-                  value={manual.generation}
-                  onChange={(e) => setM({ generation: e.target.value })}
+                  inputMode="numeric"
+                  placeholder="Ex. 110000"
+                  value={manual.odometer}
+                  onChange={(e) => setM({ odometer: e.target.value })}
                 />
               </div>
             </div>
+
+            <details className="rounded-md border p-3">
+              <summary className="cursor-pointer text-sm font-medium">
+                Informations complémentaires (facultatif)
+              </summary>
+              <div className="grid gap-3 pt-3 sm:grid-cols-2">
+                <div>
+                  <Label>Carrosserie exacte</Label>
+                  <Select value={manual.body_type} onValueChange={(v) => setM({ body_type: v })}>
+                    <SelectTrigger><SelectValue placeholder="Je ne sais pas" /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {bodyChoices.map((b) => (
+                        <SelectItem key={b.label} value={b.label}>{b.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Boîte de vitesses</Label>
+                  <Select value={manual.gearbox_type} onValueChange={(v) => setM({ gearbox_type: v })}>
+                    <SelectTrigger><SelectValue placeholder="Je ne sais pas" /></SelectTrigger>
+                    <SelectContent>
+                      {SIMPLE_GEARBOX.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Génération / phase / finition</Label>
+                  <Input
+                    placeholder="Ex. Phase 2, GTI, Business…"
+                    value={manual.generation}
+                    onChange={(e) => setM({ generation: e.target.value })}
+                  />
+                </div>
+              </div>
+            </details>
             <Button disabled={loading || !finalMake || !finalModel} onClick={saveGuided}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Enregistrer la saisie
