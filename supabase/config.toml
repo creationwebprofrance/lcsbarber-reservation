@@ -42,3 +42,6 @@ verify_jwt = false
 
 [functions.notify-barber-on-the-way]
 verify_jwt = false
+
+[functions.authorize-tracking]
+verify_jwt = false

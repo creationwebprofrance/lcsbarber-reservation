@@ -30,25 +30,51 @@ const verificationEmailSchema = z.object({
 
 type VerificationEmailRequest = z.infer<typeof verificationEmailSchema>;
 
+// Domaines autorisés pour le lien de vérification (anti-phishing)
+const ALLOWED_APP_ORIGINS = [
+  "https://lcsbarber.com",
+  "https://www.lcsbarber.com",
+  "https://lcsbarber-reservation.lovable.app",
+];
+
+const resolveAppUrl = (candidate: string): string | null => {
+  try {
+    const url = new URL(candidate);
+    const origin = url.origin.toLowerCase();
+    if (ALLOWED_APP_ORIGINS.includes(origin)) return origin;
+    // Autorise les URL de prévisualisation Lovable du projet
+    if (/^https:\/\/[a-z0-9-]+\.lovable\.app$/.test(origin)) return origin;
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const escapeHtml = (v: unknown): string =>
+  String(v ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string
+  );
+
 // Function to replace template variables
 const replaceTemplateVars = (template: string, data: VerificationEmailRequest): string => {
-  const verificationLink = `${data.appUrl}/verify-booking?token=${data.verificationToken}`;
+  const verificationLink = `${data.appUrl}/verify-booking?token=${encodeURIComponent(data.verificationToken)}`;
   const depositAmount = data.totalPrice ? Math.round(data.totalPrice * 0.5) : 0;
   
+  
   let result = template
-    .replace(/\{\{clientName\}\}/g, data.clientName || '')
-    .replace(/\{\{clientEmail\}\}/g, data.clientEmail || '')
-    .replace(/\{\{clientPhone\}\}/g, data.clientPhone || '')
-    .replace(/\{\{clientAddress\}\}/g, data.clientAddress || '')
-    .replace(/\{\{serviceName\}\}/g, data.serviceName || '')
+    .replace(/\{\{clientName\}\}/g, escapeHtml(data.clientName))
+    .replace(/\{\{clientEmail\}\}/g, escapeHtml(data.clientEmail))
+    .replace(/\{\{clientPhone\}\}/g, escapeHtml(data.clientPhone))
+    .replace(/\{\{clientAddress\}\}/g, escapeHtml(data.clientAddress))
+    .replace(/\{\{serviceName\}\}/g, escapeHtml(data.serviceName))
     .replace(/\{\{servicePrice\}\}/g, String(data.servicePrice || 0))
-    .replace(/\{\{appointmentDate\}\}/g, data.appointmentDate || '')
-    .replace(/\{\{appointmentTime\}\}/g, data.appointmentTime || '')
+    .replace(/\{\{appointmentDate\}\}/g, escapeHtml(data.appointmentDate))
+    .replace(/\{\{appointmentTime\}\}/g, escapeHtml(data.appointmentTime))
     .replace(/\{\{totalPrice\}\}/g, String(data.totalPrice || 0))
     .replace(/\{\{travelFee\}\}/g, String(data.travelFee || 0))
     .replace(/\{\{depositAmount\}\}/g, String(depositAmount))
     .replace(/\{\{verificationLink\}\}/g, verificationLink)
-    .replace(/\{\{notes\}\}/g, data.notes || '');
+    .replace(/\{\{notes\}\}/g, escapeHtml(data.notes));
 
   // Handle conditional blocks for travelFee
   if (data.travelFee && data.travelFee > 0) {
@@ -92,7 +118,7 @@ const getFallbackTemplate = (data: VerificationEmailRequest) => `
       <h2>Vérification de votre rendez-vous</h2>
     </div>
     <div class="content">
-      <p>Bonjour <strong>${data.clientName}</strong>,</p>
+      <p>Bonjour <strong>${escapeHtml(data.clientName)}</strong>,</p>
       
       <p>Merci d'avoir réservé un rendez-vous avec LCS Barber !</p>
       
@@ -100,7 +126,7 @@ const getFallbackTemplate = (data: VerificationEmailRequest) => `
         <h3>🔐 Confirmez votre email</h3>
         <p>Pour finaliser votre réservation, veuillez cliquer sur le bouton ci-dessous :</p>
         
-        <a href="${data.appUrl}/verify-booking?token=${data.verificationToken}" class="verify-button">
+        <a href="${data.appUrl}/verify-booking?token=${encodeURIComponent(data.verificationToken)}" class="verify-button">
           ✅ Vérifier mon email
         </a>
         
@@ -112,18 +138,18 @@ const getFallbackTemplate = (data: VerificationEmailRequest) => `
       <h3>📅 Récapitulatif de votre rendez-vous :</h3>
       
       <div class="detail-row">
-        <strong>Service :</strong> ${data.serviceName}
+        <strong>Service :</strong> ${escapeHtml(data.serviceName)}
       </div>
       
       <div class="detail-row">
-        <strong>Date :</strong> ${data.appointmentDate}
+        <strong>Date :</strong> ${escapeHtml(data.appointmentDate)}
       </div>
       
       <div class="detail-row">
-        <strong>Heure :</strong> ${data.appointmentTime}
+        <strong>Heure :</strong> ${escapeHtml(data.appointmentTime)}
       </div>
       
-      ${data.clientAddress ? `<div class="detail-row"><strong>Adresse :</strong> ${data.clientAddress}</div>` : ''}
+      ${data.clientAddress ? `<div class="detail-row"><strong>Adresse :</strong> ${escapeHtml(data.clientAddress)}</div>` : ''}
       
       <div class="detail-row">
         <strong>Prix du service :</strong> ${data.servicePrice || 0}€
@@ -176,8 +202,19 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
-    const data = validationResult.data;
-    console.log("Verification data:", { ...data, verificationToken: "[REDACTED]" });
+    const parsed = validationResult.data;
+
+    // Anti-phishing : seul un domaine autorisé peut servir de base au lien de vérification
+    const safeAppUrl = resolveAppUrl(parsed.appUrl);
+    if (!safeAppUrl) {
+      console.warn("Rejected appUrl (not allow-listed)");
+      return new Response(
+        JSON.stringify({ error: "Invalid application URL" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    const data: VerificationEmailRequest = { ...parsed, appUrl: safeAppUrl };
+    console.log("Verification data validated");
 
     // Initialize Supabase client
     const supabase = createClient(
@@ -185,10 +222,37 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    // Anti-relais ouvert : le token doit correspondre à une pré-réservation réelle,
+    // non expirée, appartenant à l'adresse email fournie.
+    const { data: pending, error: pendingError } = await supabase
+      .from("pending_bookings")
+      .select("id, client_email")
+      .eq("verification_token", data.verificationToken)
+      .eq("client_email", data.clientEmail)
+      .eq("verified", false)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+
+    if (pendingError) {
+      console.error("Pending booking lookup error:", pendingError.message);
+      return new Response(
+        JSON.stringify({ error: "Unable to verify booking" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!pending) {
+      console.warn("No matching pending booking — refusing to send");
+      return new Response(
+        JSON.stringify({ error: "No matching booking found" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Rate limiting: Check how many pending bookings this email has created in the last hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     
-    const { data: recentBookings, error: countError } = await supabase
+    const { count: recentCount, error: countError } = await supabase
       .from("pending_bookings")
       .select("id", { count: "exact", head: true })
       .eq("client_email", data.clientEmail)
@@ -196,8 +260,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (countError) {
       console.error("Error checking rate limit:", countError);
-    } else if (recentBookings && recentBookings.length >= 5) {
-      console.warn(`Rate limit exceeded for email: ${data.clientEmail}`);
+    } else if ((recentCount ?? 0) > 5) {
+      console.warn("Rate limit exceeded for this email");
       return new Response(
         JSON.stringify({ 
           error: "Too many booking attempts. Please try again later." 
