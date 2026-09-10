@@ -345,7 +345,8 @@ serve(async (req) => {
         limits: LIMITS,
         configured: {
           apiplaque: Boolean(Deno.env.get("APIPLAQUE_RAPIDAPI_KEY")),
-          autoref: Boolean(Deno.env.get("AUTOREF_API_KEY")),
+          autoref: false,
+          ademe: true,
           carimages: Boolean(
             Deno.env.get("CARIMAGES_API_KEY") && Deno.env.get("CARIMAGES_API_SECRET"),
           ),
@@ -361,18 +362,34 @@ serve(async (req) => {
       return json(await lookupPlate(plate, country));
     }
 
-    if (action === "vin" || action === "vpic") {
+    if (action === "ademe") {
+      const make = String(body.make ?? "").trim();
+      const model = String(body.model ?? "").trim();
+      return json(await lookupAdeme(make, model));
+    }
+
+    // Recherche par VIN européen suspendue : on s'appuie sur la base ADEME.
+    if (action === "vin") {
+      return json({
+        provider: "autoref",
+        status: "not_supported",
+        message: "La recherche par VIN européen est suspendue. Utilise la base ADEME (marque + modèle).",
+      });
+    }
+
+    if (action === "vpic") {
       const vin = String(body.vin ?? "").trim().toUpperCase();
       if (vin.length < 6 || vin.length > 25) return json({ error: "VIN invalide" }, 400);
       if (/[IOQ]/.test(vin) && vin.length === 17) {
         return json({
-          provider: action,
+          provider: "vpic",
           status: "not_supported",
           message: "Ce VIN de 17 caractères contient I, O ou Q : à vérifier.",
         });
       }
-      return json(action === "vin" ? await lookupVin(vin) : await lookupVpic(vin));
+      return json(await lookupVpic(vin));
     }
+
 
     if (action === "visual") {
       const make = String(body.make ?? "").trim();
