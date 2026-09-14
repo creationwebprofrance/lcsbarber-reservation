@@ -264,6 +264,8 @@ export const BookingTool = () => {
     handleDirectDomicileBooking(pendingTime);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [depositConfirmed, depositReference, clientPhoneInput, hasKnownPhone, pendingTime, mode, isBookingDirect, isConfirmed]);
+
+  const handleRemoveItem = (id: string) => {
     setBookingItems(bookingItems.filter(item => item.id !== id));
   };
 
