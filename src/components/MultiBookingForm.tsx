@@ -320,6 +320,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
     if (!requiresDeposit) return;
     if (!depositPaidConfirmed || depositReference.trim().length < 2) return;
     if (autoSubmittedRef.current || isSubmitting) return;
+    if (!validateForm()) return; // infos manquantes : validation manuelle
     autoSubmittedRef.current = true;
     handleSubmit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
