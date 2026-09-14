@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Scissors, Calendar, Clock, CheckCircle, ShoppingCart, Home, Car, Loader2 } from "lucide-react";
@@ -63,6 +63,7 @@ export const BookingTool = () => {
   const [depositConfirmed, setDepositConfirmed] = useState(false);
   const [clientPhoneInput, setClientPhoneInput] = useState("");
   const [hasKnownPhone, setHasKnownPhone] = useState(true);
+  const autoBookedRef = useRef(false);
 
   const { user } = useAuth();
   const { toast } = useToast();
