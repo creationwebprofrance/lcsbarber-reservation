@@ -209,10 +209,10 @@ export const BookingTool = () => {
           total_price: totalPrice,
           travel_fee: 0,
           notes: "Réservation — le client se déplace",
-          deposit_paid: false,
+          deposit_paid: true,
           deposit_amount: calculateDeposit(totalPrice),
           deposit_reference: depositReference.trim(),
-          status: "pending",
+          status: "confirmed",
         },
       });
 
@@ -243,6 +243,7 @@ export const BookingTool = () => {
       setIsConfirmed(true);
     } catch (error: any) {
       console.error("Erreur réservation 'le client se déplace':", error);
+      autoBookedRef.current = false;
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors de la réservation.",
