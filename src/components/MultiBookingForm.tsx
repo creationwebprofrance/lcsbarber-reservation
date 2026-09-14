@@ -82,6 +82,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [depositPaidConfirmed, setDepositPaidConfirmed] = useState(false);
   const [depositReference, setDepositReference] = useState("");
+  const autoSubmittedRef = useRef(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
