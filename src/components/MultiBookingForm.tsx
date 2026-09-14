@@ -206,8 +206,11 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (autoSubmittedRef.current && !e) {
+      // déjà déclenché automatiquement
+    }
     if (!validateForm()) return;
 
     if (requiresDeposit && (!depositPaidConfirmed || depositReference.trim().length < 2)) {
