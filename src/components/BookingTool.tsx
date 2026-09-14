@@ -488,10 +488,20 @@ export const BookingTool = () => {
                       />
 
                       {/* Bouton de secours : la validation se fait automatiquement après le paiement */}
-                      {!depositConfirmed && (
+                      {!depositConfirmed ? (
                         <Button className="w-full" disabled>
                           Valide l'acompte pour confirmer ton rendez-vous
                         </Button>
+                      ) : (
+                        !hasKnownPhone &&
+                        clientPhoneInput.replace(/\D/g, "").length < 10 && (
+                          <Button
+                            className="w-full"
+                            onClick={() => handleDirectDomicileBooking(pendingTime)}
+                          >
+                            Confirmer mon rendez-vous
+                          </Button>
+                        )
                       )}
                     </div>
                   ) : (
