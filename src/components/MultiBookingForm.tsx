@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -82,6 +82,7 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [depositPaidConfirmed, setDepositPaidConfirmed] = useState(false);
   const [depositReference, setDepositReference] = useState("");
+  const autoSubmittedRef = useRef(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -206,8 +207,9 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (isSubmitting) return;
     if (!validateForm()) return;
 
     if (requiresDeposit && (!depositPaidConfirmed || depositReference.trim().length < 2)) {
@@ -312,6 +314,17 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
       setIsSubmitting(false);
     }
   };
+
+  // Dès que l'acompte est payé par carte, le rendez-vous est enregistré automatiquement
+  useEffect(() => {
+    if (!requiresDeposit) return;
+    if (!depositPaidConfirmed || depositReference.trim().length < 2) return;
+    if (autoSubmittedRef.current || isSubmitting) return;
+    if (!validateForm()) return; // infos manquantes : validation manuelle
+    autoSubmittedRef.current = true;
+    handleSubmit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [depositPaidConfirmed, depositReference, requiresDeposit]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
