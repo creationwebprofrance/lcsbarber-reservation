@@ -132,6 +132,7 @@ export const BookingTool = () => {
       setPendingTime(time);
       setDepositReference("");
       setDepositConfirmed(false);
+      autoBookedRef.current = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -153,6 +154,8 @@ export const BookingTool = () => {
   // Réservation directe "le client se déplace" : pas de formulaire, on utilise le compte connecté
   const handleDirectDomicileBooking = async (time: string) => {
     if (!currentSelection.service || !currentSelection.date || !user?.email) return;
+    if (autoBookedRef.current || isBookingDirect) return;
+    autoBookedRef.current = true;
 
     setIsBookingDirect(true);
     try {
