@@ -254,7 +254,16 @@ export const BookingTool = () => {
     }
   };
 
-  const handleRemoveItem = (id: string) => {
+  // « Le client se déplace » : validation automatique dès que l'acompte est payé
+  useEffect(() => {
+    if (mode !== "domicile" || !pendingTime || !depositConfirmed) return;
+    if (depositReference.trim().length < 2) return;
+    if (autoBookedRef.current || isBookingDirect || isConfirmed) return;
+    const phoneOk = hasKnownPhone || clientPhoneInput.replace(/\D/g, "").length >= 10;
+    if (!phoneOk) return; // le téléphone manque : le bouton de validation reste disponible
+    handleDirectDomicileBooking(pendingTime);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [depositConfirmed, depositReference, clientPhoneInput, hasKnownPhone, pendingTime, mode, isBookingDirect, isConfirmed]);
     setBookingItems(bookingItems.filter(item => item.id !== id));
   };
 
