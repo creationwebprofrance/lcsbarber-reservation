@@ -314,6 +314,16 @@ export const MultiBookingForm = ({ bookingItems, onSubmit, onBack }: MultiBookin
     }
   };
 
+  // Dès que l'acompte est payé par carte, le rendez-vous est enregistré automatiquement
+  useEffect(() => {
+    if (!requiresDeposit) return;
+    if (!depositPaidConfirmed || depositReference.trim().length < 2) return;
+    if (autoSubmittedRef.current || isSubmitting) return;
+    autoSubmittedRef.current = true;
+    handleSubmit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [depositPaidConfirmed, depositReference, requiresDeposit]);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
     if (errors[field]) {
