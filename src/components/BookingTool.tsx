@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Scissors, Calendar, Clock, CheckCircle, ShoppingCart, Home, Car, Loader2 } from "lucide-react";
@@ -63,6 +63,7 @@ export const BookingTool = () => {
   const [depositConfirmed, setDepositConfirmed] = useState(false);
   const [clientPhoneInput, setClientPhoneInput] = useState("");
   const [hasKnownPhone, setHasKnownPhone] = useState(true);
+  const autoBookedRef = useRef(false);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -131,6 +132,7 @@ export const BookingTool = () => {
       setPendingTime(time);
       setDepositReference("");
       setDepositConfirmed(false);
+      autoBookedRef.current = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -152,6 +154,8 @@ export const BookingTool = () => {
   // Réservation directe "le client se déplace" : pas de formulaire, on utilise le compte connecté
   const handleDirectDomicileBooking = async (time: string) => {
     if (!currentSelection.service || !currentSelection.date || !user?.email) return;
+    if (autoBookedRef.current || isBookingDirect) return;
+    autoBookedRef.current = true;
 
     setIsBookingDirect(true);
     try {
@@ -205,10 +209,10 @@ export const BookingTool = () => {
           total_price: totalPrice,
           travel_fee: 0,
           notes: "Réservation — le client se déplace",
-          deposit_paid: false,
+          deposit_paid: true,
           deposit_amount: calculateDeposit(totalPrice),
           deposit_reference: depositReference.trim(),
-          status: "pending",
+          status: "confirmed",
         },
       });
 
@@ -239,6 +243,7 @@ export const BookingTool = () => {
       setIsConfirmed(true);
     } catch (error: any) {
       console.error("Erreur réservation 'le client se déplace':", error);
+      autoBookedRef.current = false;
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors de la réservation.",
@@ -248,6 +253,17 @@ export const BookingTool = () => {
       setIsBookingDirect(false);
     }
   };
+
+  // « Le client se déplace » : validation automatique dès que l'acompte est payé
+  useEffect(() => {
+    if (mode !== "domicile" || !pendingTime || !depositConfirmed) return;
+    if (depositReference.trim().length < 2) return;
+    if (autoBookedRef.current || isBookingDirect || isConfirmed) return;
+    const phoneOk = hasKnownPhone || clientPhoneInput.replace(/\D/g, "").length >= 10;
+    if (!phoneOk) return; // le téléphone manque : le bouton de validation reste disponible
+    handleDirectDomicileBooking(pendingTime);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [depositConfirmed, depositReference, clientPhoneInput, hasKnownPhone, pendingTime, mode, isBookingDirect, isConfirmed]);
 
   const handleRemoveItem = (id: string) => {
     setBookingItems(bookingItems.filter(item => item.id !== id));
@@ -471,17 +487,12 @@ export const BookingTool = () => {
                         onConfirmedChange={setDepositConfirmed}
                       />
 
-                      <Button
-                        className="w-full"
-                        disabled={
-                          !depositConfirmed ||
-                          depositReference.trim().length < 2 ||
-                          (!hasKnownPhone && clientPhoneInput.replace(/\D/g, "").length < 10)
-                        }
-                        onClick={() => handleDirectDomicileBooking(pendingTime)}
-                      >
-                        Valider ma demande de rendez-vous
-                      </Button>
+                      {/* Bouton de secours : la validation se fait automatiquement après le paiement */}
+                      {!depositConfirmed && (
+                        <Button className="w-full" disabled>
+                          Valide l'acompte pour confirmer ton rendez-vous
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     <TimeSlotSelector
