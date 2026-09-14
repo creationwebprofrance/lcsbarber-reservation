@@ -487,26 +487,10 @@ export const BookingTool = () => {
                         onConfirmedChange={setDepositConfirmed}
                       />
 
-                      {depositConfirmed && !autoBookedRef.current ? (
-                        <div className="flex items-center justify-center gap-2 py-2 text-sm text-muted-foreground">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Validation automatique de ton rendez-vous...
-                        </div>
-                      ) : null}
-
-                      {/* Bouton de secours si le téléphone manque ou si la validation auto a échoué */}
-                      {(!hasKnownPhone && clientPhoneInput.replace(/\D/g, "").length < 10) || (depositConfirmed && !autoBookedRef.current === false) ? null : null}
-                      {!autoBookedRef.current && (
-                        <Button
-                          className="w-full"
-                          disabled={
-                            depositConfirmed &&
-                            (depositReference.trim().length < 2 ||
-                              (!hasKnownPhone && clientPhoneInput.replace(/\D/g, "").length < 10))
-                          }
-                          onClick={() => handleDirectDomicileBooking(pendingTime)}
-                        >
-                          {depositConfirmed ? "Confirmer mon rendez-vous" : "Valider ma demande de rendez-vous"}
+                      {/* Bouton de secours : la validation se fait automatiquement après le paiement */}
+                      {!depositConfirmed && (
+                        <Button className="w-full" disabled>
+                          Valide l'acompte pour confirmer ton rendez-vous
                         </Button>
                       )}
                     </div>
