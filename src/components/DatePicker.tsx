@@ -24,6 +24,7 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack, mode }: DatePic
   const [month, setMonth] = useState(today);
   const [weeklySlots, setWeeklySlots] = useState<any[]>([]);
   const [overrides, setOverrides] = useState<any[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   const maxDate = new Date();
   maxDate.setMonth(maxDate.getMonth() + 3);
@@ -36,6 +37,7 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack, mode }: DatePic
       ]);
       setWeeklySlots(cs || []);
       setOverrides(dov || []);
+      setLoaded(true);
     };
     load();
   }, []);
@@ -62,6 +64,37 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack, mode }: DatePic
     const dayOfWeek = date.getDay();
     return weeklySlots.some(s => s.day_of_week === dayOfWeek && s.is_available && matchesMode(s.mode, mode));
   };
+
+  // Aucun créneau ouvert dans le futur pour ce mode → inviter à contacter le coiffeur
+  const hasFutureAvailability = (() => {
+    const d = new Date(today);
+    while (d <= maxDate) {
+      if (isAvailableDay(d)) return true;
+      d.setDate(d.getDate() + 1);
+    }
+    return false;
+  })();
+
+  if (loaded && !hasFutureAvailability) {
+    return (
+      <div className="px-1 sm:px-0">
+        {onBack && (
+          <Button variant="outline" size="sm" onClick={onBack} className="mb-4 flex items-center gap-1">
+            <ChevronLeft className="h-4 w-4" /> Retour
+          </Button>
+        )}
+        <Card className="p-6 sm:p-8 text-center border-primary/30 bg-gradient-card">
+          <h2 className="text-lg sm:text-2xl font-semibold mb-2">Aucun créneau disponible pour le moment</h2>
+          <p className="text-muted-foreground mb-5">Veuillez contacter votre coiffeur.</p>
+          <Button asChild>
+            <a href="https://www.snapchat.com/add/lcsbarber" target="_blank" rel="noopener noreferrer">
+              Contacter sur Snapchat (lcsbarber)
+            </a>
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="px-1 sm:px-0">
