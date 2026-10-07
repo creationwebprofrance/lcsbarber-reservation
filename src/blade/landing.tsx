@@ -23,7 +23,7 @@ function HeroVideo() {
 }
 
 export function Landing() {
-  return <div className="bl-landing">
+  return <div className="bl-landing blade-app">
     <a href="#bl-main" className="blade-skip">Aller au contenu</a>
     <header className="bl-header">
       <Link to="/blade" className="bl-logo" aria-label="BLADE — accueil"><img src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" /></Link>
@@ -66,7 +66,7 @@ export function DemoLogin() {
   const pro = params.get('espace') === 'pro';
   const mode = params.get('mode');
   const title = mode === 'google' ? 'Continuer avec Google' : mode === 'inscription' ? (pro ? 'Créer un compte professionnel' : 'Créer un compte') : (pro ? 'Connexion professionnelle' : 'Connexion client');
-  return <div className="bl-landing">
+  return <div className="bl-landing blade-app">
     <header className="bl-header"><Link to="/blade" className="bl-logo" aria-label="BLADE — accueil"><img src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" /></Link></header>
     <main className="bl-main bl-demo">
       <article className={`bl-card ${pro ? 'bl-card-dark' : ''}`}>
