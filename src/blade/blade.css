@@ -69,3 +69,5 @@
 .bl-video video{width:100%;height:100%;max-height:none;object-fit:cover;object-position:center}
 .bl-video-toggle{background:hsl(var(--primary)/.85)}.bl-video-toggle:hover{background:hsl(var(--blade-hover))}
 @media(max-width:767px){.bl-video{width:min(100%,320px)}}
+.blade-app .bl-landing a.bl-btn.bl-btn-dark,.blade-app .bl-landing button.bl-btn.bl-btn-dark{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary))}
+.blade-app .bl-landing a.bl-btn.bl-btn-dark:hover,.blade-app .bl-landing button.bl-btn.bl-btn-dark:hover{background:hsl(var(--blade-hover));border-color:hsl(var(--blade-hover))}
