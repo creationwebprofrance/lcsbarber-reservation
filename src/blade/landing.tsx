@@ -38,22 +38,34 @@ export function Landing() {
         </div>
         <HeroVideo />
       </section>
-      <section className="bl-cards" aria-label="Accès aux espaces">
-        <article className="bl-card">
-          <div className="bl-card-icon"><User size={30} aria-hidden="true" /></div>
-          <h2>Je suis client</h2>
-          <p>Trouvez votre professionnel et réservez.</p>
-          <Link to="/blade/connexion?espace=client" className="bl-btn bl-btn-dark">Connexion client <ArrowRight size={18} aria-hidden="true" /></Link>
-          <Link to="/blade/connexion?espace=client&mode=google" className="bl-btn bl-btn-outline"><GoogleMark />Continuer avec Google</Link>
-          <Link to="/blade/connexion?espace=client&mode=inscription" className="bl-link">Créer un compte</Link>
+      <section className="bl-access" aria-label="Accès aux espaces">
+        <article className="bl-access-group">
+          <header className="bl-access-head">
+            <span className="bl-access-bullet" aria-hidden="true"><User size={22} /></span>
+            <h2>Je suis client</h2>
+          </header>
+          <div className="bl-access-body">
+            <p>Trouvez votre professionnel et réservez.</p>
+            <div className="bl-access-actions">
+              <Link to="/blade/connexion?espace=client" className="bl-btn bl-btn-dark">Connexion client <ArrowRight size={18} aria-hidden="true" /></Link>
+              <Link to="/blade/connexion?espace=client&mode=google" className="bl-btn bl-btn-outline"><GoogleMark />Continuer avec Google</Link>
+              <Link to="/blade/connexion?espace=client&mode=inscription" className="bl-link">Créer un compte</Link>
+            </div>
+          </div>
         </article>
-        <article className="bl-card bl-card-dark">
-          <div className="bl-card-icon"><Scissors size={24} aria-hidden="true" /><CalendarDays size={24} aria-hidden="true" /></div>
-          <h2>Je suis professionnel</h2>
-          <p>Organisez vos rendez-vous et votre activité.</p>
-          <Link to="/blade/connexion?espace=pro" className="bl-btn bl-btn-light">Connexion professionnelle <ArrowRight size={18} aria-hidden="true" /></Link>
-          <Link to="/blade/connexion?espace=pro&mode=google" className="bl-btn bl-btn-light"><GoogleMark />Continuer avec Google</Link>
-          <Link to="/blade/connexion?espace=pro&mode=inscription" className="bl-link">Créer un compte professionnel</Link>
+        <article className="bl-access-group bl-access-group-pro">
+          <header className="bl-access-head">
+            <span className="bl-access-bullet bl-access-bullet-dark" aria-hidden="true"><Scissors size={20} /><CalendarDays size={20} /></span>
+            <h2>Je suis professionnel</h2>
+          </header>
+          <div className="bl-access-body">
+            <p>Organisez vos rendez-vous et votre activité.</p>
+            <div className="bl-access-actions">
+              <Link to="/blade/connexion?espace=pro" className="bl-btn bl-btn-dark">Connexion professionnelle <ArrowRight size={18} aria-hidden="true" /></Link>
+              <Link to="/blade/connexion?espace=pro&mode=google" className="bl-btn bl-btn-outline"><GoogleMark />Continuer avec Google</Link>
+              <Link to="/blade/connexion?espace=pro&mode=inscription" className="bl-link">Créer un compte professionnel</Link>
+            </div>
+          </div>
         </article>
       </section>
     </main>
