@@ -77,11 +77,11 @@
 .bl-landing .bl-btn-dark{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary))}
 .blade-tabs .blade-button.active{background:hsl(var(--blade-signature-soft));color:hsl(var(--primary));box-shadow:inset 0 0 0 1px hsl(var(--primary))}
 .bl-landing{background:hsl(var(--background))}
-.bl-video{aspect-ratio:5/7;width:min(100%,400px);max-height:none;height:auto;margin-inline:auto;justify-self:center;align-self:center;border-radius:24px;overflow:hidden}
+.bl-video{aspect-ratio:4/5;width:min(100%,400px);max-height:none;height:auto;margin-inline:auto;justify-self:center;align-self:center;border-radius:24px;overflow:hidden}
 .bl-video video{width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:cover;object-position:50% 8%}
 .bl-video-toggle{background:hsl(var(--primary)/.85)}.bl-video-toggle:hover{background:hsl(var(--blade-hover))}
-@media(min-width:768px) and (max-width:1199px){.bl-video{aspect-ratio:10/13}}
-@media(max-width:767px){.bl-video{width:min(100%,320px);aspect-ratio:8/11}}
+@media(min-width:768px) and (max-width:1199px){.bl-video{aspect-ratio:5/6}}
+@media(max-width:767px){.bl-video{width:min(100%,320px);aspect-ratio:6/7}}
 .bl-landing a.bl-btn.bl-btn-dark,.bl-landing button.bl-btn.bl-btn-dark{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary))}
 .bl-landing a.bl-btn.bl-btn-dark:hover,.bl-landing button.bl-btn.bl-btn-dark:hover{background:hsl(var(--blade-hover));border-color:hsl(var(--blade-hover))}
 .bl-landing.blade-app{font-size:16px;line-height:normal}
