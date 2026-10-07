@@ -71,3 +71,4 @@
 @media(max-width:767px){.bl-video{width:min(100%,320px)}}
 .bl-landing a.bl-btn.bl-btn-dark,.bl-landing button.bl-btn.bl-btn-dark{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary))}
 .bl-landing a.bl-btn.bl-btn-dark:hover,.bl-landing button.bl-btn.bl-btn-dark:hover{background:hsl(var(--blade-hover));border-color:hsl(var(--blade-hover))}
+.bl-landing.blade-app{font-size:16px;line-height:normal}
