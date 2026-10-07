@@ -1,8 +1,8 @@
 # BLADE interface roadmap
 
-- [ ] Isolate /blade entry; preserve LCSBARBER outside /blade.
-- [ ] Build shared components, original logo, account states and adaptive navigation.
-- [ ] Build seven client pages and client account form.
-- [ ] Build eleven professional pages and local-only forms.
-- [ ] Verify all routes at 320, 390, 768, 1024 and 1440px, keyboard, account states, reduced motion and service isolation.
-- [ ] Deliver changed-file inventory and verification results; no publishing or deployment.
+- [x] Isolate /blade entry; preserve LCSBARBER outside /blade.
+- [x] Build shared components, original logo, account states and adaptive navigation.
+- [x] Build seven client pages and client account form.
+- [x] Build eleven professional pages and local-only forms.
+- [x] Verify all routes at 320, 390, 768, 1024 and 1440px, keyboard, account states, reduced motion and service isolation.
+- [x] Deliver changed-file inventory and verification results in src/blade/VERIFICATION.md; no publishing or deployment.
