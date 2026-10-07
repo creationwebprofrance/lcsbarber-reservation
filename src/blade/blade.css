@@ -21,7 +21,7 @@
 .bl-logo{display:flex;width:190px;min-height:44px;align-items:center}.bl-logo img{width:100%;height:auto}
 .bl-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:12px 24px;border-radius:999px;font-weight:700;font-size:15px;border:1px solid transparent;cursor:pointer;transition:transform .15s,opacity .15s;width:100%;text-align:center}
 .bl-btn:hover{opacity:.9}.bl-btn:disabled{opacity:.5;cursor:not-allowed}
-.bl-btn-dark{background:hsl(0 0% 4%);color:hsl(0 0% 100%)}.bl-btn-light{background:hsl(0 0% 100%);color:hsl(0 0% 4%)}.bl-btn-outline{background:hsl(0 0% 100%);color:hsl(0 0% 4%);border-color:hsl(0 0% 75%)}
+.bl-landing .bl-btn-dark{background:hsl(0 0% 4%);color:hsl(0 0% 100%)}.bl-landing .bl-btn-light{background:hsl(0 0% 100%);color:hsl(0 0% 4%)}.bl-landing .bl-btn-outline{background:hsl(0 0% 100%);color:hsl(0 0% 4%);border-color:hsl(0 0% 75%)}
 .bl-header-cta{width:auto}.bl-btn-lg{min-height:64px;font-size:20px;max-width:520px}
 .bl-main{max-width:1320px;margin:auto;padding:0 32px}
 .bl-hero{display:grid;grid-template-columns:1fr 1.2fr;gap:40px;align-items:center}
@@ -41,5 +41,5 @@
 .bl-demo-form{display:flex;flex-direction:column;gap:12px;text-align:left}.bl-demo-form label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600}.bl-demo-form input{min-height:44px;border-radius:12px;border:1px solid hsl(0 0% 75%);padding:10px 12px;background:hsl(0 0% 100%);color:hsl(0 0% 4%)}
 @media (max-width:1099px){.bl-hero{grid-template-columns:1fr}.bl-video{aspect-ratio:auto;max-height:70vh}.bl-video video{max-height:70vh}}
 @media (max-width:767px){.bl-header,.bl-main,.bl-footer{padding-left:16px;padding-right:16px}.bl-logo{width:130px}.bl-header-cta{padding:10px 14px;font-size:13px;min-height:44px}.bl-header-cta span{display:none}.bl-cards{grid-template-columns:1fr}.bl-card{padding:22px 18px}.bl-btn-lg{font-size:17px;min-height:56px}.bl-hero{gap:24px}}
-@media (max-width:420px){.bl-header-cta{font-size:0;gap:0;width:44px;padding:0}}
+@media (max-width:420px){.bl-logo{width:104px}.bl-header{gap:8px}.bl-header-cta{font-size:12px;padding:8px 12px;gap:6px}}
 @media (prefers-reduced-motion:reduce){.bl-btn{transition:none}}
