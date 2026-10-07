@@ -8,3 +8,4 @@
 - [x] Deliver changed-file inventory and verification results in src/blade/VERIFICATION.md; no publishing or deployment.
 - [x] Add discreet blue selections and motion; prioritize home services, availability and intervention area.
 - [x] Verify search interactions and screen widths without connecting any services.
+- [x] Replace landing access cards with an indented hierarchical bullet list; verify 320-1440px, no services, no publishing.
