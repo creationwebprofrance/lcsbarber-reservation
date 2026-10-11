@@ -25,11 +25,12 @@ export function LiveReviews() {
   return <ul className="blade-live-reviews">{data.map(r => <li key={r.id}><div><strong>{r.client_name}</strong><span aria-label={`${r.rating} sur 5`}>{Array.from({ length: 5 }, (_, i) => <Star key={i} size={14} className={i < r.rating ? 'on' : ''} aria-hidden="true" />)}</span></div>{r.comment && <p>{r.comment}</p>}<small>{new Date(r.created_at).toLocaleDateString('fr-FR')}</small></li>)}</ul>;
 }
 
+const endOf = (t: string) => { const m = Number(t.slice(0, 2)) * 60 + Number(t.slice(3)) + 30; return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
 export function LiveAvailability({ mode, limit = 7 }: { mode: 'domicile' | 'deplacement'; limit?: number }) {
   const { data, loading, error } = useAvailability(mode);
   if (loading) return <Loading />; if (error) return <Failed error={error} />;
   if (!data?.length) return <EmptyState title="Aucun créneau disponible pour le moment" description="Contactez votre coiffeur sur Snapchat : lcsbarber." compact />;
-  return <ul className="blade-live-days">{data.slice(0, limit).map(d => <li key={d.date}><strong>{fmtDate(d.date)}</strong><span>{d.times[0]} – {d.times[d.times.length - 1] === '23:30' ? '24:00' : d.times[d.times.length - 1]}</span><small>{d.times.length} créneaux</small></li>)}</ul>;
+  return <ul className="blade-live-days">{data.slice(0, limit).map(d => <li key={d.date}><strong>{fmtDate(d.date)}</strong><span>{d.times[0]} – {endOf(d.times[d.times.length - 1])}</span><small>{d.times.length} créneaux</small></li>)}</ul>;
 }
 
 /** The single LCS Barber professional card shown on the search page. */
