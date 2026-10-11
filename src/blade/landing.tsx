@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useSession } from './data';
 import { Search, ArrowRight, Pause, Play, User, Scissors, CalendarDays } from 'lucide-react';
 
 function GoogleMark() {
@@ -76,22 +78,32 @@ export function Landing() {
 export function DemoLogin() {
   const [params] = useSearchParams();
   const pro = params.get('espace') === 'pro';
-  const mode = params.get('mode');
-  const title = mode === 'google' ? 'Continuer avec Google' : mode === 'inscription' ? (pro ? 'Créer un compte professionnel' : 'Créer un compte') : (pro ? 'Connexion professionnelle' : 'Connexion client');
+  const signup = params.get('mode') === 'inscription';
+  const target = pro ? '/blade/pro' : '/blade/client';
+  const navigate = useNavigate();
+  const { session } = useSession();
+  const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false); const [msg, setMsg] = useState('');
+  useEffect(() => { if (session) navigate(target, { replace: true }); }, [session, navigate, target]);
+  const title = signup ? (pro ? 'Créer un compte professionnel' : 'Créer un compte') : (pro ? 'Connexion professionnelle' : 'Connexion client');
+  const google = async () => { setBusy(true); setMsg(''); const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}${target}` } }); if (error) { setMsg(error.message); setBusy(false); } };
+  const submit = async (e: React.FormEvent) => { e.preventDefault(); setBusy(true); setMsg('');
+    const { data, error } = signup ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}${target}` } }) : await supabase.auth.signInWithPassword({ email, password });
+    setBusy(false); if (error) setMsg(error.message); else if (signup && !data.session) setMsg('Vérifiez vos e-mails pour confirmer votre compte.'); };
   return <div className="bl-landing blade-app">
     <header className="bl-header"><Link to="/blade" className="bl-logo" aria-label="BLADE — accueil"><img src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" /></Link></header>
     <main className="bl-main bl-demo">
       <article className={`bl-card ${pro ? 'bl-card-dark' : ''}`}>
-        <p className="bl-demo-tag">Écran de démonstration</p>
         <h1>{title}</h1>
-        <p>Aucune connexion n’est active dans cette phase.</p>
-        {mode !== 'google' && <form className="bl-demo-form" onSubmit={e => e.preventDefault()}>
-          <label>E-mail<input type="email" autoComplete="off" /></label>
-          <label>Mot de passe<input type="password" autoComplete="off" /></label>
-          <button type="submit" className={`bl-btn ${pro ? 'bl-btn-light' : 'bl-btn-dark'}`} disabled>Continuer</button>
-        </form>}
-        {mode === 'google' && <button type="button" className="bl-btn bl-btn-outline" disabled><GoogleMark />Google indisponible</button>}
-        <Link to={pro ? '/blade/pro' : '/blade/client'} className="bl-link">Voir l’espace {pro ? 'professionnel' : 'client'}</Link>
+        <p>Mêmes comptes que LCS Barber.</p>
+        <button type="button" className="bl-btn bl-btn-outline" onClick={google} disabled={busy}><GoogleMark />Continuer avec Google</button>
+        <form className="bl-demo-form" onSubmit={submit}>
+          <label>E-mail<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>
+          <label>Mot de passe<input type="password" autoComplete={signup ? 'new-password' : 'current-password'} required minLength={6} value={password} onChange={e => setPassword(e.target.value)} /></label>
+          <button type="submit" className={`bl-btn ${pro ? 'bl-btn-light' : 'bl-btn-dark'}`} disabled={busy}>{busy ? 'Patientez…' : signup ? 'Créer mon compte' : 'Se connecter'}</button>
+        </form>
+        {msg && <p role="alert">{msg}</p>}
+        <Link to={`/blade/connexion?espace=${pro ? 'pro' : 'client'}${signup ? '' : '&mode=inscription'}`} className="bl-link">{signup ? 'J’ai déjà un compte' : 'Créer un compte'}</Link>
         <Link to="/blade" className="bl-link">Retour à l’accueil</Link>
       </article>
     </main>
