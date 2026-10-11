@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useSession } from './data';
 import { Search, ArrowRight, Pause, Play, User, Scissors, CalendarDays } from 'lucide-react';
 
 function GoogleMark() {

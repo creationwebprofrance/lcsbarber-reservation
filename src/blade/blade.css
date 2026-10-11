@@ -85,3 +85,20 @@
 .bl-landing a.bl-btn.bl-btn-dark,.bl-landing button.bl-btn.bl-btn-dark{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary))}
 .bl-landing a.bl-btn.bl-btn-dark:hover,.bl-landing button.bl-btn.bl-btn-dark:hover{background:hsl(var(--blade-hover));border-color:hsl(var(--blade-hover))}
 .bl-landing.blade-app{font-size:16px;line-height:normal}
+/* Live LCSBARBER data (read-only) */
+.blade-live-table{display:grid;border:1px solid hsl(var(--border));border-radius:16px;overflow:hidden;background:hsl(var(--background))}
+.blade-live-row{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:12px;padding:12px 16px;border-top:1px solid hsl(var(--border));font-size:14px}
+.blade-live-row span{overflow-wrap:anywhere}
+.blade-live-head{border-top:0;background:hsl(var(--card));font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:hsl(var(--muted-foreground))}
+@media(max-width:767px){.blade-live-head{display:none}.blade-live-row{grid-auto-flow:row;gap:4px}.blade-live-row span:first-child{font-weight:700}.blade-live-row span:not(:first-child)::before{content:attr(data-label) " · ";color:hsl(var(--muted-foreground))}}
+.blade-live-days{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.blade-live-days li{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;padding:10px 14px;border:1px solid hsl(var(--border));border-radius:12px;background:hsl(var(--card))}
+.blade-live-days strong{text-transform:capitalize;min-width:96px}.blade-live-days small{margin-left:auto;color:hsl(var(--muted-foreground))}
+.blade-live-pro{display:grid;gap:14px;padding:20px;border:1px solid hsl(var(--border));border-radius:20px;background:hsl(var(--background))}
+.blade-live-pro-head{display:flex;gap:14px;align-items:center}.blade-live-pro-head h3{margin:0;font-size:20px}.blade-live-pro-head p{margin:2px 0 0;color:hsl(var(--muted-foreground));font-size:14px}.blade-live-pro-head strong{margin-left:auto;white-space:nowrap;color:hsl(var(--primary))}
+.blade-live-pro h4{margin:0;font-size:14px}
+.blade-live-reviews{list-style:none;margin:0;padding:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+.blade-live-reviews li{padding:14px;border:1px solid hsl(var(--border));border-radius:14px;background:hsl(var(--card))}
+.blade-live-reviews div{display:flex;justify-content:space-between;gap:8px}.blade-live-reviews p{margin:8px 0;font-size:14px}.blade-live-reviews small{color:hsl(var(--muted-foreground))}
+.blade-live-reviews svg{color:hsl(var(--border))}.blade-live-reviews svg.on{color:hsl(var(--primary));fill:currentColor}
+.blade-menu-button{display:flex;gap:10px;align-items:center;width:100%;min-height:44px;padding:0 12px;border:0;background:none;font:inherit;cursor:pointer;border-radius:10px}.blade-menu-button:hover{background:hsl(var(--card))}
