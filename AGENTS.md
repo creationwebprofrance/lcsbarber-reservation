@@ -5,3 +5,4 @@
 - Keep BLADE components and scoped CSS under src/blade with local assets under public/blade.
 - Booking, payment, messaging and editing actions in BLADE stay disabled until explicitly requested, to avoid duplicating LCSBARBER business flows.
 - Preserve the existing LCSBARBER entry behavior outside /blade.
+- BLADE maps use Leaflet with OpenStreetMap tiles; keep the verified town-centre marker explicitly approximate until the exact business coordinates are supplied.
