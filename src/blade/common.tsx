@@ -5,6 +5,7 @@ import { Button, type ButtonProps } from '@/components/ui/button';
 import { useSession } from './data';
 import { supabase } from '@/integrations/supabase/client';
 import { clientLinks, proLinks, monthCells, validateLocalValue } from './model';
+import { OpenMap } from './OpenMap';
 
 const icons: Record<string, LucideIcon> = { search: Search, calendar: CalendarDays, message: MessageSquare, user: UserRound, home: House, users: UsersRound, chart: ChartNoAxesColumnIncreasing, pin: MapPin, car: Car, bell: Bell, scissors: Scissors, coins: Coins, card: CreditCard, more: MoreHorizontal };
 export function Icon({ name, ...props }: { name: string; size?: number; className?: string }) { const Component = icons[name] || CircleAlert; return <Component size={20} aria-hidden="true" {...props} />; }
@@ -40,7 +41,7 @@ export function LocalField({ label, kind = 'text', options, hint }: Field) { con
 export function LocalForm({ fields, action = 'Enregistrer', children }: { fields: Field[]; action?: string; children?: ReactNode }) { return <form className="blade-local-form" onSubmit={e=>e.preventDefault()}><div className="blade-fields">{fields.map(f => <div key={f.label} className={f.full ? 'blade-field-full' : ''}><LocalField {...f} /></div>)}</div>{children}<DisabledAction icon="user" reason="Enregistrement indisponible dans cette phase.">{action}</DisabledAction></form>; }
 export function Tabs({ options, value, onChange }: { options: string[]; value: string; onChange: (value: string)=>void }) { return <div className="blade-tabs" role="group" aria-label="Vue">{options.map(o => <BladeButton key={o} className={value === o ? 'active' : ''} aria-pressed={value === o} onClick={()=>onChange(o)}>{o}</BladeButton>)}</div>; }
 export function SearchField({ label = 'Rechercher', placeholder = 'Rechercher' }: { label?: string; placeholder?: string }) { return <label className="blade-search"><Search size={18}/><input aria-label={label} placeholder={placeholder} type="search" /></label>; }
-export function LocalMap() { return <div className="blade-local-map"><div className="blade-map-lines" aria-hidden="true"/><EmptyState icon="pin" title="La carte s’affichera ici" description="Aucune zone disponible." compact /></div>; }
+export function LocalMap() { return <OpenMap />; }
 export function KeyValues({ labels }: { labels: string[] }) { return <dl className="blade-key-values">{labels.map(label => <div key={label}><dt>{label}</dt><dd>—</dd></div>)}</dl>; }
 export function Calendar({ pro = false, view = 'Mois' }: { pro?: boolean; view?: string }) {
   const [date, setDate] = useState(()=>new Date()); const today = new Date(); const label = date.toLocaleDateString('fr-FR',{month:'long',year:'numeric'}); const days = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
