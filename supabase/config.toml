@@ -45,3 +45,6 @@ verify_jwt = false
 
 [functions.authorize-tracking]
 verify_jwt = false
+
+[functions.create-booking-request]
+verify_jwt = false
