@@ -92,7 +92,7 @@ export function RatingSummary() {
 
 function DayAgendaInner() {
   const [day, setDay] = useState(isoDate(new Date())); const [tick, setTick] = useState(0);
-  const { data, loading, error } = useBookings(true, day, day + (tick ? '' : ''));
+  const { data, loading, error } = useBookings(true, day, day, tick);
   const [start, setStart] = useState('09:00'); const [end, setEnd] = useState('12:00'); const [mode, setMode] = useState('both');
   const [msg, setMsg] = useState('');
   const addSlot = async () => {
