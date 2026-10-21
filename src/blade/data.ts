@@ -53,13 +53,13 @@ export const useClients = (enabled: boolean) => useRead(async () => enabled ? un
 
 const bookingCols = 'id,client_name,client_email,appointment_date,appointment_time,status,total_price,client_address,services(name)';
 /** Admin: all bookings in range. Client: RLS limits rows to the signed-in email. */
-export const useBookings = (enabled: boolean, from?: string, to?: string) => useRead(async () => {
+export const useBookings = (enabled: boolean, from?: string, to?: string, refresh = 0) => useRead(async () => {
   if (!enabled) return [] as Booking[];
   let q = supabase.from('bookings').select(bookingCols).order('appointment_date').order('appointment_time');
   if (from) q = q.gte('appointment_date', from);
   if (to) q = q.lte('appointment_date', to);
   return unwrap<Booking[]>(await q.limit(500) as never);
-}, [enabled, from, to]);
+}, [enabled, from, to, refresh]);
 
 export const isoDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from './data';
+import { LiveReviews, RatingSummary } from './live';
 import { Search, ArrowRight, Pause, Play, User, Scissors, CalendarDays } from 'lucide-react';
 
 function GoogleMark() {
@@ -70,6 +71,7 @@ export function Landing() {
           </div>
         </article>
       </section>
+      <section className="bl-reviews" aria-label="Avis clients"><h2>Avis clients</h2><RatingSummary /><LiveReviews /></section>
     </main>
     <footer className="bl-footer"><span>© BLADE</span><nav aria-label="Liens"><span>Aide</span><span>Confidentialité</span></nav></footer>
   </div>;
