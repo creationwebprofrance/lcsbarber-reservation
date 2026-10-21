@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LoaderCircle, Star } from 'lucide-react';
 import { EmptyState, Icon, BladeButton, Tabs } from './common';
+import { RequestSlot } from './requests';
+import { canRequestSlot } from './request-model';
 import { useServices, useReviews, useAvailability, useBookings, useClients, useSession, fmtDate, fmtPrice, statusLabel, isoDate, type Booking } from './data';
 
 function Loading() { return <p className="blade-note" role="status"><LoaderCircle className="blade-spinner" size={16} /> Chargement…</p>; }
@@ -29,7 +31,7 @@ const endOf = (t: string) => { const m = Number(t.slice(0, 2)) * 60 + Number(t.s
 export function LiveAvailability({ mode, limit = 7 }: { mode: 'domicile' | 'deplacement'; limit?: number }) {
   const { data, loading, error } = useAvailability(mode);
   if (loading) return <Loading />; if (error) return <Failed error={error} />;
-  if (!data?.length) return <EmptyState title="Aucun créneau disponible pour le moment" description="Contactez votre coiffeur sur Snapchat : lcsbarber." compact />;
+  if (canRequestSlot(loading, error, data?.length ?? 0)) return <EmptyState title="Aucun créneau disponible pour le moment" action={<RequestSlot mode={mode}/>} compact />;
   return <ul className="blade-live-days">{data.slice(0, limit).map(d => <li key={d.date}><strong>{fmtDate(d.date)}</strong><span>{d.times[0]} – {endOf(d.times[d.times.length - 1])}</span><small>{d.times.length} créneaux</small></li>)}</ul>;
 }
 

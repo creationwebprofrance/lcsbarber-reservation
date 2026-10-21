@@ -1,20 +1,20 @@
 import { useState } from 'react';
+import { SEARCH_VIEWS } from './request-model';
 import { LiveServices, LiveReviews, LiveAvailability, LiveProCard, LiveMyBookings, LiveAdminBookings, LiveClients } from './live';
 import { Link } from 'react-router-dom';
 import { BladeButton, PageHeading, Section, EmptyState, LocalMap, Tabs, LocalField, SearchField, LocalForm, DisabledAction, Calendar, KeyValues, ResponsiveList, Modal, StatePreview, Icon, ArrowRight, SlidersHorizontal } from './common';
 
 export function ClientSearch() {
-  const [mode,setMode]=useState('Chez vous'); const [view,setView]=useState('Liste et carte'); const [filters,setFilters]=useState(false); const [category,setCategory]=useState('Tous');
+  const [mode,setMode]=useState('Chez vous'); const [view,setView]=useState(SEARCH_VIEWS[0]); const [filters,setFilters]=useState(false); const [category,setCategory]=useState('Tous');
   return <div className="blade-discovery">
     <header className="blade-discovery-heading"><p className="blade-eyebrow">Client / Recherche</p><h1>Votre prochain style est <span>tout près.</span></h1><p className="blade-lead">Chez vous ou près de vous, trouvez votre professionnel.</p></header>
     <section className="blade-discovery-controls" aria-label="Critères de recherche">
       <div className="blade-location-row"><SearchField label="Lieu" placeholder="Ville ou code postal"/><div className="blade-location-action"><BladeButton disabled aria-describedby="blade-location-note" className="blade-signature"><Icon name="pin" size={18}/>Me localiser</BladeButton><small id="blade-location-note">Localisation non connectée.</small></div><BladeButton onClick={()=>setFilters(true)}><SlidersHorizontal size={18}/>Filtres</BladeButton></div>
       <div className="blade-discovery-modes"><Tabs options={['Tous','Barbers','Coiffeuses']} value={category} onChange={setCategory}/><div className="blade-place-options" role="group" aria-label="Lieu de prestation">{['Chez vous','Près de vous'].map(place=><BladeButton key={place} className={mode===place?'active':''} aria-pressed={mode===place} onClick={()=>setMode(place)}><Icon name={place==='Chez vous'?'home':'pin'}/><span><strong>{place}</strong><small>{place==='Chez vous'?'Le professionnel se déplace':'Chez le professionnel'}</small></span></BladeButton>)}</div></div>
     </section>
-    <div className="blade-results-heading"><h2>Autour de vous</h2><Tabs options={['Liste et carte','Liste','Carte']} value={view} onChange={setView}/></div>
-    <div className={`blade-discovery-results ${view==='Liste et carte'?'blade-discovery-split':''}`}>
-      {view!=='Liste' && <LocalMap/>}
-      {view!=='Carte' && <section className="blade-nearby" aria-label="Professionnels à proximité"><div className="blade-nearby-filters"><LocalField label="Disponibilité" kind="date"/><LocalField label="Zone d’intervention" options={['Autour de vous']}/></div><p className="blade-nearby-mode"><Icon name={mode==='Chez vous'?'home':'pin'} size={16}/>{mode==='Chez vous'?'Professionnels qui se déplacent chez vous':'Professionnels près de vous'}</p><LiveProCard mode={mode==='Chez vous'?'deplacement':'domicile'}/></section>}
+    <div className="blade-results-heading"><h2>Autour de vous</h2><Tabs options={SEARCH_VIEWS} value={view} onChange={setView}/></div>
+    <div className="blade-discovery-results">
+      {view==='Carte' ? <LocalMap/> : <section className="blade-nearby" aria-label="Professionnels à proximité"><div className="blade-nearby-filters"><LocalField label="Disponibilité" kind="date"/><LocalField label="Zone d’intervention" options={['Autour de vous']}/></div><p className="blade-nearby-mode"><Icon name={mode==='Chez vous'?'home':'pin'} size={16}/>{mode==='Chez vous'?'Professionnels qui se déplacent chez vous':'Professionnels près de vous'}</p><LiveProCard mode={mode==='Chez vous'?'deplacement':'domicile'}/></section>}
     </div>
     <section className="blade-account-band"><div><Icon name="calendar"/><h2>Un compte, vos rendez-vous au même endroit.</h2></div><BladeButton asChild><Link to="/blade/connexion?espace=client&mode=google">Continuer avec Google <ArrowRight size={16}/></Link></BladeButton></section>
     <div className="blade-secondary-links"><Link to="/blade/client/profil-professionnel">Profil professionnel <ArrowRight size={16}/></Link><Link to="/blade/client/reserver">Réservation <ArrowRight size={16}/></Link></div><StatePreview/>
