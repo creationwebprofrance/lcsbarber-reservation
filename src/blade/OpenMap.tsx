@@ -25,8 +25,10 @@ function MapBadge() {
 export function OpenMap({ mode = 'deplacement' }: { mode?: 'domicile' | 'deplacement' }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const { data: reviews } = useReviews();
 
   useEffect(() => {
     if (!container.current) return;
@@ -44,11 +46,32 @@ export function OpenMap({ mode = 'deplacement' }: { mode?: 'domicile' | 'deplace
       icon: L.divIcon({ className: 'blade-osm-marker', html: '<span aria-hidden="true">✂</span>', iconSize: [44, 44], iconAnchor: [22, 22] }),
       title: 'LCS Barber — secteur de Puiseux-en-France',
     }).addTo(map);
+    markerRef.current = marker;
     marker.on('click', () => setOpen(true));
     const resize = new ResizeObserver(() => map.invalidateSize());
     resize.observe(container.current);
-    return () => { resize.disconnect(); map.remove(); mapRef.current = null; };
+    return () => { resize.disconnect(); map.remove(); mapRef.current = null; markerRef.current = null; };
   }, []);
+
+  // Google-Maps-style permanent label pinned to the marker: name + average rating.
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (!marker) return;
+    const avg = reviews?.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : null;
+    const rating = avg !== null
+      ? `<span class="blade-marker-label-rating"><strong>${avg.toFixed(1).replace('.', ',')}</strong><span aria-hidden="true" class="blade-map-badge-stars">${'★'.repeat(Math.round(avg))}</span><small>(${reviews!.length})</small></span>`
+      : '';
+    marker.unbindTooltip();
+    marker.bindTooltip(`<span class="blade-marker-label-name">LCS Barber</span>${rating}`, {
+      permanent: true,
+      direction: 'top',
+      offset: [0, -30],
+      className: 'blade-marker-label',
+      interactive: true,
+    });
+    const label = marker.getTooltip();
+    if (label) label.on('click', () => setOpen(true));
+  }, [reviews]);
 
   return <div className="blade-local-map blade-open-map">
     <div ref={container} className="blade-osm-canvas" role="region" aria-label="Carte OpenStreetMap du secteur de LCS Barber à Puiseux-en-France" />
