@@ -1,5 +1,6 @@
 // Read-only views of the shared LCSBARBER data. No action here writes anything.
 import { useMemo, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { LoaderCircle, Star } from 'lucide-react';
 import { EmptyState, Icon, BladeButton, Tabs } from './common';
@@ -39,7 +40,7 @@ export function LiveAvailability({ mode, limit = 7 }: { mode: 'domicile' | 'depl
 export function LiveProCard({ mode }: { mode: 'domicile' | 'deplacement' }) {
   const services = useServices();
   const min = services.data?.length ? Math.min(...services.data.map(s => Number(s.price))) : null;
-  return <article className="blade-live-pro"><div className="blade-live-pro-head"><span className="blade-profile-placeholder"><Icon name="scissors" size={24} /></span><div><h3>LCS Barber</h3><p>{mode === 'deplacement' ? 'Se déplace chez vous · Puiseux-en-France et alentours' : 'Puiseux-en-France'}</p></div>{min !== null && <strong>dès {fmtPrice(min)}</strong>}</div><h4>Prochaines disponibilités</h4><LiveAvailability mode={mode} limit={3} /><BladeButton asChild variant="default"><Link to="/blade/client/profil-professionnel">Voir le profil</Link></BladeButton></article>;
+  return <article className="blade-live-pro"><div className="blade-live-pro-head"><span className="blade-profile-placeholder"><Icon name="scissors" size={24} /></span><div><h3>LCS Barber</h3><RatingSummary /><p>{mode === 'deplacement' ? 'Se déplace chez vous · Puiseux-en-France et alentours' : 'Puiseux-en-France'}</p></div>{min !== null && <strong>dès {fmtPrice(min)}</strong>}</div><h4>Prochaines disponibilités</h4><LiveAvailability mode={mode} limit={3} /><BladeButton asChild variant="default"><Link to="/blade/client/profil-professionnel">Voir le profil</Link></BladeButton></article>;
 }
 
 function bookingRows(list: Booking[], admin: boolean) { return list.map(b => [fmtDate(b.appointment_date), b.appointment_time.slice(0, 5), admin ? b.client_name : 'LCS Barber', b.services?.name ?? '—', statusLabel[b.status] ?? b.status, fmtPrice(b.total_price)]); }
@@ -80,3 +81,41 @@ function ClientsInner() {
   return <><label className="blade-search"><Icon name="search" size={18} /><input type="search" aria-label="Rechercher un client" placeholder="Rechercher un client" value={q} onChange={e => setQ(e.target.value)} /></label><p className="blade-note">{list.length} client{list.length > 1 ? 's' : ''}</p>{list.length ? <Table columns={['Client', 'E-mail', 'Téléphone', 'Adresse']} rows={list.map(c => [c.name, c.email, c.phone || '—', c.address || '—'])} /> : <EmptyState icon="users" title="Aucun client" compact />}</>;
 }
 export function LiveClients() { return <AdminGate>{() => <ClientsInner />}</AdminGate>; }
+
+/** Google-Maps-style rating: average of all public reviews. */
+export function RatingSummary() {
+  const { data } = useReviews();
+  if (!data?.length) return null;
+  const avg = data.reduce((s, r) => s + r.rating, 0) / data.length;
+  return <span className="blade-rating" aria-label={`Note ${avg.toFixed(1)} sur 5, ${data.length} avis`}><strong>{avg.toFixed(1).replace('.', ',')}</strong>{Array.from({ length: 5 }, (_, i) => <Star key={i} size={14} className={i < Math.round(avg) ? 'on' : ''} aria-hidden="true" />)}<small>({data.length})</small></span>;
+}
+
+function DayAgendaInner() {
+  const [day, setDay] = useState(isoDate(new Date())); const [tick, setTick] = useState(0);
+  const { data, loading, error } = useBookings(true, day, day + (tick ? '' : ''));
+  const [start, setStart] = useState('09:00'); const [end, setEnd] = useState('12:00'); const [mode, setMode] = useState('both');
+  const [msg, setMsg] = useState('');
+  const addSlot = async () => {
+    const { error } = await supabase.from('date_overrides').insert({ date: day, start_time: start, end_time: end, is_available: true, mode });
+    setMsg(error ? `Erreur : ${error.message}` : `Disponibilité ajoutée le ${fmtDate(day)} de ${start} à ${end}.`);
+  };
+  const cancel = async (b: Booking) => {
+    if (!confirm(`Annuler le rendez-vous de ${b.client_name} à ${b.appointment_time.slice(0, 5)} ?`)) return;
+    const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', b.id);
+    setMsg(error ? `Erreur : ${error.message}` : 'Rendez-vous annulé.'); setTick(t => t + 1);
+  };
+  return <div className="blade-day-agenda">
+    <label className="blade-field"><span>Date</span><input type="date" value={day} onChange={e => setDay(e.target.value)} /></label>
+    <h4>Rendez-vous du {fmtDate(day)}</h4>
+    {loading ? <Loading /> : error ? <Failed error={error} /> : data?.length ? <ul className="blade-slot-requests">{data.map(b => <li key={b.id}><header><strong>{b.appointment_time.slice(0, 5)} · {b.client_name}</strong><span>{statusLabel[b.status] ?? b.status}</span></header><p>{b.services?.name ?? '—'} · {fmtPrice(b.total_price)}</p>{b.status !== 'cancelled' && <BladeButton onClick={() => cancel(b)}>Annuler le rendez-vous</BladeButton>}</li>)}</ul> : <EmptyState title="Aucun rendez-vous ce jour" compact />}
+    <h4>Ajouter une disponibilité</h4>
+    <div className="blade-toolbar">
+      <label className="blade-field"><span>Début</span><input type="time" value={start} onChange={e => setStart(e.target.value)} /></label>
+      <label className="blade-field"><span>Fin</span><input type="time" value={end} onChange={e => setEnd(e.target.value)} /></label>
+      <label className="blade-field"><span>Mode</span><select value={mode} onChange={e => setMode(e.target.value)}><option value="both">Les deux</option><option value="deplacement">Chez vous (je me déplace)</option><option value="domicile">Près de vous (le client vient)</option></select></label>
+    </div>
+    <BladeButton variant="default" onClick={addSlot}>Ajouter la disponibilité</BladeButton>
+    {msg && <p className="blade-note" role="status">{msg}</p>}
+  </div>;
+}
+export function LiveDayAgenda() { return <AdminGate>{() => <DayAgendaInner />}</AdminGate>; }
