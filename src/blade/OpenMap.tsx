@@ -52,6 +52,7 @@ export function OpenMap({ mode = 'deplacement' }: { mode?: 'domicile' | 'deplace
 
   return <div className="blade-local-map blade-open-map">
     <div ref={container} className="blade-osm-canvas" role="region" aria-label="Carte OpenStreetMap du secteur de LCS Barber à Puiseux-en-France" />
+    <MapBadge />
     <div className="blade-osm-controls">
       <Button variant="outline" className="blade-button" aria-label="Zoom avant" title="Zoom avant" onClick={() => mapRef.current?.zoomIn()}><Plus size={18} /></Button>
       <Button variant="outline" className="blade-button" aria-label="Zoom arrière" title="Zoom arrière" onClick={() => mapRef.current?.zoomOut()}><Minus size={18} /></Button>
