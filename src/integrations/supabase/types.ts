@@ -76,6 +76,48 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_requests: {
+        Row: {
+          client_email: string
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          id: string
+          message: string | null
+          mode: string | null
+          preferred_date: string | null
+          preferred_time: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          client_email: string
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          mode?: string | null
+          preferred_date?: string | null
+          preferred_time?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          client_email?: string
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          mode?: string | null
+          preferred_date?: string | null
+          preferred_time?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           appointment_date: string
