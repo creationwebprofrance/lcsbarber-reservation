@@ -48,7 +48,11 @@ export function useSession() {
 }
 
 export const useServices = () => useRead(async () => unwrap<Service[]>(await supabase.from('services').select('id,name,description,price,duration_minutes').eq('is_active', true).order('price')));
-export const useReviews = () => useRead(async () => unwrap<Review[]>(await (supabase as SupabaseClient).rpc('get_public_reviews')));
+export const useReviews = () => useRead(async () => {
+  try { return unwrap<Review[]>(await (supabase as SupabaseClient).rpc('get_public_reviews')); }
+  catch { /* Public read is staged only. Admins can still read the base table directly. */ }
+  return unwrap<Review[]>(await supabase.from('reviews').select('id,client_name,rating,comment,created_at').order('created_at', { ascending: false }).limit(50));
+});
 export const useClients = (enabled: boolean) => useRead(async () => enabled ? unwrap<Client[]>(await supabase.from('clients').select('id,name,email,phone,address').order('name').limit(500)) : [], [enabled]);
 
 const bookingCols = 'id,client_name,client_email,appointment_date,appointment_time,status,total_price,client_address,services(name)';
