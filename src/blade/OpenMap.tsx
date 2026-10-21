@@ -6,8 +6,21 @@ import { Button } from '@/components/ui/button';
 import { Plus, Minus, LocateFixed, X } from 'lucide-react';
 import { LiveProCard } from './live';
 
+import { useReviews } from './data';
+
 // OpenStreetMap's verified town centre, not the professional's exact address.
 const townCentre: L.LatLngTuple = [49.0597512, 2.5009544];
+
+/** Small top-right chip: professional name + Google-Maps-style average rating. */
+function MapBadge() {
+  const { data } = useReviews();
+  const avg = data?.length ? data.reduce((s, r) => s + r.rating, 0) / data.length : null;
+  return <p className="blade-map-badge"><span>LCS Barber</span>{avg !== null && <>
+    <strong aria-hidden="true">{avg.toFixed(1).replace('.', ',')}</strong>
+    <span className="blade-map-badge-stars" role="img" aria-label={`Note ${avg.toFixed(1).replace('.', ',')} sur 5, ${data!.length} avis`}>{'★'.repeat(Math.round(avg))}</span>
+    <small>({data!.length})</small>
+  </>}</p>;
+}
 
 export function OpenMap({ mode = 'deplacement' }: { mode?: 'domicile' | 'deplacement' }) {
   const container = useRef<HTMLDivElement>(null);
