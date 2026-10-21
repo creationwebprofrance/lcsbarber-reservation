@@ -39,7 +39,7 @@ export function LiveAvailability({ mode, limit = 7 }: { mode: 'domicile' | 'depl
 export function LiveProCard({ mode }: { mode: 'domicile' | 'deplacement' }) {
   const services = useServices();
   const min = services.data?.length ? Math.min(...services.data.map(s => Number(s.price))) : null;
-  return <article className="blade-live-pro"><div className="blade-live-pro-head"><span className="blade-profile-placeholder"><Icon name="scissors" size={24} /></span><div><h3>LCS Barber</h3><p>{mode === 'deplacement' ? 'Se déplace chez vous · Puiseux-en-France et alentours' : 'Imp. des Hirondelles Prolongée, 95380 Puiseux-en-France'}</p></div>{min !== null && <strong>dès {fmtPrice(min)}</strong>}</div><h4>Prochaines disponibilités</h4><LiveAvailability mode={mode} limit={3} /><BladeButton asChild variant="default"><Link to="/blade/client/profil-professionnel">Voir le profil</Link></BladeButton></article>;
+  return <article className="blade-live-pro"><div className="blade-live-pro-head"><span className="blade-profile-placeholder"><Icon name="scissors" size={24} /></span><div><h3>LCS Barber</h3><p>{mode === 'deplacement' ? 'Se déplace chez vous · Puiseux-en-France et alentours' : 'Puiseux-en-France'}</p></div>{min !== null && <strong>dès {fmtPrice(min)}</strong>}</div><h4>Prochaines disponibilités</h4><LiveAvailability mode={mode} limit={3} /><BladeButton asChild variant="default"><Link to="/blade/client/profil-professionnel">Voir le profil</Link></BladeButton></article>;
 }
 
 function bookingRows(list: Booking[], admin: boolean) { return list.map(b => [fmtDate(b.appointment_date), b.appointment_time.slice(0, 5), admin ? b.client_name : 'LCS Barber', b.services?.name ?? '—', statusLabel[b.status] ?? b.status, fmtPrice(b.total_price)]); }
