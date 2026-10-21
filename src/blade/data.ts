@@ -1,6 +1,8 @@
 // BLADE read-only data layer: reads the shared LCSBARBER database. Never writes.
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
+import { FunctionsHttpError, type SupabaseClient } from '@supabase/supabase-js';
+import type { SlotRequestInput } from './request-model';
 import { supabase } from '@/integrations/supabase/client';
 
 export type Service = { id: string; name: string; description: string | null; price: number; duration_minutes: number };
@@ -91,3 +93,19 @@ export const useAvailability = (mode: 'domicile' | 'deplacement') => useRead(asy
 export const fmtDate = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
 export const fmtPrice = (n: number) => `${Number(n).toLocaleString('fr-FR')} €`;
 export const statusLabel: Record<string, string> = { confirmed: 'Confirmé', pending: 'En attente', cancelled: 'Annulé', completed: 'Terminé' };
+
+type SlotRequest = Omit<SlotRequestInput, 'request_id'> & { id: string; created_at: string };
+// The staged table is intentionally not present in generated live schema types yet.
+export const useSlotRequests = () => useRead(async () => unwrap<SlotRequest[]>(await (supabase as SupabaseClient).from('slot_requests').select('id,client_name,client_email,mode,requested_date,requested_time,message,created_at').order('created_at', { ascending: false }).limit(500)));
+export async function submitSlotRequest(input: SlotRequestInput): Promise<{ email_sent: boolean }> {
+  const { data, error } = await supabase.functions.invoke('create-slot-request', { body: input });
+  if (error) {
+    if (error instanceof FunctionsHttpError) {
+      const details = await error.context.json().catch(() => null);
+      throw new Error(details?.error ?? 'Demande non envoyée. Réessayez.');
+    }
+    throw new Error(error.message);
+  }
+  if (!data?.id) throw new Error('La demande n’a pas été enregistrée.');
+  return { email_sent: data.email_sent === true };
+}
