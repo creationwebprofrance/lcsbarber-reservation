@@ -3,14 +3,16 @@ import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
-import { Plus, Minus, LocateFixed } from 'lucide-react';
+import { Plus, Minus, LocateFixed, X } from 'lucide-react';
+import { LiveProCard } from './live';
 
 // OpenStreetMap's verified town centre, not the professional's exact address.
 const townCentre: L.LatLngTuple = [49.0597512, 2.5009544];
 
-export function OpenMap() {
+export function OpenMap({ mode = 'deplacement' }: { mode?: 'domicile' | 'deplacement' }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export function OpenMap() {
       icon: L.divIcon({ className: 'blade-osm-marker', html: '<span aria-hidden="true">✂</span>', iconSize: [44, 44], iconAnchor: [22, 22] }),
       title: 'LCS Barber — secteur de Puiseux-en-France',
     }).addTo(map);
-    marker.bindPopup('LCS Barber · Puiseux-en-France<br>Repère du centre-ville, pas l’adresse exacte.');
+    marker.on('click', () => setOpen(true));
     const resize = new ResizeObserver(() => map.invalidateSize());
     resize.observe(container.current);
     return () => { resize.disconnect(); map.remove(); mapRef.current = null; };
@@ -43,6 +45,7 @@ export function OpenMap() {
       <Button variant="outline" className="blade-button" aria-label="Recentrer sur Puiseux-en-France" title="Recentrer" onClick={() => mapRef.current?.setView(townCentre, 13)}><LocateFixed size={18} /></Button>
     </div>
     {status !== 'ready' && <p className="blade-osm-status" role="status">{status === 'loading' ? 'Chargement de la carte…' : 'Carte indisponible. Vérifiez votre connexion.'}</p>}
-    <Link className="blade-osm-profile" to="/blade/client/profil-professionnel"><strong>LCS Barber</strong><span>Puiseux-en-France · Voir le profil →</span><small>Repère du centre-ville, adresse exacte non localisée.</small></Link>
+    {open ? <div className="blade-osm-detail" role="dialog" aria-label="LCS Barber"><button type="button" className="blade-osm-close" aria-label="Fermer" onClick={() => setOpen(false)}><X size={18} /></button><LiveProCard mode={mode} /></div>
+      : <p className="blade-osm-hint">Touchez le repère ✂ pour voir le profil</p>}
   </div>;
 }
