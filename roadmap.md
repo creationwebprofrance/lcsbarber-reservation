@@ -1,9 +1,10 @@
 # BLADE interface roadmap
 
-- [ ] Replace combined search view with Carte first, then Liste.
-- [ ] Add no-availability requests and professional inbox, with staged database support only.
-- [ ] Prepare owner email notification; activation waits for explicit deployment authorization and verified sender.
-- [ ] Verify search views and request validation; report activation blockers.
+- [x] Replace combined search view with Carte first, then Liste.
+- [x] Prepare no-availability requests and professional inbox, with staged database support only.
+- [x] Prepare owner email notification source without deploying it.
+- [x] Verify search views at 320/768/1440 and request validation; no mock data or real emails.
+- [ ] Activate request storage after draft acceptance, then authorize deployment and verify Resend sender before enabling sends; end-to-end submission and email checks blocked until then.
 
 - [x] Isolate /blade entry; preserve LCSBARBER outside /blade.
 - [x] Build shared components, original logo, account states and adaptive navigation.

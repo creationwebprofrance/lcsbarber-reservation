@@ -94,7 +94,7 @@ export const fmtDate = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDate
 export const fmtPrice = (n: number) => `${Number(n).toLocaleString('fr-FR')} €`;
 export const statusLabel: Record<string, string> = { confirmed: 'Confirmé', pending: 'En attente', cancelled: 'Annulé', completed: 'Terminé' };
 
-type SlotRequest = SlotRequestInput & { id: string; created_at: string };
+type SlotRequest = Omit<SlotRequestInput, 'request_id'> & { id: string; created_at: string };
 // The staged table is intentionally not present in generated live schema types yet.
 export const useSlotRequests = () => useRead(async () => unwrap<SlotRequest[]>(await (supabase as SupabaseClient).from('slot_requests').select('id,client_name,client_email,mode,requested_date,requested_time,message,created_at').order('created_at', { ascending: false }).limit(500)));
 export async function submitSlotRequest(input: SlotRequestInput): Promise<{ email_sent: boolean }> {
