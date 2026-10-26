@@ -4,19 +4,35 @@ export const clientLinks = [
   { path: '/blade/client/messages', label: 'Messages', icon: 'message' },
   { path: '/blade/client/profil', label: 'Profil', icon: 'user' },
 ] as const;
-export const proLinks = [
+export type ProNavItem = { path?: string; label: string; icon: string; children?: { path: string; label: string }[] };
+export const proNav: ProNavItem[] = [
   { path: '/blade/pro', label: 'Aujourd’hui', icon: 'home' },
   { path: '/blade/pro/agenda', label: 'Agenda', icon: 'calendar' },
-  { path: '/blade/pro/clients', label: 'Clients', icon: 'users' },
-  { path: '/blade/pro/performance', label: 'Performance', icon: 'chart' },
-  { path: '/blade/pro/deplacements', label: 'Déplacements', icon: 'pin' },
-  { path: '/blade/pro/vehicule', label: 'Véhicule', icon: 'car' },
-  { path: '/blade/pro/relances', label: 'Relances', icon: 'bell' },
+  { label: 'Clients', icon: 'users', children: [
+    { path: '/blade/pro/clients', label: 'Fiches clients' },
+    { path: '/blade/pro/relances', label: 'Relances' },
+  ] },
   { path: '/blade/pro/prestations', label: 'Prestations', icon: 'scissors' },
-  { path: '/blade/pro/revenus', label: 'Revenus', icon: 'coins' },
-  { path: '/blade/pro/paiements', label: 'Paiements', icon: 'card' },
-  { path: '/blade/pro/profil', label: 'Profil', icon: 'user' },
-] as const;
+  { path: '/blade/pro/catalogue', label: 'Catalogue', icon: 'image' },
+  { path: '/blade/pro/simulation', label: 'Simulation', icon: 'calculator' },
+  { label: 'Pilotage', icon: 'chart', children: [
+    { path: '/blade/pro/performance', label: 'Performance' },
+    { path: '/blade/pro/revenus', label: 'Revenus' },
+    { path: '/blade/pro/paiements', label: 'Paiements' },
+  ] },
+  { label: 'Mobilité', icon: 'car', children: [
+    { path: '/blade/pro/deplacements', label: 'Déplacements' },
+    { path: '/blade/pro/vehicule', label: 'Véhicule' },
+  ] },
+];
+export const proSecondaryLinks = [
+  { path: '/blade/pro/profil', label: 'Mon profil', icon: 'user' },
+  { path: '/blade/pro/parametres', label: 'Paramètres', icon: 'settings' },
+];
+export const proLinks: { path: string; label: string; icon: string }[] = [
+  ...proNav.flatMap(item => item.children ? item.children.map(c => ({ path: c.path, label: c.label, icon: item.icon })) : [{ path: item.path!, label: item.label, icon: item.icon }]),
+  ...proSecondaryLinks,
+];
 export const bladeRoutes = [...clientLinks.map(x => x.path), '/blade/client/profil-professionnel', '/blade/client/reserver', '/blade/client/recapitulatif', '/blade/client/confirmation', ...proLinks.map(x => x.path)];
 export function isBladePath(path: string) { return path === '/blade' || path.startsWith('/blade/'); }
 export function validateLocalValue(value: string, kind: string) {

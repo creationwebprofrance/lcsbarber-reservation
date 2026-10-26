@@ -1,13 +1,13 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Search, CalendarDays, MessageSquare, UserRound, House, UsersRound, ChartNoAxesColumnIncreasing, MapPin, Car, Bell, Scissors, Coins, CreditCard, MoreHorizontal, ChevronDown, ChevronRight, ArrowRight, X, Plus, SlidersHorizontal, ArrowLeft, LoaderCircle, CircleAlert, Check, Menu, type LucideIcon } from 'lucide-react';
+import { Search, CalendarDays, MessageSquare, UserRound, House, UsersRound, ChartNoAxesColumnIncreasing, MapPin, Car, Bell, Scissors, Coins, CreditCard, MoreHorizontal, ChevronDown, ChevronRight, ArrowRight, X, Plus, SlidersHorizontal, ArrowLeft, LoaderCircle, CircleAlert, Check, Menu, Image, Calculator, Settings, type LucideIcon } from 'lucide-react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { useSession } from './data';
 import { supabase } from '@/integrations/supabase/client';
-import { clientLinks, proLinks, monthCells, validateLocalValue } from './model';
+import { clientLinks, proNav, proSecondaryLinks, type ProNavItem, monthCells, validateLocalValue } from './model';
 import { OpenMap } from './OpenMap';
 
-const icons: Record<string, LucideIcon> = { search: Search, calendar: CalendarDays, message: MessageSquare, user: UserRound, home: House, users: UsersRound, chart: ChartNoAxesColumnIncreasing, pin: MapPin, car: Car, bell: Bell, scissors: Scissors, coins: Coins, card: CreditCard, more: MoreHorizontal };
+const icons: Record<string, LucideIcon> = { search: Search, calendar: CalendarDays, message: MessageSquare, user: UserRound, home: House, users: UsersRound, chart: ChartNoAxesColumnIncreasing, pin: MapPin, car: Car, bell: Bell, scissors: Scissors, coins: Coins, card: CreditCard, more: MoreHorizontal, image: Image, calculator: Calculator, settings: Settings };
 export function Icon({ name, ...props }: { name: string; size?: number; className?: string }) { const Component = icons[name] || CircleAlert; return <Component size={20} aria-hidden="true" {...props} />; }
 export function BladeButton({ className = '', variant = 'outline', ...props }: ButtonProps) { return <Button variant={variant} {...props} className={`blade-button ${variant === 'default' ? 'blade-primary' : ''} ${className}`} />; }
 export function BladeLogo() { return <Link className="blade-logo" to="/blade" aria-label="BLADE — accueil"><img src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" /></Link>; }
@@ -26,9 +26,22 @@ export function AccountHeader({ pro = false }: { pro?: boolean }) {
 }
 function NavItem({ item }: { item: { path: string; label: string; icon: string } }) { return <NavLink to={item.path} end><Icon name={item.icon} /><span>{item.label}</span></NavLink>; }
 export function ClientLayout() { return <div className="blade-app blade-client"><a href="#blade-content" className="blade-skip">Aller au contenu</a><AccountHeader /><main id="blade-content" className="blade-main" tabIndex={-1}><Outlet /></main><nav className="blade-bottom blade-client-bottom" aria-label="Navigation client">{clientLinks.map(l => <NavItem key={l.path} item={l} />)}</nav></div>; }
+function ProNavGroup({ item }: { item: ProNavItem }) {
+  const location = useLocation();
+  const active = !!item.children?.some(c => c.path === location.pathname);
+  const [open, setOpen] = useState(active);
+  useEffect(() => { if (active) setOpen(true); }, [active]);
+  return <div className="blade-nav-group">
+    <button type="button" className={`blade-nav-group-trigger${active ? ' active' : ''}`} aria-expanded={open} onClick={() => setOpen(o => !o)}>
+      <Icon name={item.icon} /><span>{item.label}</span><ChevronRight size={16} className={`blade-nav-chevron${open ? ' open' : ''}`} />
+    </button>
+    {open && <div className="blade-nav-children">{item.children!.map(c => <NavLink key={c.path} to={c.path} end>{c.label}</NavLink>)}</div>}
+  </div>;
+}
 export function ProLayout() {
   const [more, setMore] = useState(false); const location = useLocation(); useEffect(() => setMore(false), [location.pathname]);
-  return <div className="blade-app blade-pro"><a href="#blade-content" className="blade-skip">Aller au contenu</a><AccountHeader pro /><aside className="blade-pro-rail"><nav aria-label="Navigation professionnelle">{proLinks.map(l => <NavItem key={l.path} item={l} />)}</nav><div className="blade-rail-bottom"><span>BLADE</span><small>Espace professionnel</small></div></aside><main id="blade-content" className="blade-main" tabIndex={-1}><Outlet /></main><nav className="blade-bottom blade-pro-bottom" aria-label="Navigation professionnelle">{proLinks.slice(0,4).map(l => <NavItem key={l.path} item={l} />)}<BladeButton className={more || proLinks.slice(4).some(l => l.path === location.pathname) ? 'active' : ''} onClick={() => setMore(!more)} aria-expanded={more}><MoreHorizontal size={20} /><span>Plus</span></BladeButton></nav>{more && <Modal title="Plus" onClose={() => setMore(false)}><nav className="blade-more-nav" aria-label="Autres pages professionnelles">{proLinks.slice(4).map(l => <NavItem key={l.path} item={l} />)}</nav><Link className="blade-text-link" to="/blade/client">Espace client <ArrowRight size={16}/></Link></Modal>}</div>;
+  const onSubPage = proNav.some(i => i.children?.some(c => c.path === location.pathname)) || proSecondaryLinks.some(l => l.path === location.pathname);
+  return <div className="blade-app blade-pro"><a href="#blade-content" className="blade-skip">Aller au contenu</a><AccountHeader pro /><aside className="blade-pro-rail"><nav aria-label="Navigation professionnelle">{proNav.map(item => item.children ? <ProNavGroup key={item.label} item={item} /> : <NavItem key={item.path} item={item as { path: string; label: string; icon: string }} />)}</nav><div className="blade-rail-bottom"><nav aria-label="Compte et réglages">{proSecondaryLinks.map(l => <NavItem key={l.path} item={l} />)}</nav></div></aside><main id="blade-content" className="blade-main" tabIndex={-1}><Outlet /></main><nav className="blade-bottom blade-pro-bottom" aria-label="Navigation professionnelle"><NavItem item={{ path: '/blade/pro', label: 'Aujourd’hui', icon: 'home' }} /><NavItem item={{ path: '/blade/pro/agenda', label: 'Agenda', icon: 'calendar' }} /><NavItem item={{ path: '/blade/pro/clients', label: 'Clients', icon: 'users' }} /><BladeButton className={more || onSubPage ? 'active' : ''} onClick={() => setMore(!more)} aria-expanded={more}><Menu size={20} /><span>Menu</span></BladeButton></nav>{more && <Modal title="Menu" onClose={() => setMore(false)}><nav className="blade-more-nav" aria-label="Toutes les rubriques professionnelles">{proNav.map(item => item.children ? <div key={item.label} className="blade-more-group"><strong>{item.label}</strong>{item.children.map(c => <NavLink key={c.path} to={c.path} end>{c.label}</NavLink>)}</div> : <NavLink key={item.path} to={item.path!} end><Icon name={item.icon} /><span>{item.label}</span></NavLink>)}<div className="blade-menu-divider" />{proSecondaryLinks.map(l => <NavLink key={l.path} to={l.path} end><Icon name={l.icon} /><span>{l.label}</span></NavLink>)}</nav><Link className="blade-text-link" to="/blade/client">Espace client <ArrowRight size={16}/></Link></Modal>}</div>;
 }
 export function PageHeading({ title, description, action, pro = false }: { title: string; description?: string; action?: ReactNode; pro?: boolean }) { return <div className="blade-page-heading"><div><p className="blade-eyebrow">{pro ? 'Professionnel' : 'Client'} <span>/</span> {title === 'Autour de vous' ? 'Recherche' : title}</p><h1>{title}</h1>{description && <p className="blade-lead">{description}</p>}</div>{action}</div>; }
 export function Section({ title, children, action, className = '' }: { title: string; children: ReactNode; action?: ReactNode; className?: string }) { return <section className={`blade-section ${className}`}><div className="blade-section-heading"><h2>{title}</h2>{action}</div>{children}</section>; }
