@@ -14,4 +14,7 @@
 - [x] Deliver changed-file inventory and verification results in src/blade/VERIFICATION.md; no publishing or deployment.
 - [x] Add discreet blue selections and motion; prioritize home services, availability and intervention area.
 - [x] Verify search interactions and screen widths without connecting any services.
-- [x] Replace landing access cards with an indented hierarchical bullet list; verify 320-1440px, no services, no publishing.
+- [x] Replace landing access cards with an indented hierarchical bullet list; verify 320-1440px, no services, no publishing.- [x] Reorganize pro space into 8 tabs (Clients, Pilotage, Mobilité grouped; Mon profil and Paramètres at rail bottom; mobile bottom bar with Menu modal).
+- [x] Add Catalogue page: local-only photo selection, JPEG/PNG/WebP validation, details, cover, reorder, filter; no upload.
+- [x] Add Simulation page: existing pricing rules only, manual travel time, incomplete states, local appointment form.
+- [x] Verify 390/768/1440px, file rejection, cover, simulation total; no publishing.
