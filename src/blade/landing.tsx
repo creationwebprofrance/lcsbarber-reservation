@@ -83,10 +83,10 @@ export function DemoLogin() {
   const signup = params.get('mode') === 'inscription';
   const target = pro ? '/blade/pro' : '/blade/client';
   const navigate = useNavigate();
-  const { session } = useSession();
+  const { session, isAdmin, ready } = useSession();
   const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false); const [msg, setMsg] = useState('');
-  useEffect(() => { if (session) navigate(target, { replace: true }); }, [session, navigate, target]);
+  useEffect(() => { if (ready && session) navigate(isAdmin ? '/blade/pro' : '/blade/client', { replace: true }); }, [ready, session, isAdmin, navigate]);
   const title = signup ? (pro ? 'Créer un compte professionnel' : 'Créer un compte') : (pro ? 'Connexion professionnelle' : 'Connexion client');
   const google = async () => { setBusy(true); setMsg(''); const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}${target}` } }); if (error) { setMsg(error.message); setBusy(false); } };
   const submit = async (e: React.FormEvent) => { e.preventDefault(); setBusy(true); setMsg('');
