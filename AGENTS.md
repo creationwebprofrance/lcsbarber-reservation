@@ -9,3 +9,4 @@
 - BLADE maps use Leaflet with OpenStreetMap tiles; keep the verified town-centre marker explicitly approximate until the exact business coordinates are supplied.
 - Professional provider screens use provider.tsx and provider-model.ts with existing maintenance calculations without generic forecast defaults; this keeps accounting and maintenance rules testable without invented records.
 - Legacy rows without verified ownership are not included in provider RPCs; assign approved IDs transactionally with compatible service/booking/client links only after backup and provenance approval, because shared access is not proof of ownership.
+- BLADE pro chat (offers + replies) is admin-only until multi-provider access exists; reply emails go through a staged server function that fails closed until email activation is approved.
