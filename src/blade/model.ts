@@ -12,6 +12,7 @@ export const proNav: ProNavItem[] = [
   { path: '/blade/pro/emails', label: 'Emails', icon: 'message' },
   { path: '/blade/pro/prestations', label: 'Prestations', icon: 'scissors' },
   { path: '/blade/pro/vehicule', label: 'Mon véhicule', icon: 'car' },
+  { path: '/blade/pro/chat', label: 'Chat coiffeurs', icon: 'message' },
 ];
 export const proSecondaryLinks: {path:string;label:string;icon:string}[] = [];
 export const proLinks = proNav.flatMap(item => item.path ? [{ path:item.path,label:item.label,icon:item.icon }] : []);
