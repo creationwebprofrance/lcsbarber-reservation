@@ -86,8 +86,10 @@ export function useSession() {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const apply = async (s: Session | null) => {
-      setSession(s);
-      if (s) { const { data } = await supabase.from('user_roles').select('role').eq('user_id', s.user.id).eq('role', 'admin'); setIsAdmin(!!data?.length); } else setIsAdmin(false);
+      // Resolve the role before exposing the session so space guards never see a mismatched state.
+      let admin = false;
+      if (s) { const { data } = await supabase.from('user_roles').select('role').eq('user_id', s.user.id).eq('role', 'admin'); admin = !!data?.length; }
+      setSession(s); setIsAdmin(admin);
       setReady(true);
     };
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => { setTimeout(() => apply(s), 0); });
