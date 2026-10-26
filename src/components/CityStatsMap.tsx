@@ -157,13 +157,12 @@ export function CityStatsMap({ cityStats, onCityUpdated }: CityStatsMapProps) {
     }
 
     try {
-      // Update all bookings with the old city name to the new city name
-      // Escape SQL LIKE wildcards in user input to avoid unintended matches
-      const escapedCity = oldCity.replace(/[\\%_]/g, "\\$&");
-      const { error } = await supabase
-        .from("bookings")
-        .update({ client_address: newCityName })
-        .ilike("client_address", `%${escapedCity}%`);
+      // Store a separate city alias; never overwrite complete booking addresses.
+      const { error } = await supabase.from("carnaval_settings").upsert({
+        setting_key: `city_alias:${oldCity.toLocaleLowerCase('fr')}`,
+        setting_value: newCityName.trim(),
+        description: "Nom de ville normalisé pour les statistiques (adresse préservée)",
+      }, { onConflict: 'setting_key' });
 
       if (error) throw error;
 

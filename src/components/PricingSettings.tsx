@@ -20,6 +20,7 @@ interface Service {
 export const PricingSettings = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [draftPrices, setDraftPrices] = useState<Record<string,string>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,6 +36,7 @@ export const PricingSettings = () => {
 
       if (error) throw error;
       setServices(data || []);
+      setDraftPrices(Object.fromEntries((data || []).map(s => [s.id,String(s.price)])));
     } catch (error: any) {
       toast({
         title: "Erreur",
@@ -50,7 +52,7 @@ export const PricingSettings = () => {
 
   const updateServicePrice = async (serviceId: string, newPrice: number) => {
     const service = services.find(s => s.id === serviceId);
-    if (!service) return;
+    if (!service || !Number.isFinite(newPrice) || newPrice < 0) return;
     const oldPrice = service.price;
 
     // Don't do anything if price hasn't changed
@@ -65,23 +67,7 @@ export const PricingSettings = () => {
 
       if (error) throw error;
 
-      // Send notification email to clients with future bookings
-      try {
-        await supabase.functions.invoke('notify-price-change', {
-          body: {
-            serviceName: service.name,
-            oldPrice,
-            newPrice,
-          },
-        });
-      } catch (emailError) {
-        console.error("Email notification error:", emailError);
-      }
-
-      toast({
-        title: "Succès",
-        description: `Prix mis à jour (${oldPrice}€ → ${newPrice}€). Les clients concernés ont été notifiés.`,
-      });
+      toast({ title: "Succès", description: `Prix mis à jour (${oldPrice}€ → ${newPrice}€). Aucun email automatique envoyé.` });
       loadServices();
     } catch (error: any) {
       toast({
@@ -125,17 +111,12 @@ export const PricingSettings = () => {
                     type="number"
                     min="0"
                     step="0.01"
-                    value={service.price}
-                    onChange={(e) => {
-                      const newServices = services.map(s =>
-                        s.id === service.id ? { ...s, price: parseFloat(e.target.value) } : s
-                      );
-                      setServices(newServices);
-                    }}
-                    onBlur={() => updateServicePrice(service.id, service.price)}
+                    value={draftPrices[service.id] ?? String(service.price)}
+                    onChange={(e) => setDraftPrices(prev => ({ ...prev, [service.id]:e.target.value }))}
                     className="w-24"
                     disabled={updatingPriceId === service.id}
                   />
+                  <Button disabled={updatingPriceId === service.id || !draftPrices[service.id]?.trim() || Number(draftPrices[service.id]) === service.price} onClick={() => updateServicePrice(service.id, Number(draftPrices[service.id]))}>Enregistrer</Button>
                   {updatingPriceId === service.id ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (

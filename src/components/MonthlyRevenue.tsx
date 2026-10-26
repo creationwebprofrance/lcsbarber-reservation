@@ -16,6 +16,7 @@ export const MonthlyRevenue = () => {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString());
   const monthNames = [
@@ -29,10 +30,12 @@ export const MonthlyRevenue = () => {
 
   const loadMonthlyData = async () => {
     setLoading(true);
+    setErrorMessage("");
     try {
       const { data: bookings, error } = await supabase
         .from('bookings')
         .select('appointment_date, total_price, status')
+        .in('status', ['confirmed', 'completed'])
         .gte('appointment_date', `${year}-01-01`)
         .lte('appointment_date', `${year}-12-31`);
 
@@ -45,35 +48,36 @@ export const MonthlyRevenue = () => {
         monthlyStats[i] = { revenue: 0, bookings: 0 };
       }
 
-      let yearTotal = 0;
+
 
       bookings?.forEach((booking) => {
         const date = new Date(booking.appointment_date);
         const month = date.getMonth();
-        const price = Number(booking.total_price);
+        const price = Math.round(Number(booking.total_price) * 100);
         
         monthlyStats[month].revenue += price;
         monthlyStats[month].bookings += 1;
         
-        if (booking.status === 'confirmed' || booking.status === 'completed') {
-          yearTotal += price;
-        }
+
       });
 
       const chartData = monthNames.map((name, index) => ({
         month: name,
-        revenue: monthlyStats[index].revenue,
+        revenue: monthlyStats[index].revenue / 100,
         bookings: monthlyStats[index].bookings,
       }));
 
       setMonthlyData(chartData);
-      setTotalRevenue(yearTotal);
+      setTotalRevenue(chartData.reduce((sum,month) => sum + Math.round(month.revenue * 100),0) / 100);
     } catch (error) {
       console.error('Erreur chargement données mensuelles:', error);
+      setErrorMessage('Impossible de charger le chiffre d’affaires.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (errorMessage) return <p role="alert">{errorMessage}</p>;
 
   if (loading) {
     return (

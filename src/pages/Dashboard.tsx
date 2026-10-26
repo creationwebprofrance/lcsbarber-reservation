@@ -120,6 +120,10 @@ export default function Dashboard() {
       });
 
       // Calculate city statistics
+      const { data: cityAliases, error: aliasError } = await supabase.from('carnaval_settings').select('setting_key,setting_value').like('setting_key','city_alias:%');
+      if (aliasError) throw aliasError;
+      const aliases = new Map((cityAliases || []).map(a=>[a.setting_key.slice('city_alias:'.length),a.setting_value]));
+
       const cityMap = new Map<string, number>();
       bookings?.forEach((booking) => {
         if (booking.client_address) {
@@ -129,7 +133,8 @@ export default function Dashboard() {
             ? parts[parts.length - 1].trim().replace(/\d{5}/g, '').trim() 
             : booking.client_address.trim();
           if (city) {
-            cityMap.set(city, (cityMap.get(city) || 0) + 1);
+            const normalized = aliases.get(city.toLocaleLowerCase('fr')) || city;
+            cityMap.set(normalized, (cityMap.get(normalized) || 0) + 1);
           }
         }
       });
