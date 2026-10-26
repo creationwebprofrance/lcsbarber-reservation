@@ -48,29 +48,27 @@ export const MonthlyRevenue = () => {
         monthlyStats[i] = { revenue: 0, bookings: 0 };
       }
 
-      let yearTotal = 0;
+
 
       bookings?.forEach((booking) => {
         const date = new Date(booking.appointment_date);
         const month = date.getMonth();
-        const price = Number(booking.total_price);
+        const price = Math.round(Number(booking.total_price) * 100);
         
         monthlyStats[month].revenue += price;
         monthlyStats[month].bookings += 1;
         
-        if (booking.status === 'confirmed' || booking.status === 'completed') {
-          yearTotal += price;
-        }
+
       });
 
       const chartData = monthNames.map((name, index) => ({
         month: name,
-        revenue: monthlyStats[index].revenue,
+        revenue: monthlyStats[index].revenue / 100,
         bookings: monthlyStats[index].bookings,
       }));
 
       setMonthlyData(chartData);
-      setTotalRevenue(yearTotal);
+      setTotalRevenue(chartData.reduce((sum,month) => sum + Math.round(month.revenue * 100),0) / 100);
     } catch (error) {
       console.error('Erreur chargement données mensuelles:', error);
       setErrorMessage('Impossible de charger le chiffre d’affaires.');
