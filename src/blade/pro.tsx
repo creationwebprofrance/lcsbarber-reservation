@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ProfessionalRequests } from './requests';
 import { LiveServices, LiveReviews, LiveAvailability, LiveProCard, LiveMyBookings, LiveAdminBookings, LiveClients, LiveDayAgenda, RatingSummary } from './live';
 import { Link } from 'react-router-dom';
 import { PageHeading, Section, MetricCard, EmptyState, BladeButton, Icon, PeriodFilter, ResponsiveList, Calendar, Tabs, LocalMap, LocalField, LocalForm, KeyValues, DisabledAction, SearchField, Modal, StatePreview, ArrowRight, Plus } from './common';
+import { useServices, usePricingRules, fmtPrice } from './data';
+import { calculatePricing, getTimeSupplementText } from '@/lib/pricing';
 
 const appointmentFields = [{label:'Client'},{label:'Prestation',options:[]},{label:'Date',kind:'date'},{label:'Horaire',kind:'time'},{label:'Durée (minutes)',kind:'number'},{label:'Lieu',options:['Chez le professionnel','À domicile']},{label:'Notes',kind:'textarea',full:true}];
 const serviceFields = [{label:'Nom de la prestation'},{label:'Durée (minutes)',kind:'number'},{label:'Prix (€)',kind:'number'},{label:'Lieu',options:['Chez le professionnel','À domicile','Les deux']},{label:'Modalités',kind:'textarea',full:true},{label:'Contraintes',kind:'textarea',full:true}];
