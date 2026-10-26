@@ -24,3 +24,6 @@ Rollback before activation: leave new nullable ownership columns unassigned and 
 
 ## Verification limitations
 External unmanaged Supabase prevents authenticated browser checks here. New schema is not live in this draft. Persistent provider saves, cross-account direct access and real email delivery remain unverified until acceptance, provenance approval and service activation. Existing service-role transactional writers require a dedicated compatibility/ownership pass before onboarding another provider; this delivery does not claim multi-provider production readiness.
+
+## Checks performed
+16 targeted tests passed (model, slot request and provider rules). Signed-out six-tab rendering checked at 390, 778 and 1440px without horizontal overflow or runtime errors; main entry still renders LCS Barber. Screenshots showed that vehicle signed-out state needed a clearer sign-in explanation; other tabs correctly display connection required. No populated provider screens or saves were browser-verified because their schema is staged and the external session cannot be restored here.
