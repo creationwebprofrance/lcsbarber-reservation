@@ -16,6 +16,7 @@ export const MonthlyRevenue = () => {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString());
   const monthNames = [
@@ -29,10 +30,12 @@ export const MonthlyRevenue = () => {
 
   const loadMonthlyData = async () => {
     setLoading(true);
+    setErrorMessage("");
     try {
       const { data: bookings, error } = await supabase
         .from('bookings')
         .select('appointment_date, total_price, status')
+        .in('status', ['confirmed', 'completed'])
         .gte('appointment_date', `${year}-01-01`)
         .lte('appointment_date', `${year}-12-31`);
 
@@ -70,10 +73,13 @@ export const MonthlyRevenue = () => {
       setTotalRevenue(yearTotal);
     } catch (error) {
       console.error('Erreur chargement données mensuelles:', error);
+      setErrorMessage('Impossible de charger le chiffre d’affaires.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (errorMessage) return <p role="alert">{errorMessage}</p>;
 
   if (loading) {
     return (
