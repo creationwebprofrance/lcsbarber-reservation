@@ -1,5 +1,9 @@
 # BLADE interface roadmap
 
+- [ ] Audit the October 26 provider-integration PDF: live schema, Lucas identity, ownership and existing functions.
+- [ ] Prepare and approve the six-tab persistent integration plan, preserving existing records and main compatibility.
+- [ ] Implement six-tab integration and staged ownership changes after plan approval; no live reassignment or emails during tests.
+
 - [x] Replace combined search view with Carte first, then Liste.
 - [x] Prepare no-availability requests and professional inbox, with staged database support only.
 - [x] Prepare owner email notification source without deploying it.
