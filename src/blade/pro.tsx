@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ProfessionalRequests } from './requests';
 import { LiveServices, LiveReviews, LiveAvailability, LiveProCard, LiveMyBookings, LiveAdminBookings, LiveClients, LiveDayAgenda, RatingSummary } from './live';
 import { Link } from 'react-router-dom';
-import { PageHeading, Section, MetricCard, EmptyState, BladeButton, Icon, PeriodFilter, ResponsiveList, Calendar, Tabs, LocalMap, LocalField, LocalForm, KeyValues, DisabledAction, SearchField, Modal, StatePreview, ArrowRight, Plus } from './common';
+import { PageHeading, Section, MetricCard, EmptyState, BladeButton, Icon, PeriodFilter, ResponsiveList, Calendar, Tabs, LocalMap, LocalField, LocalForm, KeyValues, DisabledAction, SearchField, Modal, StatePreview, ArrowRight, Plus, Check } from './common';
 import { useServices, usePricingRules, fmtPrice } from './data';
 import { calculatePricing, getTimeSupplementText } from '@/lib/pricing';
 
