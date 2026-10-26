@@ -27,6 +27,55 @@ function useRead<T>(load: () => Promise<T>, deps: unknown[] = []): State<T> {
 }
 const unwrap = <T,>({ data, error }: { data: T | null; error: { message: string } | null }) => { if (error) throw new Error(error.message); return (data ?? []) as T; };
 
+export type ProviderService = Service & { is_active: boolean };
+export type ProviderClient = Client & { is_blacklisted: boolean; unpaid_amount: number };
+export type ProviderBooking = Booking & { client_id: string | null; city_normalized: string | null; client_phone: string; notes: string | null };
+export type ProviderWork = { id: string; name: string; client_name: string | null; client_id: string | null; booking_id: string | null; amount: number; prestation_date: string; notes: string | null };
+export type ProviderTemplate = { id: string; template_type: string; subject: string; html_content: string };
+export type ProviderBundle = { provider_id: string; services: ProviderService[]; pricing: { id:string; setting_key:string; setting_value:number }[]; clients: ProviderClient[]; bookings: ProviderBooking[]; work: ProviderWork[]; templates: ProviderTemplate[]; merges: { merged_email:string; target_email:string; original_client_name:string }[] };
+export function useProviderData(refresh = 0) {
+  const { session, isAdmin, ready } = useSession();
+  const state = useRead(async () => {
+    if (!ready || !session || !isAdmin) return null;
+    const { data, error } = await (supabase as SupabaseClient).rpc('blade_provider_bundle');
+    if (error) throw new Error('Le rattachement de vos données n’est pas encore disponible. Il nécessite l’acceptation du brouillon et la vérification des anciennes lignes.');
+    return data as ProviderBundle;
+  }, [session?.user.id, isAdmin, ready, refresh]);
+  return { ...state, ready, signedIn: Boolean(session), isAdmin };
+}
+export async function saveProviderRecord(providerId: string, entity: string, id: string | null, values: Record<string, unknown>) {
+  const { error } = await (supabase as SupabaseClient).rpc('blade_save_record', { p_provider: providerId, p_entity: entity, p_id: id, p_values: values });
+  if (error) throw new Error(error.message);
+}
+export function useProviderVehicle(refresh = 0) {
+  const { session, isAdmin } = useSession();
+  return useRead(async () => {
+    if (!session || !isAdmin) return null;
+    const vehicles = unwrap<import('@/lib/vehicle').Vehicle[]>(await supabase.from('vehicles').select('*').eq('owner_id', session.user.id).order('is_default', { ascending:false }));
+    const ids = vehicles.map(v => v.id);
+    if (!ids.length) return { vehicles, readings:[], rules:[], events:[] };
+    const [readings,rules,events] = await Promise.all([
+      supabase.from('odometer_readings').select('*').in('vehicle_id',ids).order('reading_date',{ascending:false}).then(unwrap<import('@/lib/vehicle').OdometerReading[]>),
+      supabase.from('vehicle_maintenance_rules').select('*').in('vehicle_id',ids).eq('is_active',true).then(unwrap<import('@/lib/vehicle').MaintenanceRule[]>),
+      supabase.from('vehicle_maintenance_events').select('*').in('vehicle_id',ids).order('event_date',{ascending:false}).then(unwrap<import('@/lib/vehicle').MaintenanceEvent[]>),
+    ]);
+    return { vehicles,readings,rules,events };
+  }, [session?.user.id,isAdmin,refresh]);
+}
+export async function saveVehicleReading(vehicleId:string,value:number,unit:string,date:string) {
+  if (!Number.isFinite(value) || value < 0) throw new Error('Kilométrage invalide.');
+  const { error } = await supabase.from('odometer_readings').insert({vehicle_id:vehicleId,value,unit,reading_date:date,source:'manual',confirmed:true});
+  if (error) throw new Error(error.message);
+}
+export async function saveVehicleMaintenance(values: import('@/integrations/supabase/types').TablesInsert<'vehicle_maintenance_events'>) {
+  const {error} = await supabase.from('vehicle_maintenance_events').insert(values); if(error)throw new Error(error.message);
+}
+export async function sendProviderEmail(providerId:string,templateId:string,clientId:string,bookingId:string|null) {
+  const {data,error}=await supabase.functions.invoke('blade-send-template',{body:{provider_id:providerId,template_id:templateId,client_id:clientId,booking_id:bookingId}});
+  if(error)throw new Error('Envoi indisponible ou refusé. Aucun envoi confirmé.');
+  if(!data?.sent)throw new Error('Envoi non confirmé.');
+}
+
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
