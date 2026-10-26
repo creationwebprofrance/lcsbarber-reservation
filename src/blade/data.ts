@@ -75,6 +75,10 @@ export async function sendProviderEmail(providerId:string,templateId:string,clie
   if(error)throw new Error('Envoi indisponible ou refusé. Aucun envoi confirmé.');
   if(!data?.sent)throw new Error('Envoi non confirmé.');
 }
+export async function geocodeProviderCity(city:string):Promise<{lat:number;lng:number}|null> {
+  const {data,error}=await supabase.functions.invoke('geocode-city',{body:{city}});
+  return !error&&Number.isFinite(data?.lat)&&Number.isFinite(data?.lng)?{lat:data.lat,lng:data.lng}:null;
+}
 
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
