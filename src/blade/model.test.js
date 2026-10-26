@@ -9,12 +9,15 @@ describe('BLADE isolation and empty interface rules', () => {
     expect(isBladePath('/reservation')).toBe(false);
     expect(isBladePath('/')).toBe(false);
   });
-  test('all seven client pages, client account and eleven pro pages exist', () => {
+  test('all seven client pages, client account and fourteen pro pages exist', () => {
     expect(bladeRoutes.filter(path => path.startsWith('/blade/client'))).toHaveLength(8);
-    expect(bladeRoutes.filter(path => path.startsWith('/blade/pro'))).toHaveLength(11);
-    expect(new Set(bladeRoutes).size).toBe(19);
+    expect(bladeRoutes.filter(path => path.startsWith('/blade/pro'))).toHaveLength(14);
+    expect(new Set(bladeRoutes).size).toBe(22);
     expect(bladeRoutes).toContain('/blade/client/confirmation');
     expect(bladeRoutes).toContain('/blade/pro/vehicule');
+    expect(bladeRoutes).toContain('/blade/pro/catalogue');
+    expect(bladeRoutes).toContain('/blade/pro/simulation');
+    expect(bladeRoutes).toContain('/blade/pro/parametres');
   });
   test('empty form values remain empty without invented defaults', () => {
     expect(validateLocalValue('', 'email')).toBe('');
