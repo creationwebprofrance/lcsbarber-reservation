@@ -1,6 +1,7 @@
 // Staged only. Activation, private bucket and media inspection service require approval.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { assistant } from './assistant.ts';
 const bucket='blade-work-private';
 const enc=new TextEncoder();
 const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{...corsHeaders,'Content-Type':'application/json'}});
@@ -19,6 +20,7 @@ Deno.serve(async req=>{
  const identity=await visitor(body.visitor_token);const actor=await hash(user?`user:${user.id}`:`guest:${identity}`);
  const ipActor=await hash(`${req.headers.get('x-forwarded-for')??'unknown'}:${action}`);
  if(!(await db.rpc('blade_community_limit',{p_actor:ipActor,p_scope:'requests',p_limit:120,p_seconds:60})).data)return json({error:'Rate limited'},429);
+ if(action==='assistant')return assistant(req,body,db,actor);
  const own=async()=>{if(!user)throw new Error('Access denied');const role=await db.from('user_roles').select('role').eq('user_id',user.id).eq('role','admin');if(!role.data?.length)throw new Error('Access denied');const p=await db.from('blade_providers').select('id').eq('user_id',user.id).single();if(!p.data)throw new Error('Provider not linked');return p.data.id as string;};
  const allowed=async(id:string)=>{const pid=await own();const c=await db.from('blade_private_conversations').select('*').eq('id',id).single();if(!c.data||![c.data.provider_a,c.data.provider_b].includes(pid))throw new Error('Access denied');return{pid,c:c.data};};
  const base=()=>db.from('blade_publications').select('*,service:services!inner(id,name,price,duration_minutes,is_active,provider_id)').eq('status','published').eq('ready',true).eq('service.is_active',true);
@@ -62,7 +64,7 @@ Deno.serve(async req=>{
  if(body.thumbnail&&(!['image/jpeg','image/png','image/webp'].includes(body.thumbnail.type)||body.thumbnail.size<1||body.thumbnail.size>10485760))return json({error:'Invalid thumbnail'},400);
  const id=crypto.randomUUID(),path=`${pid}/${id}/original`,thumb=video?`${pid}/${id}/thumbnail`:null;
  must(await db.from('blade_publications').insert({id,provider_id:pid,...values,kind:image?'image':'video',mime_type:body.type,size_bytes:body.size,duration_seconds:video?v.duration:null,media_path:path,thumbnail_path:thumb,status:'processing'}));
- const ticket=must(await db.storage.from(bucket).createSignedUploadUrl(path)) as any;const thumbnail=thumb?must(await db.storage.from(bucket).createSignedUploadUrl(thumb)):null;return json({id,...ticket,thumbnail});
+ const ticket=must(await db.storage.from(bucket).createSignedUploadUrl(path)) as any;const thumbnail=thumb?must(await db.storage.from(bucket).createSignedUploadUrl(thumb)) as any:null;return json({id,url:ticket.signedUrl,token:ticket.token,path,thumbnail:thumbnail?{url:thumbnail.signedUrl,token:thumbnail.token,path:thumb}:null});
  }
  if(action==='finalize'){
   if(!uuid(body.id))return json({error:'Invalid ID'},400);const row=must(await db.from('blade_publications').select('*').eq('id',body.id).eq('provider_id',pid).eq('status','processing').single()) as any;

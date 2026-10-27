@@ -1,8 +1,11 @@
 # BLADE interface roadmap
 
-- [ ] Plan October 27 landing additions: genuine provider publications, immersive gallery, likes, private Messages, languages/themes and AI assistant.
-- [ ] Implement approved additions while preserving the current landing and existing business tabs.
-- [ ] Stage additive access/media/message relations; live activation waits for draft acceptance and service authorization.
+- [x] Plan October 27 landing additions: genuine provider publications, immersive gallery, likes, private Messages, languages/themes and AI assistant.
+- [x] Add landing sections, community screens, multilingual landing/new screens, themes, assistant FAQ and staged service source without fake content.
+- [x] Stage additive access/media/message relations; live activation waits for draft acceptance and service authorization.
+- [ ] Activate uploads, gallery persistence, likes, private messages and AI: blocked by acceptance, private storage, approved media inspector and server activation.
+- [ ] Complete guest booking handoff: existing LCSBARBER flow requires account identity and lacks provider/service preselection; keep booking_path disabled until compatible guest flow is authorized and verified.
+- [ ] Complete translation of legacy client/provider business screens and connected dark-theme QA: legacy copy remains French; authenticated testing unavailable on external Supabase.
 - [ ] Verify public and professional journeys, access isolation, media controls and FR/EN/ES at 390/768/1440px after required services are available.
 
 - [x] Audit the October 26 provider-integration PDF: live schema, Lucas identity, ownership and existing functions.

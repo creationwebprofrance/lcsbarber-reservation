@@ -259,3 +259,10 @@ html[data-blade-theme=dark] .blade-app,html[data-blade-theme=dark] .blade-modal{
 .blade-app .blade-button.blade-primary{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
 .bl2 .bl2-mode{background:hsl(var(--background));color:hsl(var(--foreground));border-color:hsl(var(--border))}.bl2 .bl2-mode.active{background:hsl(var(--card));color:hsl(var(--primary));border-color:hsl(var(--primary))}.bl2 .bl2-pill-outline{color:hsl(var(--primary))}.bl2 .bl2-pill-dark{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}.bl2 .bl2-navlink{color:hsl(var(--foreground))}.bl2 .bl2-submit.blade-primary{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
 html[data-blade-theme=dark] .blade-app .blade-button:not(.blade-primary):not(.bl2-mode):not(.bl-video-toggle){background:hsl(var(--card));color:hsl(var(--foreground))}html[data-blade-theme=dark] .blade-app .blade-button.blade-primary{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
+
+html[data-blade-theme=dark] .bl2 .blade-button,html[data-blade-theme=dark] .blade-modal .blade-button{transition:none}
+html[data-blade-theme=dark] .bl2 .blade-button.bl2-mode{background:hsl(var(--background))!important;color:hsl(var(--foreground))!important}
+html[data-blade-theme=dark] .bl2 .blade-button.bl2-mode.active{background:hsl(var(--card))!important;color:hsl(var(--foreground))!important;border-color:hsl(var(--primary))!important}
+html[data-blade-theme=dark] .bl2 .blade-button.blade-primary{background:hsl(var(--primary))!important;color:hsl(var(--primary-foreground))!important}
+html[data-blade-theme=dark] .bl2 .blade-button:not(.blade-primary):not(.bl2-mode):not(.bl-video-toggle){background:hsl(var(--card))!important;color:hsl(var(--foreground))!important}
+html[data-blade-theme=dark] .bl2 .bl2-pill-outline{color:hsl(var(--foreground));border-color:hsl(var(--primary))}

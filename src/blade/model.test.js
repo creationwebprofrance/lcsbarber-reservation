@@ -10,7 +10,7 @@ describe('BLADE isolation and empty interface rules', () => {
     expect(isBladePath('/')).toBe(false);
   });
   test('professional navigation has the six requested destinations plus the barber chat', () => {
-    expect(bladeRoutes.filter(path => path.startsWith('/blade/pro'))).toHaveLength(7); expect(bladeRoutes).toContain('/blade/pro/chat');
+    expect(bladeRoutes.filter(path => path.startsWith('/blade/pro'))).toHaveLength(8); expect(bladeRoutes).toContain('/blade/pro/chat');expect(bladeRoutes).toContain('/blade/pro/messages');
     expect(bladeRoutes).toContain('/blade/pro/prix');
     expect(bladeRoutes).toContain('/blade/pro/emails');
     expect(bladeRoutes).not.toContain('/blade/pro/catalogue');
