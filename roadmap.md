@@ -6,7 +6,8 @@
 - [ ] Activate uploads, gallery persistence, likes, private messages and AI: blocked by acceptance, private storage, approved media inspector and server activation.
 - [ ] Complete guest booking handoff: existing LCSBARBER flow requires account identity and lacks provider/service preselection; keep booking_path disabled until compatible guest flow is authorized and verified.
 - [ ] Complete translation of legacy client/provider business screens and connected dark-theme QA: legacy copy remains French; authenticated testing unavailable on external Supabase.
-- [ ] Verify public and professional journeys, access isolation, media controls and FR/EN/ES at 390/768/1440px after required services are available.
+- [x] Verify landing, preference persistence, public search handoff and assistant FAQ at 390/768/1440px; 22 model tests passed and preview build OK.
+- [ ] Verify real publications, media playback, cross-account isolation and AI responses after acceptance and approved service activation; new schema does not exist in this draft.
 
 - [x] Audit the October 26 provider-integration PDF: live schema, Lucas identity, ownership and existing functions.
 - [x] Prepare and approve the six-tab persistent integration plan, preserving existing records and main compatibility.
