@@ -14,7 +14,7 @@ export const proNav: ProNavItem[] = [
   { path: '/blade/pro/vehicule', label: 'Mon véhicule', icon: 'car' },
   { path: '/blade/pro/chat', label: 'Chat coiffeurs', icon: 'message' },
 ];
-export const proSecondaryLinks: {path:string;label:string;icon:string}[] = [];
+export const proSecondaryLinks: {path:string;label:string;icon:string}[] = [{path:'/blade/pro/messages',label:'Messages',icon:'message'}];
 export const proLinks = proNav.flatMap(item => item.path ? [{ path:item.path,label:item.label,icon:item.icon }] : []);
 export const bladeRoutes = [...clientLinks.map(x => x.path), '/blade/client/profil-professionnel', '/blade/client/reserver', '/blade/client/recapitulatif', '/blade/client/confirmation', ...proLinks.map(x => x.path)];
 export function isBladePath(path: string) { return path === '/blade' || path.startsWith('/blade/'); }
