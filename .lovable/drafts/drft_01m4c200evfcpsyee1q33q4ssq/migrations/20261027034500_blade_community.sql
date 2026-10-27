@@ -10,7 +10,8 @@ CREATE TABLE public.blade_public_profiles (
 GRANT SELECT ON public.blade_public_profiles TO anon,authenticated;
 GRANT ALL ON public.blade_public_profiles TO service_role;
 ALTER TABLE public.blade_public_profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Active public profile or owner" ON public.blade_public_profiles FOR SELECT USING(active OR public.blade_owns_provider(provider_id));
+CREATE POLICY "Public active profile" ON public.blade_public_profiles FOR SELECT TO anon USING(active);
+CREATE POLICY "Active profile or authenticated owner" ON public.blade_public_profiles FOR SELECT TO authenticated USING(active OR public.blade_owns_provider(provider_id));
 
 CREATE TABLE public.blade_publications (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), provider_id uuid NOT NULL REFERENCES public.blade_providers(id),
