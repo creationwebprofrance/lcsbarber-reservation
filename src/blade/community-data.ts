@@ -10,7 +10,7 @@ export function useCommunityRead<T>(load:()=>Promise<T>,deps:unknown[]=[]) {
  useEffect(()=>{if(!COMMUNITY_ACTIVE)return;let alive=true;setState(s=>({...s,loading:true,error:null}));load().then(data=>{if(alive)setState({data,loading:false,error:null});}).catch(()=>{if(alive)setState({data:null,loading:false,error:'unavailable'});});return()=>{alive=false;};},deps);
  return state;
 }
-async function invoke<T>(action:string,values:Record<string,unknown>={}):Promise<T>{const {data,error}=await supabase.functions.invoke('blade-community',{body:{action,...values}});if(error||data?.error)throw new Error('unavailable');return data as T;}
+async function invoke<T>(action:string,values:Record<string,unknown>={}):Promise<T>{let visitor='';try{visitor=localStorage.getItem('blade-visitor')??'';}catch{}const {data,error}=await supabase.functions.invoke('blade-community',{body:{action,visitor_token:visitor,...values}});if(error||data?.error)throw new Error('unavailable');return data as T;}
 export const listWorks=(filters:Record<string,unknown>)=>invoke<{items:PublicWork[];hasMore:boolean;categories:string[]}>('feed',filters);
 export const workById=(id:string)=>invoke<PublicWork|null>('work',{id});
 export const providerById=(id:string)=>invoke<PublicProvider|null>('profile',{id});
@@ -25,7 +25,7 @@ export async function setLike(id:string,liked:boolean) {
 }
 export async function uploadWork(file:File,thumbnail:File|null,values:Record<string,unknown>,progress:(n:number)=>void) {
  const ticket=await invoke<{id:string;url:string;token:string;path:string;thumbnail?:{url:string;token:string;path:string}}>('upload',{values,type:file.type,size:file.size,thumbnail:thumbnail?{type:thumbnail.type,size:thumbnail.size}:null});
- const put=(url:string,token:string,body:File,start:number,span:number)=>new Promise<void>((resolve,reject)=>{const xhr=new XMLHttpRequest();xhr.open('PUT',`${url}?token=${encodeURIComponent(token)}`);xhr.setRequestHeader('Content-Type',body.type);xhr.setRequestHeader('x-upsert','false');xhr.upload.onprogress=e=>{if(e.lengthComputable)progress(start+span*e.loaded/e.total);};xhr.onerror=()=>reject(new Error('upload'));xhr.onload=()=>xhr.status>=200&&xhr.status<300?resolve():reject(new Error('upload'));xhr.send(body);});
+ const put=(url:string,_token:string,body:File,start:number,span:number)=>new Promise<void>((resolve,reject)=>{const xhr=new XMLHttpRequest();xhr.open('PUT',url);xhr.setRequestHeader('Content-Type',body.type);xhr.setRequestHeader('x-upsert','false');xhr.upload.onprogress=e=>{if(e.lengthComputable)progress(start+span*e.loaded/e.total);};xhr.onerror=()=>reject(new Error('upload'));xhr.onload=()=>xhr.status>=200&&xhr.status<300?resolve():reject(new Error('upload'));xhr.send(body);});
  await put(ticket.url,ticket.token,file,0,thumbnail?85:95);if(thumbnail&&ticket.thumbnail)await put(ticket.thumbnail.url,ticket.thumbnail.token,thumbnail,85,10);
  await invoke('finalize',{id:ticket.id});progress(100);return ticket.id;
 }

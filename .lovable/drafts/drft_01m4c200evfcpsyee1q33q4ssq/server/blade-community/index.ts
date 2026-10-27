@@ -64,7 +64,7 @@ Deno.serve(async req=>{
  if(body.thumbnail&&(!['image/jpeg','image/png','image/webp'].includes(body.thumbnail.type)||body.thumbnail.size<1||body.thumbnail.size>10485760))return json({error:'Invalid thumbnail'},400);
  const id=crypto.randomUUID(),path=`${pid}/${id}/original`,thumb=video?`${pid}/${id}/thumbnail`:null;
  must(await db.from('blade_publications').insert({id,provider_id:pid,...values,kind:image?'image':'video',mime_type:body.type,size_bytes:body.size,duration_seconds:video?v.duration:null,media_path:path,thumbnail_path:thumb,status:'processing'}));
- const ticket=must(await db.storage.from(bucket).createSignedUploadUrl(path)) as any;const thumbnail=thumb?must(await db.storage.from(bucket).createSignedUploadUrl(thumb)):null;return json({id,...ticket,thumbnail});
+ const ticket=must(await db.storage.from(bucket).createSignedUploadUrl(path)) as any;const thumbnail=thumb?must(await db.storage.from(bucket).createSignedUploadUrl(thumb)) as any:null;return json({id,url:ticket.signedUrl,token:ticket.token,path,thumbnail:thumbnail?{url:thumbnail.signedUrl,token:thumbnail.token,path:thumb}:null});
  }
  if(action==='finalize'){
   if(!uuid(body.id))return json({error:'Invalid ID'},400);const row=must(await db.from('blade_publications').select('*').eq('id',body.id).eq('provider_id',pid).eq('status','processing').single()) as any;
