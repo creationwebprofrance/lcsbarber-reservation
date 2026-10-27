@@ -1,5 +1,10 @@
 # BLADE interface roadmap
 
+- [ ] Plan October 27 landing additions: genuine provider publications, immersive gallery, likes, private Messages, languages/themes and AI assistant.
+- [ ] Implement approved additions while preserving the current landing and existing business tabs.
+- [ ] Stage additive access/media/message relations; live activation waits for draft acceptance and service authorization.
+- [ ] Verify public and professional journeys, access isolation, media controls and FR/EN/ES at 390/768/1440px after required services are available.
+
 - [x] Audit the October 26 provider-integration PDF: live schema, Lucas identity, ownership and existing functions.
 - [x] Prepare and approve the six-tab persistent integration plan, preserving existing records and main compatibility.
 - [x] Prepare six-tab integration, staged ownership schema and manual email sender; no live reassignment or emails during tests.
