@@ -266,3 +266,8 @@ html[data-blade-theme=dark] .bl2 .blade-button.bl2-mode.active{background:hsl(va
 html[data-blade-theme=dark] .bl2 .blade-button.blade-primary{background:hsl(var(--primary))!important;color:hsl(var(--primary-foreground))!important}
 html[data-blade-theme=dark] .bl2 .blade-button:not(.blade-primary):not(.bl2-mode):not(.bl-video-toggle){background:hsl(var(--card))!important;color:hsl(var(--foreground))!important}
 html[data-blade-theme=dark] .bl2 .bl2-pill-outline{color:hsl(var(--foreground));border-color:hsl(var(--primary))}
+.bl2-footer{flex-wrap:wrap;gap:1rem}
+.bl2-legal strong{display:block;font-weight:700;margin-bottom:.4rem}
+.bl2-legal ul{list-style:none;margin:0;padding:0;display:grid;gap:.25rem;font-size:.85rem}
+.bl2-legal a{color:inherit;opacity:.8;text-decoration:none}
+.bl2-legal a:hover{opacity:1;text-decoration:underline}
