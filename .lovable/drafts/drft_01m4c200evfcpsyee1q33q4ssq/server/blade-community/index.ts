@@ -1,6 +1,7 @@
 // Staged only. Activation, private bucket and media inspection service require approval.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { assistant } from './assistant.ts';
 const bucket='blade-work-private';
 const enc=new TextEncoder();
 const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{...corsHeaders,'Content-Type':'application/json'}});
@@ -19,6 +20,7 @@ Deno.serve(async req=>{
  const identity=await visitor(body.visitor_token);const actor=await hash(user?`user:${user.id}`:`guest:${identity}`);
  const ipActor=await hash(`${req.headers.get('x-forwarded-for')??'unknown'}:${action}`);
  if(!(await db.rpc('blade_community_limit',{p_actor:ipActor,p_scope:'requests',p_limit:120,p_seconds:60})).data)return json({error:'Rate limited'},429);
+ if(action==='assistant')return assistant(req,body,db,actor);
  const own=async()=>{if(!user)throw new Error('Access denied');const role=await db.from('user_roles').select('role').eq('user_id',user.id).eq('role','admin');if(!role.data?.length)throw new Error('Access denied');const p=await db.from('blade_providers').select('id').eq('user_id',user.id).single();if(!p.data)throw new Error('Provider not linked');return p.data.id as string;};
  const allowed=async(id:string)=>{const pid=await own();const c=await db.from('blade_private_conversations').select('*').eq('id',id).single();if(!c.data||![c.data.provider_a,c.data.provider_b].includes(pid))throw new Error('Access denied');return{pid,c:c.data};};
  const base=()=>db.from('blade_publications').select('*,service:services!inner(id,name,price,duration_minutes,is_active,provider_id)').eq('status','published').eq('ready',true).eq('service.is_active',true);

@@ -83,7 +83,7 @@ export function Landing() {
       <section className="blade-collaboration blade-reveal"><div><h2>{t('collaborationTitle')}</h2><p>{t('collaborationText')}</p><ul>{(['recommend','availability','collaborate'] as const).map(key=><li key={key}><Check size={18}/>{t(key)}</li>)}</ul><BladeButton asChild><Link to={session&&isAdmin?'/blade/pro/messages':'/blade/connexion?espace=pro'}>{session&&isAdmin?t('messages'):t('network')} <ArrowRight size={18}/></Link></BladeButton></div></section>
       <section className="blade-travel-band blade-reveal"><MapPin size={32}/><div><h2>{t('slogan1')} {t('slogan2')}</h2><p>{t('travel')}</p></div><BladeButton asChild variant="default"><Link to="/blade/client">{t('find')} <ArrowRight size={18}/></Link></BladeButton></section>
     </main>
-    <footer className="bl2-footer"><span>© BLADE</span><nav aria-label="Liens"><a href="#blade-gallery">{t('help')}</a><span className="bl2-sep" /><a href="/confidentialite">{t('privacy')}</a></nav></footer>
+    <footer className="bl2-footer"><span>© BLADE</span><nav aria-label="Liens"><a href="#blade-gallery">{t('help')}</a><span className="bl2-sep" /><a href="/politique-de-confidentialite">{t('privacy')}</a></nav></footer>
   </div>;
 }
 

@@ -10,3 +10,5 @@
 - Professional provider screens use provider.tsx and provider-model.ts with existing maintenance calculations without generic forecast defaults; this keeps accounting and maintenance rules testable without invented records.
 - Legacy rows without verified ownership are not included in provider RPCs; assign approved IDs transactionally with compatible service/booking/client links only after backup and provenance approval, because shared access is not proof of ownership.
 - BLADE pro chat (offers + replies) is admin-only until multi-provider access exists; reply emails go through a staged server function that fails closed until email activation is approved.
+- BLADE community uses separate provider-owned publications, server-issued visitor reactions and participant-only private conversations; keep activation off until additive schema, private media storage and server processing are verified, so the draft never simulates successful persistence.
+- BLADE language/theme preferences and dictionaries are local to its entry; public provider profile routes sit outside private account guards, preserving public discovery without mixing account spaces.
