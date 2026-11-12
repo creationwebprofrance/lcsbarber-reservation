@@ -729,6 +729,48 @@ export type Database = {
         }
         Relationships: []
       }
+      slot_requests: {
+        Row: {
+          client_email: string
+          client_name: string
+          created_at: string
+          email_error: string | null
+          email_sent_at: string | null
+          id: string
+          message: string
+          mode: string
+          requested_date: string
+          requested_time: string
+          user_id: string
+        }
+        Insert: {
+          client_email: string
+          client_name: string
+          created_at?: string
+          email_error?: string | null
+          email_sent_at?: string | null
+          id: string
+          message?: string
+          mode: string
+          requested_date: string
+          requested_time: string
+          user_id: string
+        }
+        Update: {
+          client_email?: string
+          client_name?: string
+          created_at?: string
+          email_error?: string | null
+          email_sent_at?: string | null
+          id?: string
+          message?: string
+          mode?: string
+          requested_date?: string
+          requested_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1428,9 +1470,32 @@ export type Database = {
         Args: { _max_calls: number; _provider: string }
         Returns: Json
       }
+      create_blade_slot_request: {
+        Args: {
+          p_date: string
+          p_email: string
+          p_id: string
+          p_message: string
+          p_mode: string
+          p_name: string
+          p_time: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       create_booking_from_pending: {
         Args: { p_verification_token: string }
         Returns: Json
+      }
+      get_public_reviews: {
+        Args: never
+        Returns: {
+          client_name: string
+          comment: string
+          created_at: string
+          id: string
+          rating: number
+        }[]
       }
       has_role: {
         Args: {

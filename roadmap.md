@@ -4,3 +4,4 @@
 - [ ] 3. Page Superadmin, écran en attente, liens de paiement, bouton Acompte reçu
 - [ ] 4. Emails automatiques BLADE + rappel veille
 - [ ] 5. Tests des règles
+- [ ] 6. Alerte inactivité 1 mois : email au superadmin et au prestataire (dernière activité suivie)
