@@ -312,18 +312,54 @@ export type Database = {
       blade_providers: {
         Row: {
           created_at: string
+          display_name: string | null
+          email: string | null
           id: string
+          inactivity_notified_at: string | null
+          last_active_at: string
+          opt_auto_emails: boolean
+          opt_payment_links: boolean
+          opt_searchable: boolean
+          revolut_url: string | null
+          status: string
+          stripe_link_url: string | null
+          updated_at: string
           user_id: string
+          validated_at: string | null
         }
         Insert: {
           created_at?: string
+          display_name?: string | null
+          email?: string | null
           id: string
+          inactivity_notified_at?: string | null
+          last_active_at?: string
+          opt_auto_emails?: boolean
+          opt_payment_links?: boolean
+          opt_searchable?: boolean
+          revolut_url?: string | null
+          status?: string
+          stripe_link_url?: string | null
+          updated_at?: string
           user_id: string
+          validated_at?: string | null
         }
         Update: {
           created_at?: string
+          display_name?: string | null
+          email?: string | null
           id?: string
+          inactivity_notified_at?: string | null
+          last_active_at?: string
+          opt_auto_emails?: boolean
+          opt_payment_links?: boolean
+          opt_searchable?: boolean
+          revolut_url?: string | null
+          status?: string
+          stripe_link_url?: string | null
+          updated_at?: string
           user_id?: string
+          validated_at?: string | null
         }
         Relationships: []
       }
@@ -527,6 +563,7 @@ export type Database = {
         Row: {
           appointment_date: string
           appointment_time: string
+          blade_reminder_sent_at: string | null
           city_normalized: string | null
           client_address: string | null
           client_email: string
@@ -534,7 +571,9 @@ export type Database = {
           client_name: string
           client_phone: string
           created_at: string
+          deposit_method: string | null
           deposit_paid: boolean
+          deposit_received_at: string | null
           id: string
           notes: string | null
           provider_id: string | null
@@ -547,6 +586,7 @@ export type Database = {
         Insert: {
           appointment_date: string
           appointment_time: string
+          blade_reminder_sent_at?: string | null
           city_normalized?: string | null
           client_address?: string | null
           client_email: string
@@ -554,7 +594,9 @@ export type Database = {
           client_name: string
           client_phone: string
           created_at?: string
+          deposit_method?: string | null
           deposit_paid?: boolean
+          deposit_received_at?: string | null
           id?: string
           notes?: string | null
           provider_id?: string | null
@@ -567,6 +609,7 @@ export type Database = {
         Update: {
           appointment_date?: string
           appointment_time?: string
+          blade_reminder_sent_at?: string | null
           city_normalized?: string | null
           client_address?: string | null
           client_email?: string
@@ -574,7 +617,9 @@ export type Database = {
           client_name?: string
           client_phone?: string
           created_at?: string
+          deposit_method?: string | null
           deposit_paid?: boolean
+          deposit_received_at?: string | null
           id?: string
           notes?: string | null
           provider_id?: string | null
@@ -1979,6 +2024,22 @@ export type Database = {
       }
     }
     Functions: {
+      blade_admin_overview: { Args: never; Returns: Json }
+      blade_admin_set_provider: {
+        Args: {
+          p_auto_emails: boolean
+          p_payment_links: boolean
+          p_provider: string
+          p_searchable: boolean
+          p_status: string
+        }
+        Returns: undefined
+      }
+      blade_booking_deposit_links: {
+        Args: { p_booking: string }
+        Returns: Json
+      }
+      blade_cancel_booking: { Args: { p_booking: string }; Returns: undefined }
       blade_community_limit: {
         Args: {
           p_actor: string
@@ -1992,8 +2053,19 @@ export type Database = {
         Args: { p_conversation: string }
         Returns: boolean
       }
+      blade_is_active_provider: { Args: never; Returns: boolean }
+      blade_mark_deposit_received: {
+        Args: { p_booking: string; p_method: string }
+        Returns: undefined
+      }
+      blade_my_provider: { Args: never; Returns: Json }
       blade_owns_provider: { Args: { p_provider: string }; Returns: boolean }
       blade_provider_bundle: { Args: never; Returns: Json }
+      blade_provider_visible: { Args: { p_provider: string }; Returns: boolean }
+      blade_register_provider: {
+        Args: { p_display_name: string }
+        Returns: Json
+      }
       blade_save_record: {
         Args: {
           p_entity: string
@@ -2002,6 +2074,14 @@ export type Database = {
           p_values: Json
         }
         Returns: string
+      }
+      blade_update_own_provider: {
+        Args: {
+          p_display_name: string
+          p_revolut_url: string
+          p_stripe_link_url: string
+        }
+        Returns: Json
       }
       cleanup_expired_pending_bookings: { Args: never; Returns: undefined }
       consume_vehicle_api_quota: {
@@ -2043,10 +2123,11 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { user_uuid?: string }; Returns: boolean }
+      is_superadmin: { Args: never; Returns: boolean }
       make_user_admin: { Args: { user_email: string }; Returns: undefined }
     }
     Enums: {
-      app_role: "admin" | "client"
+      app_role: "admin" | "client" | "superadmin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2174,7 +2255,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "client"],
+      app_role: ["admin", "client", "superadmin"],
     },
   },
 } as const
