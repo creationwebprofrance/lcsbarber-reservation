@@ -7,3 +7,5 @@
 - [x] 6. Alerte inactivité 1 mois : email au superadmin et au prestataire (dernière activité suivie)
 - [x] 7b. Rattacher toutes les données LCS Barber (réservations, clients, prestations/CA, services, réglages, modèles d’email) au compte prestataire LCS — demandé par Lucas
 - [x] 8. Vraie réservation BLADE côté client : prestation → lieu → date → horaire → récap → envoi (rdv en attente si acompte requis)
+- [x] 9. Le site s'ouvre sur BLADE (tout le monde) ; ancien accueil LCS Barber sur /lcsbarber
+- [x] 10. Test réel d'une réservation BLADE (compte test, créneau temporaire, nettoyé ensuite) ; jours visibles jusqu'à 3 mois

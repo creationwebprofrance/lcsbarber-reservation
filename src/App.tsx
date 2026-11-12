@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 import Home from "./pages/Home";
 import Reservation from "./pages/Reservation";
 import Dashboard from "./pages/Dashboard";
@@ -31,6 +32,12 @@ import ChatBot from "./components/ChatBot";
 
 const queryClient = new QueryClient();
 
+/** index.html carries BLADE metadata; the LCS Barber pages keep their own tab title. */
+function LcsTitle() {
+  useEffect(() => { document.title = "LCS Barber ⭐ - Réservez votre rendez-vous en ligne"; }, []);
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="lcs-theme">
@@ -41,9 +48,11 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <LcsTitle />
 
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Navigate to="/lcsbarber" replace />} />
+            <Route path="/lcsbarber" element={<Home />} />
             <Route path="/reservation" element={<RequireAuth><Reservation /></RequireAuth>} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />

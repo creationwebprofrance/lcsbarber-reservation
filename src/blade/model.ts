@@ -19,6 +19,9 @@ export const proSecondaryLinks: {path:string;label:string;icon:string}[] = [{pat
 export const proLinks = proNav.flatMap(item => item.path ? [{ path:item.path,label:item.label,icon:item.icon }] : []);
 export const bladeRoutes = [...clientLinks.map(x => x.path), '/blade/client/profil-professionnel', '/blade/client/reserver', '/blade/client/recapitulatif', '/blade/client/confirmation', ...proLinks.map(x => x.path), ...proSecondaryLinks.map(x=>x.path)];
 export function isBladePath(path: string) { return path === '/blade' || path.startsWith('/blade/'); }
+/** The site root opens BLADE; the former LCS Barber home lives at LCS_HOME. */
+export const LCS_HOME = '/lcsbarber';
+export function entryPath(path: string) { return path === '/' ? '/blade' : path; }
 export function validateLocalValue(value: string, kind: string) {
   if (!value.trim()) return '';
   if (kind === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Renseignez une adresse e-mail valide.';

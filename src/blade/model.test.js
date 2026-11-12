@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { bladeRoutes, isBladePath, monthCells, validateLocalValue } from './model';
+import { bladeRoutes, entryPath, isBladePath, monthCells, validateLocalValue } from './model';
 
 describe('BLADE isolation and empty interface rules', () => {
   test('only the /blade boundary selects the isolated application', () => {
@@ -31,4 +31,10 @@ describe('BLADE isolation and empty interface rules', () => {
     expect(dates.filter(value => value !== null)).toHaveLength(31);
     expect(dates.at(-1)).toBe(null);
   });
+});
+test('the site root opens BLADE, other LCS Barber addresses stay unchanged', () => {
+  expect(entryPath('/')).toBe('/blade');
+  expect(entryPath('/reservation')).toBe('/reservation');
+  expect(entryPath('/lcsbarber')).toBe('/lcsbarber');
+  expect(entryPath('/blade/client')).toBe('/blade/client');
 });
