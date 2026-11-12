@@ -2039,6 +2039,7 @@ export type Database = {
         Args: { p_booking: string }
         Returns: Json
       }
+      blade_cancel_booking: { Args: { p_booking: string }; Returns: undefined }
       blade_community_limit: {
         Args: {
           p_actor: string
