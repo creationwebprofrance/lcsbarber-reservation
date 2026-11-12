@@ -76,6 +76,24 @@ export type Database = {
         }
         Relationships: []
       }
+      blade_providers: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_requests: {
         Row: {
           client_email: string
@@ -122,14 +140,17 @@ export type Database = {
         Row: {
           appointment_date: string
           appointment_time: string
+          city_normalized: string | null
           client_address: string | null
           client_email: string
+          client_id: string | null
           client_name: string
           client_phone: string
           created_at: string
           deposit_paid: boolean
           id: string
           notes: string | null
+          provider_id: string | null
           service_id: string
           status: string
           total_price: number
@@ -139,14 +160,17 @@ export type Database = {
         Insert: {
           appointment_date: string
           appointment_time: string
+          city_normalized?: string | null
           client_address?: string | null
           client_email: string
+          client_id?: string | null
           client_name: string
           client_phone: string
           created_at?: string
           deposit_paid?: boolean
           id?: string
           notes?: string | null
+          provider_id?: string | null
           service_id: string
           status?: string
           total_price: number
@@ -156,14 +180,17 @@ export type Database = {
         Update: {
           appointment_date?: string
           appointment_time?: string
+          city_normalized?: string | null
           client_address?: string | null
           client_email?: string
+          client_id?: string | null
           client_name?: string
           client_phone?: string
           created_at?: string
           deposit_paid?: boolean
           id?: string
           notes?: string | null
+          provider_id?: string | null
           service_id?: string
           status?: string
           total_price?: number
@@ -171,6 +198,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_service_id_fkey"
             columns: ["service_id"]
@@ -246,6 +287,7 @@ export type Database = {
           id: string
           merged_email: string
           original_client_name: string
+          provider_id: string | null
           target_email: string
         }
         Insert: {
@@ -253,6 +295,7 @@ export type Database = {
           id?: string
           merged_email: string
           original_client_name: string
+          provider_id?: string | null
           target_email: string
         }
         Update: {
@@ -260,9 +303,18 @@ export type Database = {
           id?: string
           merged_email?: string
           original_client_name?: string
+          provider_id?: string | null
           target_email?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "client_merges_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients: {
         Row: {
@@ -273,6 +325,7 @@ export type Database = {
           is_blacklisted: boolean
           name: string
           phone: string | null
+          provider_id: string | null
           unpaid_amount: number
           updated_at: string
         }
@@ -284,6 +337,7 @@ export type Database = {
           is_blacklisted?: boolean
           name: string
           phone?: string | null
+          provider_id?: string | null
           unpaid_amount?: number
           updated_at?: string
         }
@@ -295,10 +349,19 @@ export type Database = {
           is_blacklisted?: boolean
           name?: string
           phone?: string | null
+          provider_id?: string | null
           unpaid_amount?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       date_overrides: {
         Row: {
@@ -341,6 +404,7 @@ export type Database = {
           created_at: string | null
           html_content: string
           id: string
+          provider_id: string | null
           subject: string
           template_type: string
           updated_at: string | null
@@ -349,6 +413,7 @@ export type Database = {
           created_at?: string | null
           html_content: string
           id?: string
+          provider_id?: string | null
           subject: string
           template_type: string
           updated_at?: string | null
@@ -357,11 +422,20 @@ export type Database = {
           created_at?: string | null
           html_content?: string
           id?: string
+          provider_id?: string | null
           subject?: string
           template_type?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       events: {
         Row: {
@@ -565,41 +639,73 @@ export type Database = {
       prestations: {
         Row: {
           amount: number
+          booking_id: string | null
+          client_id: string | null
           client_name: string | null
           created_at: string
           id: string
           name: string
           notes: string | null
           prestation_date: string
+          provider_id: string | null
           updated_at: string
         }
         Insert: {
           amount?: number
+          booking_id?: string | null
+          client_id?: string | null
           client_name?: string | null
           created_at?: string
           id?: string
           name: string
           notes?: string | null
           prestation_date?: string
+          provider_id?: string | null
           updated_at?: string
         }
         Update: {
           amount?: number
+          booking_id?: string | null
+          client_id?: string | null
           client_name?: string | null
           created_at?: string
           id?: string
           name?: string
           notes?: string | null
           prestation_date?: string
+          provider_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "prestations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prestations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prestations_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricing_settings: {
         Row: {
           created_at: string | null
           description: string | null
           id: string
+          provider_id: string | null
           setting_key: string
           setting_value: number
           updated_at: string | null
@@ -608,6 +714,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          provider_id?: string | null
           setting_key: string
           setting_value: number
           updated_at?: string | null
@@ -616,11 +723,20 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          provider_id?: string | null
           setting_key?: string
           setting_value?: number
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pricing_settings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -705,6 +821,7 @@ export type Database = {
           is_active: boolean
           name: string
           price: number
+          provider_id: string | null
           updated_at: string
         }
         Insert: {
@@ -715,6 +832,7 @@ export type Database = {
           is_active?: boolean
           name: string
           price: number
+          provider_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -725,9 +843,18 @@ export type Database = {
           is_active?: boolean
           name?: string
           price?: number
+          provider_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "services_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       slot_requests: {
         Row: {
@@ -1465,6 +1592,17 @@ export type Database = {
       }
     }
     Functions: {
+      blade_owns_provider: { Args: { p_provider: string }; Returns: boolean }
+      blade_provider_bundle: { Args: never; Returns: Json }
+      blade_save_record: {
+        Args: {
+          p_entity: string
+          p_id: string
+          p_provider: string
+          p_values: Json
+        }
+        Returns: string
+      }
       cleanup_expired_pending_bookings: { Args: never; Returns: undefined }
       consume_vehicle_api_quota: {
         Args: { _max_calls: number; _provider: string }
