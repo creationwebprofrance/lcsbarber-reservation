@@ -1,5 +1,6 @@
 // Shared BLADE email helpers: black & white layout, HTML escaping, Resend delivery.
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
+import { BLADE_LOGO_CID, BLADE_LOGO_PNG_BASE64 } from './blade-email-logo.ts';
 
 export const BLADE_SENDER = 'BLADE <noreply@lookware.fr>';
 export const BLADE_SITE = 'https://lcsbarber-reservation.lovable.app/blade';
@@ -15,7 +16,7 @@ export function layout(title: string, bodyHtml: string, cta?: { label: string; u
   return `<!doctype html><html><body style="margin:0;background:#f4f4f4;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;color:#171717">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center">
 <table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border:1px solid #e5e5e5;border-radius:16px" cellspacing="0" cellpadding="0">
-<tr><td style="padding:22px 28px;border-bottom:1px solid #e5e5e5;font-weight:800;letter-spacing:4px;font-size:18px">BLADE</td></tr>
+<tr><td style="padding:22px 28px;border-bottom:1px solid #e5e5e5"><img src="cid:${BLADE_LOGO_CID}" width="160" height="34" alt="BLADE" style="display:block;border:0;outline:none;text-decoration:none;width:160px;height:auto;font-weight:800;letter-spacing:4px;font-size:18px;color:#171717"></td></tr>
 <tr><td style="padding:28px">
 <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3">${esc(title)}</h1>
 <div style="font-size:15px;line-height:1.6;color:#262626">${bodyHtml}</div>${button}
@@ -36,7 +37,8 @@ export async function sendEmail(to: string[], subject: string, html: string, ide
   if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey.slice(0, 256);
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST', headers,
-    body: JSON.stringify({ from: BLADE_SENDER, to: recipients, subject: subject.slice(0, 150), html, ...(replyTo ? { reply_to: replyTo } : {}) }),
+    body: JSON.stringify({ from: BLADE_SENDER, to: recipients, subject: subject.slice(0, 150), html, ...(replyTo ? { reply_to: replyTo } : {}),
+      ...(html.includes(`cid:${BLADE_LOGO_CID}`) ? { attachments: [{ filename: 'blade-logo.png', content: BLADE_LOGO_PNG_BASE64, content_id: BLADE_LOGO_CID }] } : {}) }),
   }).catch(() => null);
   if (!r?.ok) { console.error('Resend failed', r?.status, await r?.text().catch(() => '')); return false; }
   return true;
