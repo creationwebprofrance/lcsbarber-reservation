@@ -6,7 +6,8 @@ import { LoaderCircle, Star } from 'lucide-react';
 import { EmptyState, Icon, BladeButton, Tabs } from './common';
 import { RequestSlot } from './requests';
 import { canRequestSlot } from './request-model';
-import { useServices, useReviews, useAvailability, useBookings, useClients, useSession, fmtDate, fmtPrice, statusLabel, isoDate, type Booking } from './data';
+import { useServices, useReviews, useAvailability, useBookings, useClients, useSession, fmtDate, fmtPrice, statusLabel, isoDate, getDepositLinks, type Booking, type DepositLinks } from './data';
+import { needsDeposit } from './provider-admin-model';
 
 function Loading() { return <p className="blade-note" role="status"><LoaderCircle className="blade-spinner" size={16} /> Chargement…</p>; }
 function Failed({ error }: { error: string }) { return <p className="blade-note blade-error" role="alert">Impossible de charger les données : {error}</p>; }
@@ -51,7 +52,21 @@ export function LiveMyBookings() {
   if (!ready) return <Loading />;
   if (!session) return <EmptyState icon="user" title="Connectez-vous pour voir vos rendez-vous" action={<BladeButton asChild variant="default"><Link to="/blade/connexion?espace=client">Se connecter</Link></BladeButton>} />;
   const list = (data ?? []).filter(b => tab === 'À venir' ? b.appointment_date >= today : b.appointment_date < today);
-  return <><Tabs options={['À venir', 'Passés']} value={tab} onChange={setTab} />{loading ? <Loading /> : error ? <Failed error={error} /> : list.length ? <Table columns={['Date', 'Heure', 'Professionnel', 'Prestation', 'Statut', 'Total']} rows={bookingRows(tab === 'Passés' ? [...list].reverse() : list, false)} /> : <EmptyState title={tab === 'À venir' ? 'Aucun rendez-vous à venir' : 'Aucun rendez-vous passé'} compact />}</>;
+  const deposits = (data ?? []).filter(b => b.appointment_date >= today && needsDeposit(b));
+  return <><Tabs options={['À venir', 'Passés']} value={tab} onChange={setTab} />{loading ? <Loading /> : error ? <Failed error={error} /> : list.length ? <Table columns={['Date', 'Heure', 'Professionnel', 'Prestation', 'Statut', 'Total']} rows={bookingRows(tab === 'Passés' ? [...list].reverse() : list, false)} /> : <EmptyState title={tab === 'À venir' ? 'Aucun rendez-vous à venir' : 'Aucun rendez-vous passé'} compact />}
+    {deposits.length > 0 && <section className="blade-section"><div className="blade-section-heading"><h2>Acomptes à régler</h2></div><div className="blade-provider-list">{deposits.map(b => <article key={b.id}><div><h3>{fmtDate(b.appointment_date)} · {b.appointment_time.slice(0, 5)}</h3><p>{b.services?.name ?? 'Prestation'} · {fmtPrice(b.total_price)}</p></div><DepositButton bookingId={b.id} /></article>)}</div></section>}</>;
+}
+
+function DepositButton({ bookingId }: { bookingId: string }) {
+  const [links, setLinks] = useState<DepositLinks | undefined>(undefined); const [busy, setBusy] = useState(false);
+  async function open() { setBusy(true); try { setLinks(await getDepositLinks(bookingId)); } catch { setLinks(null); } finally { setBusy(false); } }
+  if (links === undefined) return <BladeButton variant="default" disabled={busy} onClick={open}><Icon name="card" />{busy ? 'Chargement…' : 'Payer l’acompte'}</BladeButton>;
+  if (!links?.available || (!links.revolut_url && !links.stripe_link_url)) return <p className="blade-note">Paiement en ligne indisponible pour ce professionnel. Contacte-le directement.</p>;
+  return <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+    {links.revolut_url && <BladeButton variant="default" asChild><a href={links.revolut_url} target="_blank" rel="noopener noreferrer">Payer avec Revolut</a></BladeButton>}
+    {links.stripe_link_url && <BladeButton variant="default" asChild><a href={links.stripe_link_url} target="_blank" rel="noopener noreferrer">Payer par carte (Stripe)</a></BladeButton>}
+    <p className="blade-note">Ton rendez-vous sera confirmé dès que {links.provider_name ?? 'le professionnel'} aura reçu l’acompte.</p>
+  </div>;
 }
 
 function AdminGate({ children }: { children: (ok: boolean) => JSX.Element }) {

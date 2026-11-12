@@ -11,7 +11,8 @@ type Reply = { id: string; offer_id: string; author_id: string; author_name: str
 const db = supabase as any;
 
 export function ProChat() {
-  const { session, isAdmin, ready, firstName } = useSession();
+  const { session, provider, ready, firstName } = useSession();
+  const isAdmin = provider?.status === 'active';
   const [offers, setOffers] = useState<Offer[]>([]);
   const [replies, setReplies] = useState<Reply[]>([]);
   const [error, setError] = useState('');
