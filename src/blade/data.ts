@@ -246,3 +246,18 @@ export async function cancelProviderBooking(bookingId: string) {
 }
 export type DepositLinks = { available: boolean; deposit_paid: boolean; status: string; provider_name?: string; revolut_url?: string | null; stripe_link_url?: string | null } | null;
 export const getDepositLinks = (bookingId: string) => rpc<DepositLinks>('blade_booking_deposit_links', { p_booking: bookingId });
+
+// ---- BLADE client booking (server recomputes slots, price and status) ----
+export type BookingQuote = { quote: import('../../supabase/functions/_shared/blade-booking-rules').Quote; status: 'pending' | 'confirmed'; deposit: number; travel_minutes: number };
+export type BookingCreated = { booking_id: string; status: 'pending' | 'confirmed'; total: number; deposit: number; email_sent: boolean };
+export async function bladeBooking<T>(body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke('blade-booking', { body });
+  if (error) {
+    if (error instanceof FunctionsHttpError) {
+      const details = await error.context.json().catch(() => null);
+      throw new Error(details?.error ?? 'Service indisponible. Réessaie.');
+    }
+    throw new Error('Connexion impossible. Réessaie.');
+  }
+  return data as T;
+}

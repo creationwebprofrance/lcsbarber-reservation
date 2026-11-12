@@ -57,7 +57,7 @@ export function LiveMyBookings() {
     {deposits.length > 0 && <section className="blade-section"><div className="blade-section-heading"><h2>Acomptes à régler</h2></div><div className="blade-provider-list">{deposits.map(b => <article key={b.id}><div><h3>{fmtDate(b.appointment_date)} · {b.appointment_time.slice(0, 5)}</h3><p>{b.services?.name ?? 'Prestation'} · {fmtPrice(b.total_price)}</p></div><DepositButton bookingId={b.id} /></article>)}</div></section>}</>;
 }
 
-function DepositButton({ bookingId }: { bookingId: string }) {
+export function DepositButton({ bookingId }: { bookingId: string }) {
   const [links, setLinks] = useState<DepositLinks | undefined>(undefined); const [busy, setBusy] = useState(false);
   async function open() { setBusy(true); try { setLinks(await getDepositLinks(bookingId)); } catch { setLinks(null); } finally { setBusy(false); } }
   if (links === undefined) return <BladeButton variant="default" disabled={busy} onClick={open}><Icon name="card" />{busy ? 'Chargement…' : 'Payer l’acompte'}</BladeButton>;

@@ -121,6 +121,33 @@ export type Database = {
         }
         Relationships: []
       }
+      blade_legacy_assignment_backup: {
+        Row: {
+          assigned_at: string
+          assigned_provider_id: string
+          id: string
+          previous_provider_id: string | null
+          row_id: string
+          table_name: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_provider_id: string
+          id?: string
+          previous_provider_id?: string | null
+          row_id: string
+          table_name: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_provider_id?: string
+          id?: string
+          previous_provider_id?: string | null
+          row_id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
       blade_message_reads: {
         Row: {
           conversation_id: string

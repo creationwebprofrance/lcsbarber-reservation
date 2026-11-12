@@ -57,3 +57,6 @@ verify_jwt = false
 
 [functions.create-slot-request]
 verify_jwt = false
+
+[functions.blade-booking]
+verify_jwt = false
