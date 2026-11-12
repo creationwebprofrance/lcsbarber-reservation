@@ -175,7 +175,7 @@ export const useAvailability = (mode: 'domicile' | 'deplacement') => useRead(asy
     supabase.from('calendar_settings').select('day_of_week,start_time,end_time,is_available,mode').then(unwrap<Rule[]>),
     supabase.from('date_overrides').select('date,start_time,end_time,is_available,mode').gte('date', isoDate(today)).then(unwrap<Override[]>),
   ]);
-  return computeSlots(rules, overrides, mode, today, 21);
+  return computeSlots(rules, overrides, mode, today, 90);
 }, [mode]);
 
 export type PricingRules = { travel_free_minutes: number; travel_interval_minutes: number; travel_fee_per_interval: number; early_hour_threshold: number; early_hour_fee: number; late_hour_threshold: number; late_hour_fee: number; same_day_fee: number; sunday_fee: number };
