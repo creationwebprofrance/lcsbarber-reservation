@@ -122,7 +122,6 @@ Deno.serve(async req => {
         layout('Nouveau rendez-vous', `<p><strong>${esc(input.name)}</strong> (${esc(user.email)} · ${esc(input.phone)}) a réservé.</p>${rows}<p>${status === 'pending' ? 'Le rendez-vous reste en attente jusqu’à ce que tu confirmes la réception de l’acompte.' : 'Le rendez-vous est confirmé.'}</p>`, { label: 'Ouvrir mon agenda', url: `${BLADE_SITE}/pro/${status === 'pending' ? 'paiements' : 'agenda'}` }), `blade-book-provider-${booking.id}`);
       emailSent = a || b;
     }
-    await db.from('blade_providers').update({ last_active_at: new Date().toISOString() }).eq('id', provider.id).then(() => null, () => null);
     return res({ booking_id: booking.id, status: booking.status, total: q.total, deposit, email_sent: emailSent });
   } catch (e) {
     console.error('blade-booking', e);
