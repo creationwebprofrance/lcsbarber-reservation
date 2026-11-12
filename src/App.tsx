@@ -32,6 +32,12 @@ import ChatBot from "./components/ChatBot";
 
 const queryClient = new QueryClient();
 
+/** index.html carries BLADE metadata; the LCS Barber pages keep their own tab title. */
+function LcsTitle() {
+  useEffect(() => { document.title = "LCS Barber ⭐ - Réservez votre rendez-vous en ligne"; }, []);
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="lcs-theme">
@@ -42,6 +48,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <LcsTitle />
 
           <Routes>
             <Route path="/" element={<Navigate to="/lcsbarber" replace />} />
