@@ -54,7 +54,6 @@ export function Reserve() {
 
   if (!session) return <><PageHeading title="Réserver" description="Choisis ta prestation et ton créneau."/><EmptyState title="Connexion requise" description="Connecte-toi pour réserver un rendez-vous." action={<BladeButton asChild variant="default"><Link to="/blade/connexion?espace=client">Se connecter</Link></BladeButton>}/></>;
 
-  const reached = (s: Step) => STEPS.indexOf(s) <= STEPS.indexOf(step);
   const canOpen = (s: Step) => s === 'Prestation' || (s === 'Lieu' && !!service) || (s === 'Date' && !!mode) || (s === 'Horaire' && !!date) || (s === 'Récapitulatif' && !!time);
   const domicileOk = !service || Boolean(DOMICILE_OFFERS[service.name]);
   const addressOk = mode !== 'deplacement' || address.trim().length >= 8;
@@ -77,7 +76,7 @@ export function Reserve() {
 
   return <>
     <PageHeading title="Réserver" description="LCS Barber · choisis ta prestation et ton créneau."/>
-    <ol className="blade-steps">{STEPS.map((s, i) => <li key={s}><BladeButton aria-pressed={step === s} className={step === s ? 'active' : ''} disabled={!canOpen(s) || !reached(s) && !canOpen(s)} onClick={() => canOpen(s) && setStep(s)}><span>{i + 1}</span>{s}</BladeButton></li>)}</ol>
+    <ol className="blade-steps">{STEPS.map((s, i) => <li key={s}><BladeButton aria-pressed={step === s} className={step === s ? 'active' : ''} disabled={!canOpen(s)} onClick={() => canOpen(s) && setStep(s)}><span>{i + 1}</span>{s}</BladeButton></li>)}</ol>
     <div className="blade-two-columns">
       <Section title={step}>
         {step === 'Prestation' && (services.loading ? <p role="status">Chargement…</p> : services.error ? <p role="alert">{services.error}</p> : !services.data?.length ? <EmptyState icon="scissors" title="Aucune prestation disponible" compact/> :
