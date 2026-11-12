@@ -303,5 +303,4 @@ html[data-blade-theme=dark] .bl2 .bl2-pill-outline{color:hsl(var(--foreground));
 .blade-choice.active{border-color:hsl(var(--foreground));box-shadow:inset 0 0 0 1px hsl(var(--foreground))}
 .blade-choice:disabled{opacity:.5;cursor:not-allowed}
 .blade-choice:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}
-.blade-key-values{display:grid;gap:8px;margin:0 0 12px}.blade-key-values div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid hsl(var(--border));padding:6px 0}.blade-key-values dt{color:hsl(var(--muted-foreground))}.blade-key-values dd{margin:0;text-align:right}
 .blade-error{color:hsl(var(--destructive))}
