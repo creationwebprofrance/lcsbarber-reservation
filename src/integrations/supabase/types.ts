@@ -76,6 +76,84 @@ export type Database = {
         }
         Relationships: []
       }
+      blade_ai_access_state: {
+        Row: {
+          id: string
+          paused: boolean
+          reason: string | null
+          status: number | null
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          paused?: boolean
+          reason?: string | null
+          status?: number | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          paused?: boolean
+          reason?: string | null
+          status?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blade_community_limits: {
+        Row: {
+          actor_hash: string
+          count: number
+          scope: string
+          window_start: string
+        }
+        Insert: {
+          actor_hash: string
+          count?: number
+          scope: string
+          window_start: string
+        }
+        Update: {
+          actor_hash?: string
+          count?: number
+          scope?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      blade_message_reads: {
+        Row: {
+          conversation_id: string
+          provider_id: string
+          read_at: string
+        }
+        Insert: {
+          conversation_id: string
+          provider_id: string
+          read_at?: string
+        }
+        Update: {
+          conversation_id?: string
+          provider_id?: string
+          read_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_message_reads_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "blade_private_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blade_message_reads_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blade_offer_replies: {
         Row: {
           author_id: string
@@ -153,6 +231,84 @@ export type Database = {
         }
         Relationships: []
       }
+      blade_private_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          provider_a: string
+          provider_b: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          provider_a: string
+          provider_b: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider_a?: string
+          provider_b?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_private_conversations_provider_a_fkey"
+            columns: ["provider_a"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blade_private_conversations_provider_b_fkey"
+            columns: ["provider_b"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blade_private_messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          request_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          request_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          request_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_private_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "blade_private_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blade_private_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blade_providers: {
         Row: {
           created_at: string
@@ -170,6 +326,160 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      blade_public_profiles: {
+        Row: {
+          active: boolean
+          booking_path: string | null
+          city: string
+          home: boolean
+          latitude: number | null
+          longitude: number | null
+          name: string
+          near: boolean
+          photo_path: string | null
+          provider_id: string
+          updated_at: string
+          zone: string
+        }
+        Insert: {
+          active?: boolean
+          booking_path?: string | null
+          city: string
+          home?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          near?: boolean
+          photo_path?: string | null
+          provider_id: string
+          updated_at?: string
+          zone: string
+        }
+        Update: {
+          active?: boolean
+          booking_path?: string | null
+          city?: string
+          home?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          near?: boolean
+          photo_path?: string | null
+          provider_id?: string
+          updated_at?: string
+          zone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_public_profiles_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blade_publications: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          kind: string
+          media_path: string
+          mime_type: string
+          provider_id: string
+          published_at: string | null
+          ready: boolean
+          service_id: string
+          size_bytes: number
+          status: string
+          thumbnail_path: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          kind: string
+          media_path: string
+          mime_type: string
+          provider_id: string
+          published_at?: string | null
+          ready?: boolean
+          service_id: string
+          size_bytes: number
+          status?: string
+          thumbnail_path?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          kind?: string
+          media_path?: string
+          mime_type?: string
+          provider_id?: string
+          published_at?: string | null
+          ready?: boolean
+          service_id?: string
+          size_bytes?: number
+          status?: string
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_publications_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blade_publications_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blade_work_likes: {
+        Row: {
+          actor_hash: string
+          created_at: string
+          publication_id: string
+        }
+        Insert: {
+          actor_hash: string
+          created_at?: string
+          publication_id: string
+        }
+        Update: {
+          actor_hash?: string
+          created_at?: string
+          publication_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_work_likes_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "blade_publications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       booking_requests: {
         Row: {
@@ -1669,6 +1979,19 @@ export type Database = {
       }
     }
     Functions: {
+      blade_community_limit: {
+        Args: {
+          p_actor: string
+          p_limit: number
+          p_scope: string
+          p_seconds: number
+        }
+        Returns: boolean
+      }
+      blade_conversation_member: {
+        Args: { p_conversation: string }
+        Returns: boolean
+      }
       blade_owns_provider: { Args: { p_provider: string }; Returns: boolean }
       blade_provider_bundle: { Args: never; Returns: Json }
       blade_save_record: {
