@@ -5,7 +5,7 @@
 - BLADE slot requests are live through the create-slot-request server function; drafts must still stage new server source outside auto-deployed functions to preserve draft isolation.
 - Keep BLADE components and scoped CSS under src/blade with local assets under public/blade.
 - Keep booking/payment flows separate; provider editing is explicitly authorized, but staged schema and manual email activation require acceptance and deployment approval to preserve shared-backend isolation.
-- Preserve the existing LCSBARBER entry behavior outside /blade.
+- The site root / opens BLADE (entryPath in src/blade/model.ts); the LCSBARBER home lives at /lcsbarber and its other routes are unchanged, so existing LCSBARBER links and bookings keep working.
 - BLADE maps use Leaflet with OpenStreetMap tiles; keep the verified town-centre marker explicitly approximate until the exact business coordinates are supplied.
 - Professional provider screens use provider.tsx and provider-model.ts with existing maintenance calculations without generic forecast defaults; this keeps accounting and maintenance rules testable without invented records.
 - All pre-BLADE LCSBARBER rows were assigned to the LCS Barber provider with a row-level backup in blade_legacy_assignment_backup, and an insert trigger gives LCSBARBER-created rows that owner, because the LCSBARBER site never sets provider_id itself.
