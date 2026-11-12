@@ -30,7 +30,7 @@ function HeroVideo() {
 }
 
 export function Landing() {
-  const {t}=useBladePreferences();const {session,isAdmin}=useSession();
+  const {t}=useBladePreferences();const {session,isPro:isAdmin}=useSession();
   const navigate = useNavigate();
   const [mode, setMode] = useState<'chez' | 'pres'>('chez');
   const [city, setCity] = useState('');
@@ -93,12 +93,12 @@ export function DemoLogin() {
   const signup = params.get('mode') === 'inscription';
   const target = pro ? '/blade/pro' : '/blade/client';
   const navigate = useNavigate();
-  const { session, isAdmin, ready } = useSession();
+  const { session, isPro, ready } = useSession();
   const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false); const [msg, setMsg] = useState('');
-  useEffect(() => { if (ready && session) navigate(isAdmin ? '/blade/pro' : '/blade/client', { replace: true }); }, [ready, session, isAdmin, navigate]);
+  useEffect(() => { if (ready && session) navigate(isPro ? '/blade/pro' : pro ? '/blade/devenir-pro' : '/blade/client', { replace: true }); }, [ready, session, isPro, pro, navigate]);
   const title = signup ? (pro ? 'Créer un compte professionnel' : 'Créer un compte') : (pro ? 'Connexion professionnelle' : 'Connexion client');
-  const google = async () => { setBusy(true); setMsg(''); const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}${target}` } }); if (error) { setMsg(error.message); setBusy(false); } };
+  const google = async () => { setBusy(true); setMsg(''); const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}${pro ? '/blade/devenir-pro' : target}` } }); if (error) { setMsg(error.message); setBusy(false); } };
   const submit = async (e: React.FormEvent) => { e.preventDefault(); setBusy(true); setMsg('');
     const { data, error } = signup ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}${target}` } }) : await supabase.auth.signInWithPassword({ email, password });
     setBusy(false); if (error) setMsg(error.message); else if (signup && !data.session) setMsg('Vérifiez vos e-mails pour confirmer votre compte.'); };

@@ -11,7 +11,8 @@ type Reply = { id: string; offer_id: string; author_id: string; author_name: str
 const db = supabase as any;
 
 export function ProChat() {
-  const { session, isAdmin, ready, firstName } = useSession();
+  const { session, provider, ready, firstName } = useSession();
+  const isAdmin = provider?.status === 'active';
   const [offers, setOffers] = useState<Offer[]>([]);
   const [replies, setReplies] = useState<Reply[]>([]);
   const [error, setError] = useState('');
@@ -86,8 +87,8 @@ function OfferCard({ offer, replies, userId, userName, onChange }: { offer: Offe
     if (error) { setBusy(false); setInfo('Réponse non envoyée.'); return; }
     setText('');
     if (!mine) {
-      const { data: n } = await supabase.functions.invoke('blade-notify-reply', { body: { reply_id: data.id } });
-      setInfo(n?.email_sent ? `${offer.author_name} a été prévenu par e-mail.` : 'Réponse publiée. L’e-mail de notification n’est pas encore activé.');
+      const { data: n } = await supabase.functions.invoke('blade-notify', { body: { event: 'offer_reply', reply_id: data.id } });
+      setInfo(n?.email_sent ? `${offer.author_name} a été prévenu par e-mail.` : 'Réponse publiée. Aucun e-mail envoyé (option désactivée pour ce prestataire).');
     }
     setBusy(false); onChange();
   }

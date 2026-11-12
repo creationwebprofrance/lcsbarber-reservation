@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-// Enable only after accepting the staged schema and authorizing server deployment.
-export const SLOT_REQUESTS_ACTIVE = false;
+// Slot requests are live: schema applied and the notifying server function deployed.
+export const SLOT_REQUESTS_ACTIVE = true;
 export const SEARCH_VIEWS = ['Carte', 'Liste'];
 export const canRequestSlot = (loading: boolean, error: string | null, count: number) => !loading && !error && count === 0;
 export const slotRequestSchema = z.object({

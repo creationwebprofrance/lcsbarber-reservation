@@ -3,11 +3,12 @@ import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { FunctionsHttpError, type SupabaseClient } from '@supabase/supabase-js';
 import type { SlotRequestInput } from './request-model';
+import type { ProviderAccount } from './provider-admin-model';
 import { supabase } from '@/integrations/supabase/client';
 
 export type Service = { id: string; name: string; description: string | null; price: number; duration_minutes: number };
 export type Review = { id: string; client_name: string; rating: number; comment: string | null; created_at: string };
-export type Booking = { id: string; client_name: string; client_email: string; appointment_date: string; appointment_time: string; status: string; total_price: number; client_address: string | null; services: { name: string } | null };
+export type Booking = { id: string; client_name: string; client_email: string; appointment_date: string; appointment_time: string; status: string; total_price: number; client_address: string | null; provider_id?: string | null; deposit_paid?: boolean; services: { name: string } | null };
 export type Client = { id: string; name: string; email: string; phone: string | null; address: string | null };
 type Rule = { day_of_week: number; start_time: string; end_time: string; is_available: boolean; mode: string };
 type Override = { date: string; start_time: string | null; end_time: string | null; is_available: boolean; mode: string };
@@ -34,21 +35,23 @@ export type ProviderWork = { id: string; name: string; client_name: string | nul
 export type ProviderTemplate = { id: string; template_type: string; subject: string; html_content: string };
 export type ProviderBundle = { provider_id: string; services: ProviderService[]; pricing: { id:string; setting_key:string; setting_value:number }[]; clients: ProviderClient[]; bookings: ProviderBooking[]; work: ProviderWork[]; templates: ProviderTemplate[]; merges: { merged_email:string; target_email:string; original_client_name:string }[] };
 export function useProviderData(refresh = 0) {
-  const { session, isAdmin, ready } = useSession();
+  const { session, isAdmin: legacyAdmin, provider, ready } = useSession();
+  const isAdmin = provider?.status === 'active';
   const state = useRead(async () => {
     if (!ready || !session || !isAdmin) return null;
     const { data, error } = await (supabase as SupabaseClient).rpc('blade_provider_bundle');
     if (error) throw new Error('Le rattachement de vos données n’est pas encore disponible. Il nécessite l’acceptation du brouillon et la vérification des anciennes lignes.');
     return data as ProviderBundle;
   }, [session?.user.id, isAdmin, ready, refresh]);
-  return { ...state, ready, signedIn: Boolean(session), isAdmin };
+  return { ...state, ready, signedIn: Boolean(session), isAdmin, legacyAdmin };
 }
 export async function saveProviderRecord(providerId: string, entity: string, id: string | null, values: Record<string, unknown>) {
   const { error } = await (supabase as SupabaseClient).rpc('blade_save_record', { p_provider: providerId, p_entity: entity, p_id: id, p_values: values });
   if (error) throw new Error(error.message);
 }
 export function useProviderVehicle(refresh = 0) {
-  const { session, isAdmin } = useSession();
+  const { session, provider } = useSession();
+  const isAdmin = provider?.status === 'active';
   return useRead(async () => {
     if (!session || !isAdmin) return null;
     const vehicles = unwrap<import('@/lib/vehicle').Vehicle[]>(await supabase.from('vehicles').select('*').eq('owner_id', session.user.id).order('is_default', { ascending:false }));
@@ -80,26 +83,52 @@ export async function geocodeProviderCity(city:string):Promise<{lat:number;lng:n
   return !error&&Number.isFinite(data?.lat)&&Number.isFinite(data?.lng)?{lat:data.lat,lng:data.lng}:null;
 }
 
+type Account = { provider: ProviderAccount | null; is_superadmin: boolean };
+const noAccount: Account = { provider: null, is_superadmin: false };
+const accountCache = new Map<string, Promise<Account>>();
+function loadAccount(userId: string): Promise<Account> {
+  let p = accountCache.get(userId);
+  if (!p) {
+    p = Promise.resolve((supabase as SupabaseClient).rpc('blade_my_provider')).then(({ data, error }) => error || !data ? noAccount : data as Account).catch(() => noAccount);
+    accountCache.set(userId, p);
+  }
+  return p;
+}
+/** Re-read the signed-in provider account everywhere (after registration, link save, admin change). */
+export function refreshAccount() { accountCache.clear(); window.dispatchEvent(new Event('blade-account-changed')); }
+
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [account, setAccount] = useState<Account>(noAccount);
   const [ready, setReady] = useState(false);
   useEffect(() => {
+    let current: Session | null = null;
     const apply = async (s: Session | null) => {
-      // Resolve the role before exposing the session so space guards never see a mismatched state.
-      let admin = false;
-      if (s) { const { data } = await supabase.from('user_roles').select('role').eq('user_id', s.user.id).eq('role', 'admin'); admin = !!data?.length; }
-      setSession(s); setIsAdmin(admin);
+      current = s;
+      // Resolve roles and provider account before exposing the session so space guards never see a mismatched state.
+      let admin = false; let acc = noAccount;
+      if (s) {
+        const [{ data }, a] = await Promise.all([supabase.from('user_roles').select('role').eq('user_id', s.user.id).eq('role', 'admin'), loadAccount(s.user.id)]);
+        admin = !!data?.length; acc = a;
+      }
+      setSession(s); setIsAdmin(admin); setAccount(acc);
       setReady(true);
     };
+    const onChange = () => { void apply(current); };
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => { setTimeout(() => apply(s), 0); });
     supabase.auth.getSession().then(({ data }) => apply(data.session));
-    return () => subscription.unsubscribe();
+    window.addEventListener('blade-account-changed', onChange);
+    return () => { subscription.unsubscribe(); window.removeEventListener('blade-account-changed', onChange); };
   }, []);
   const meta = session?.user.user_metadata ?? {};
   const fullName: string = meta.full_name || meta.name || '';
   const firstName = fullName.split(' ')[0] || '';
-  return { session, isAdmin, ready, firstName, email: session?.user.email ?? '' };
+  const provider = account.provider;
+  const isSuperadmin = account.is_superadmin;
+  /** Account belongs to the professional space (LCS admin, superadmin or any registered provider). */
+  const isPro = isAdmin || isSuperadmin || !!provider;
+  return { session, isAdmin, isSuperadmin, isPro, provider, ready, firstName, email: session?.user.email ?? '' };
 }
 
 export const useServices = () => useRead(async () => unwrap<Service[]>(await supabase.from('services').select('id,name,description,price,duration_minutes').eq('is_active', true).order('price')));
@@ -110,7 +139,7 @@ export const useReviews = () => useRead(async () => {
 });
 export const useClients = (enabled: boolean) => useRead(async () => enabled ? unwrap<Client[]>(await supabase.from('clients').select('id,name,email,phone,address').order('name').limit(500)) : [], [enabled]);
 
-const bookingCols = 'id,client_name,client_email,appointment_date,appointment_time,status,total_price,client_address,services(name)';
+const bookingCols = 'id,client_name,client_email,appointment_date,appointment_time,status,total_price,client_address,provider_id,deposit_paid,services(name)';
 /** Admin: all bookings in range. Client: RLS limits rows to the signed-in email. */
 export const useBookings = (enabled: boolean, from?: string, to?: string, refresh = 0) => useRead(async () => {
   if (!enabled) return [] as Booking[];
@@ -177,3 +206,43 @@ export async function submitSlotRequest(input: SlotRequestInput): Promise<{ emai
   if (!data?.id) throw new Error('La demande n’a pas été enregistrée.');
   return { email_sent: data.email_sent === true };
 }
+
+// ---- BLADE provider accounts, superadmin and deposit links ----
+const rpc = async <T,>(fn: string, args?: Record<string, unknown>): Promise<T> => {
+  const { data, error } = await (supabase as SupabaseClient).rpc(fn, args);
+  if (error) throw new Error(error.message);
+  return data as T;
+};
+/** Fire-and-forget automatic email; the server re-checks rights and the provider's email option. */
+export async function notifyBlade(body: Record<string, unknown>): Promise<boolean> {
+  const { data, error } = await supabase.functions.invoke('blade-notify', { body });
+  return !error && data?.email_sent === true;
+}
+export async function registerProvider(displayName: string) {
+  await rpc('blade_register_provider', { p_display_name: displayName });
+  await notifyBlade({ event: 'provider_registered' });
+  refreshAccount();
+}
+export async function updateOwnProvider(displayName: string, revolut: string, stripe: string) {
+  await rpc('blade_update_own_provider', { p_display_name: displayName, p_revolut_url: revolut.trim() || null, p_stripe_link_url: stripe.trim() || null });
+  refreshAccount();
+}
+export type AdminProvider = { id: string; display_name: string | null; email: string | null; status: 'pending' | 'active' | 'suspended'; created_at: string; validated_at: string | null; last_active_at: string; opt_payment_links: boolean; opt_auto_emails: boolean; opt_searchable: boolean; has_revolut: boolean; has_stripe_link: boolean; is_self: boolean; clients: number; bookings: number };
+export type AdminClient = { id: string; name: string; email: string; phone: string | null; created_at: string; provider_id: string | null; provider_name: string | null };
+export type AdminOverview = { providers: AdminProvider[]; clients: AdminClient[]; unattributed_clients: number; unattributed_bookings: number };
+export const useAdminOverview = (enabled: boolean, refresh = 0) => useRead(async () => enabled ? rpc<AdminOverview>('blade_admin_overview') : null, [enabled, refresh]);
+export async function adminSetProvider(p: Pick<AdminProvider, 'id' | 'status' | 'opt_payment_links' | 'opt_auto_emails' | 'opt_searchable'>, statusChanged: boolean) {
+  await rpc('blade_admin_set_provider', { p_provider: p.id, p_status: p.status, p_payment_links: p.opt_payment_links, p_auto_emails: p.opt_auto_emails, p_searchable: p.opt_searchable });
+  if (statusChanged) await notifyBlade({ event: 'provider_status', provider_id: p.id });
+  refreshAccount();
+}
+export async function markDepositReceived(bookingId: string, method: 'revolut' | 'stripe_link' | 'autre') {
+  await rpc('blade_mark_deposit_received', { p_booking: bookingId, p_method: method });
+  return notifyBlade({ event: 'booking_confirmed', booking_id: bookingId });
+}
+export async function cancelProviderBooking(bookingId: string) {
+  await rpc('blade_cancel_booking', { p_booking: bookingId });
+  return notifyBlade({ event: 'booking_cancelled', booking_id: bookingId });
+}
+export type DepositLinks = { available: boolean; deposit_paid: boolean; status: string; provider_name?: string; revolut_url?: string | null; stripe_link_url?: string | null } | null;
+export const getDepositLinks = (bookingId: string) => rpc<DepositLinks>('blade_booking_deposit_links', { p_booking: bookingId });
