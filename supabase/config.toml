@@ -48,3 +48,12 @@ verify_jwt = false
 
 [functions.create-booking-request]
 verify_jwt = false
+
+[functions.blade-notify]
+verify_jwt = false
+
+[functions.blade-daily]
+verify_jwt = false
+
+[functions.create-slot-request]
+verify_jwt = false
