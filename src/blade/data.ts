@@ -50,7 +50,8 @@ export async function saveProviderRecord(providerId: string, entity: string, id:
   if (error) throw new Error(error.message);
 }
 export function useProviderVehicle(refresh = 0) {
-  const { session, isAdmin } = useSession();
+  const { session, provider } = useSession();
+  const isAdmin = provider?.status === 'active';
   return useRead(async () => {
     if (!session || !isAdmin) return null;
     const vehicles = unwrap<import('@/lib/vehicle').Vehicle[]>(await supabase.from('vehicles').select('*').eq('owner_id', session.user.id).order('is_default', { ascending:false }));
