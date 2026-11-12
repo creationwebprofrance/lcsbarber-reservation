@@ -86,8 +86,8 @@ function OfferCard({ offer, replies, userId, userName, onChange }: { offer: Offe
     if (error) { setBusy(false); setInfo('Réponse non envoyée.'); return; }
     setText('');
     if (!mine) {
-      const { data: n } = await supabase.functions.invoke('blade-notify-reply', { body: { reply_id: data.id } });
-      setInfo(n?.email_sent ? `${offer.author_name} a été prévenu par e-mail.` : 'Réponse publiée. L’e-mail de notification n’est pas encore activé.');
+      const { data: n } = await supabase.functions.invoke('blade-notify', { body: { event: 'offer_reply', reply_id: data.id } });
+      setInfo(n?.email_sent ? `${offer.author_name} a été prévenu par e-mail.` : 'Réponse publiée. Aucun e-mail envoyé (option désactivée pour ce prestataire).');
     }
     setBusy(false); onChange();
   }

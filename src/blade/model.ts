@@ -11,6 +11,7 @@ export const proNav: ProNavItem[] = [
   { path: '/blade/pro/clients', label: 'Clients', icon: 'users' },
   { path: '/blade/pro/emails', label: 'Emails', icon: 'message' },
   { path: '/blade/pro/prestations', label: 'Prestations', icon: 'scissors' },
+  { path: '/blade/pro/paiements', label: 'Paiements', icon: 'card' },
   { path: '/blade/pro/vehicule', label: 'Mon véhicule', icon: 'car' },
   { path: '/blade/pro/chat', label: 'Chat coiffeurs', icon: 'message' },
 ];

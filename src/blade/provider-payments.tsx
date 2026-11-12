@@ -62,7 +62,7 @@ export function ProviderPayments() {
         {waiting.length ? <div className="blade-provider-list">{waiting.map(b => <article key={b.id}>
           <div><h3>{b.client_name}</h3><p>{fmtDate(b.appointment_date)} · {b.appointment_time.slice(0, 5)} · {b.services?.name ?? 'Prestation'} · {fmtPrice(b.total_price)}</p></div>
           <span className="blade-pill">En attente</span>
-          {provider?.opt_payment_links && <BladeButton variant="default" disabled={busy === b.id} onClick={() => act(b.id, provider.stripe_link_url && !provider.revolut_url ? 'stripe_link' : 'revolut')}>Acompte reçu</BladeButton>}
+          {provider?.opt_payment_links && <BladeButton variant="default" disabled={busy === b.id} onClick={() => act(b.id, provider.revolut_url && !provider.stripe_link_url ? 'revolut' : provider.stripe_link_url && !provider.revolut_url ? 'stripe_link' : 'autre')}>Acompte reçu</BladeButton>}
           <BladeButton disabled={busy === b.id} onClick={() => { if (window.confirm('Annuler ce rendez-vous ? Le client sera prévenu par email.')) void act(b.id, 'cancel'); }}>Annuler</BladeButton>
         </article>)}</div> : <EmptyState title="Aucun acompte en attente" compact icon="coins"/>}
       </Section>
