@@ -6,6 +6,7 @@ import { fr } from "date-fns/locale";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { BookingRequestForm } from "@/components/BookingRequestForm";
 
 interface DatePickerProps {
   selectedDate: Date | null;
@@ -85,10 +86,11 @@ export const DatePicker = ({ selectedDate, onDateSelect, onBack, mode }: DatePic
         )}
         <Card className="p-6 sm:p-8 text-center border-primary/30 bg-gradient-card">
           <h2 className="text-lg sm:text-2xl font-semibold mb-2">Aucun créneau disponible pour le moment</h2>
-          <p className="text-muted-foreground mb-5">Veuillez contacter votre coiffeur.</p>
-          <Button asChild>
+          <p className="text-muted-foreground mb-5">Envoie-moi une demande de réservation, je te recontacte pour la confirmer.</p>
+          <BookingRequestForm mode={mode} />
+          <Button asChild variant="outline" className="mt-4">
             <a href="https://www.snapchat.com/add/lcsbarber" target="_blank" rel="noopener noreferrer">
-              Contacter sur Snapchat (lcsbarber)
+              Ou me contacter sur Snapchat (lcsbarber)
             </a>
           </Button>
         </Card>
