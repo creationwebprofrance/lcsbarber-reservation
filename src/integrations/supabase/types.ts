@@ -76,6 +76,83 @@ export type Database = {
         }
         Relationships: []
       }
+      blade_offer_replies: {
+        Row: {
+          author_id: string
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          notified_at: string | null
+          offer_id: string
+        }
+        Insert: {
+          author_id: string
+          author_name: string
+          body: string
+          created_at?: string
+          id?: string
+          notified_at?: string | null
+          offer_id: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          notified_at?: string | null
+          offer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_offer_replies_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "blade_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blade_offers: {
+        Row: {
+          author_id: string
+          author_name: string
+          body: string
+          city: string | null
+          created_at: string
+          id: string
+          offer_date: string | null
+          price: number | null
+          status: string
+          title: string
+        }
+        Insert: {
+          author_id: string
+          author_name: string
+          body: string
+          city?: string | null
+          created_at?: string
+          id?: string
+          offer_date?: string | null
+          price?: number | null
+          status?: string
+          title: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          body?: string
+          city?: string | null
+          created_at?: string
+          id?: string
+          offer_date?: string | null
+          price?: number | null
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       blade_providers: {
         Row: {
           created_at: string
