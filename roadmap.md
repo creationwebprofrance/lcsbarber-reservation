@@ -9,3 +9,7 @@
 - [x] 8. Vraie réservation BLADE côté client : prestation → lieu → date → horaire → récap → envoi (rdv en attente si acompte requis)
 - [x] 9. Le site s'ouvre sur BLADE (tout le monde) ; ancien accueil LCS Barber sur /lcsbarber
 - [x] 10. Test réel d'une réservation BLADE (compte test, créneau temporaire, nettoyé ensuite) ; jours visibles jusqu'à 3 mois
+
+# Roadmap — Personnalisation & fidélité
+- [ ] 11. Chaque prestataire personnalise son profil public et son interface de réservation (en attente des choix de Lucas)
+- [ ] 12. Carte de fidélité digitale par prestataire avec système de points (en attente des choix de Lucas)
