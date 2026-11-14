@@ -196,7 +196,7 @@ function ScanPanel({ onCode }: { onCode: (code: string) => void }) {
   </>;
 }
 function Scanner({ onCode }: { onCode: (code: string) => void }) {
-  const video = useRef<HTMLVideoElement>(null); const [error, setError] = useState('');
+  const video = useRef<HTMLVideoElement>(null); const [error, setError] = useState(''); const cb = useRef(onCode); cb.current = onCode;
   useEffect(() => {
     let stream: MediaStream | null = null; let timer = 0; let stopped = false;
     const Ctor = (window as unknown as { BarcodeDetector: new (o: { formats: string[] }) => Detector }).BarcodeDetector;
@@ -204,10 +204,10 @@ function Scanner({ onCode }: { onCode: (code: string) => void }) {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(s => {
       stream = s; if (stopped) { s.getTracks().forEach(t => t.stop()); return; }
       if (video.current) { video.current.srcObject = s; void video.current.play(); }
-      const tick = async () => { if (stopped || !video.current) return; try { const found = await detector.detect(video.current); const code = found.map(f => codeFromScan(f.rawValue)).find(Boolean); if (code) { onCode(code); return; } } catch { /* frame not ready */ } timer = window.setTimeout(tick, 350); };
+      const tick = async () => { if (stopped || !video.current) return; try { const found = await detector.detect(video.current); const code = found.map(f => codeFromScan(f.rawValue)).find(Boolean); if (code) { cb.current(code); return; } } catch { /* frame not ready */ } timer = window.setTimeout(tick, 350); };
       void tick();
     }).catch(() => setError('Caméra indisponible. Autorise l’accès à la caméra ou colle le lien de la carte.'));
     return () => { stopped = true; clearTimeout(timer); stream?.getTracks().forEach(t => t.stop()); };
-  }, [onCode]);
+  }, []);
   return <>{error ? <Status error={error}/> : <video ref={video} className="blade-scan-video" muted playsInline/>}</>;
 }

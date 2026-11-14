@@ -304,3 +304,65 @@ html[data-blade-theme=dark] .bl2 .bl2-pill-outline{color:hsl(var(--foreground));
 .blade-choice:disabled{opacity:.5;cursor:not-allowed}
 .blade-choice:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}
 .blade-error{color:hsl(var(--destructive))}
+/* ---- Provider branding (accent + font chosen by each provider) ---- */
+.blade-brand-scope{font-family:var(--blade-brand-body,inherit)}
+.blade-app .blade-brand-scope h1,.blade-app .blade-brand-scope h2,.blade-app .blade-brand-scope h3{font-family:var(--blade-brand-heading,inherit)}
+.blade-brand-hero{border-radius:16px;overflow:hidden;background:hsl(var(--card));border:1px solid hsl(var(--border));margin-bottom:24px}
+.blade-brand-cover{height:200px;background:hsl(var(--primary))}
+.blade-brand-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.blade-brand-identity{display:flex;gap:16px;align-items:flex-end;padding:0 20px 16px;margin-top:-44px;flex-wrap:wrap}
+.blade-brand-identity>div{flex:1;min-width:180px}
+.blade-brand-logo{width:96px;height:96px;border-radius:50%;border:4px solid hsl(var(--background));background:hsl(var(--primary));color:hsl(var(--primary-foreground));display:grid;place-items:center;overflow:hidden;font-size:32px;font-weight:700;flex-shrink:0}
+.blade-brand-logo img{width:100%;height:100%;object-fit:cover}
+.blade-preview-identity{margin-top:0;padding:0}
+.blade-preview-identity .blade-brand-logo{width:64px;height:64px;font-size:24px}
+.blade-brand-bio{padding:0 20px 16px;margin:0;white-space:pre-line;color:hsl(var(--muted-foreground))}
+.blade-brand-links{display:flex;gap:16px;flex-wrap:wrap;padding:0 20px 20px;margin:0}
+.blade-brand-links a{color:hsl(var(--primary));font-weight:600}
+.blade-brand-welcome{border-left:4px solid hsl(var(--primary));background:hsl(var(--card));padding:14px 16px;border-radius:8px;margin:0 0 20px;white-space:pre-line;display:grid;gap:8px}
+.blade-brand-welcome p{margin:0}
+.blade-gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.blade-gallery-grid figure{margin:0;display:grid;gap:6px}
+.blade-gallery-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block}
+.blade-swatches{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.blade-swatch{width:36px;height:36px;border-radius:50%;border:2px solid hsl(var(--border));cursor:pointer;padding:0}
+.blade-swatch[aria-pressed=true]{outline:3px solid hsl(var(--foreground));outline-offset:2px}
+.blade-swatch-custom{display:flex;align-items:center;gap:6px;font-size:13px}
+.blade-swatch-custom input{width:40px;height:36px;border:1px solid hsl(var(--border));border-radius:8px;padding:2px;background:hsl(var(--background))}
+.blade-preview-box{border:1px dashed hsl(var(--border));border-radius:14px;padding:16px;display:grid;gap:12px;background:hsl(var(--background))}
+.blade-preview-box p{margin:0;white-space:pre-line}
+.blade-media-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.blade-media-picker{display:grid;gap:8px}
+.blade-media-picker img,.blade-media-empty{width:100%;height:140px;object-fit:cover;border-radius:10px;border:1px solid hsl(var(--border))}
+.blade-media-empty{display:grid;place-items:center;color:hsl(var(--muted-foreground));background:hsl(var(--muted));aspect-ratio:auto}
+.blade-gallery-grid .blade-media-empty{height:auto;aspect-ratio:1}
+.blade-order-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.blade-order-list li{display:flex;align-items:center;gap:8px;justify-content:space-between;border:1px solid hsl(var(--border));border-radius:10px;padding:6px 12px;background:hsl(var(--card))}
+.blade-order-list li.off{opacity:.6}
+.blade-question-row{border:1px solid hsl(var(--border));border-radius:12px;padding:12px;display:grid;gap:10px;margin-bottom:10px;background:hsl(var(--card))}
+.blade-save-bar{position:sticky;bottom:72px;z-index:20;display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:12px 16px;margin-top:16px;border:1px solid hsl(var(--border));border-radius:12px;background:hsl(var(--background));box-shadow:var(--blade-shadow)}
+@media(min-width:1200px){.blade-save-bar{bottom:12px}}
+/* ---- Loyalty cards ---- */
+.blade-loyalty-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px;align-items:start}
+.blade-loyalty-card{border-radius:18px;padding:20px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));display:grid;gap:12px}
+.blade-loyalty-card p{margin:0}
+.blade-loyalty-head{display:flex;align-items:center;gap:12px}
+.blade-loyalty-head h3{margin:0;color:inherit}
+.blade-loyalty-head .blade-brand-logo{width:52px;height:52px;border-width:2px;font-size:20px;background:hsl(var(--primary-foreground) / .15)}
+.blade-loyalty-points{font-size:44px;font-weight:800;line-height:1}
+.blade-loyalty-progress{height:10px;border-radius:99px;background:hsl(var(--primary-foreground) / .25);overflow:hidden}
+.blade-loyalty-progress span{display:block;height:100%;background:hsl(var(--primary-foreground))}
+.blade-loyalty-rewards{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.blade-loyalty-rewards li{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:8px;background:hsl(var(--primary-foreground) / .12)}
+.blade-loyalty-qr{background:hsl(0 0% 100%);border-radius:12px;padding:10px;justify-self:center;line-height:0}
+.blade-loyalty-details{margin-top:10px}
+.blade-loyalty-history{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:4px}
+.blade-loyalty-history li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid hsl(var(--border));padding:6px 0}
+.blade-loyalty-history li span{display:grid}
+.blade-loyalty-history small{color:hsl(var(--muted-foreground))}
+.blade-card-actions{display:grid;gap:14px}
+.blade-card-actions p{margin:0}
+.blade-card-actions .blade-loyalty-points{color:hsl(var(--primary))}
+.blade-reward-row{display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:end}
+@media(max-width:600px){.blade-reward-row{grid-template-columns:1fr}}
+.blade-scan-video{width:100%;max-width:360px;border-radius:12px;background:hsl(0 0% 0%)}

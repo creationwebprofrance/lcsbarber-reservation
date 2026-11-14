@@ -1,6 +1,7 @@
 export const clientLinks = [
   { path: '/blade/client', label: 'Recherche', icon: 'search' },
   { path: '/blade/client/rendez-vous', label: 'Rendez-vous', icon: 'calendar' },
+  { path: '/blade/client/fidelite', label: 'Fidélité', icon: 'gift' },
   { path: '/blade/client/messages', label: 'Messages', icon: 'message' },
   { path: '/blade/client/profil', label: 'Profil', icon: 'user' },
 ] as const;
@@ -12,6 +13,8 @@ export const proNav: ProNavItem[] = [
   { path: '/blade/pro/emails', label: 'Emails', icon: 'message' },
   { path: '/blade/pro/prestations', label: 'Prestations', icon: 'scissors' },
   { path: '/blade/pro/paiements', label: 'Paiements', icon: 'card' },
+  { path: '/blade/pro/fidelite', label: 'Fidélité', icon: 'gift' },
+  { path: '/blade/pro/personnalisation', label: 'Personnalisation', icon: 'palette' },
   { path: '/blade/pro/vehicule', label: 'Mon véhicule', icon: 'car' },
   { path: '/blade/pro/chat', label: 'Chat coiffeurs', icon: 'message' },
 ];
