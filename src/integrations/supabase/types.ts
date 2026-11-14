@@ -148,6 +148,142 @@ export type Database = {
         }
         Relationships: []
       }
+      blade_loyalty_cards: {
+        Row: {
+          client_email: string
+          client_name: string
+          code: string
+          created_at: string
+          id: string
+          points: number
+          provider_id: string
+          sent_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_email: string
+          client_name: string
+          code?: string
+          created_at?: string
+          id?: string
+          points?: number
+          provider_id: string
+          sent_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_email?: string
+          client_name?: string
+          code?: string
+          created_at?: string
+          id?: string
+          points?: number
+          provider_id?: string
+          sent_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_loyalty_cards_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blade_loyalty_events: {
+        Row: {
+          amount: number | null
+          card_id: string
+          created_at: string
+          delta: number
+          id: string
+          kind: string
+          label: string | null
+          provider_id: string
+        }
+        Insert: {
+          amount?: number | null
+          card_id: string
+          created_at?: string
+          delta: number
+          id?: string
+          kind: string
+          label?: string | null
+          provider_id: string
+        }
+        Update: {
+          amount?: number | null
+          card_id?: string
+          created_at?: string
+          delta?: number
+          id?: string
+          kind?: string
+          label?: string | null
+          provider_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_loyalty_events_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "blade_loyalty_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blade_loyalty_events_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blade_loyalty_programs: {
+        Row: {
+          active: boolean
+          created_at: string
+          kind: string
+          name: string
+          points_per_euro: number
+          points_per_visit: number
+          provider_id: string
+          rewards: Json
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          kind?: string
+          name?: string
+          points_per_euro?: number
+          points_per_visit?: number
+          provider_id: string
+          rewards?: Json
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          kind?: string
+          name?: string
+          points_per_euro?: number
+          points_per_visit?: number
+          provider_id?: string
+          rewards?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_loyalty_programs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blade_message_reads: {
         Row: {
           conversation_id: string
@@ -331,6 +467,80 @@ export type Database = {
             foreignKeyName: "blade_private_messages_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blade_provider_pages: {
+        Row: {
+          accent_color: string
+          bio: string | null
+          booking_modes: string
+          booking_rules: string | null
+          city: string | null
+          cover_path: string | null
+          created_at: string
+          custom_questions: Json
+          font_key: string
+          gallery_paths: string[]
+          instagram: string | null
+          logo_path: string | null
+          provider_id: string
+          salon_address: string | null
+          sections: string[]
+          step_order: string
+          tiktok: string | null
+          updated_at: string
+          welcome_message: string | null
+        }
+        Insert: {
+          accent_color?: string
+          bio?: string | null
+          booking_modes?: string
+          booking_rules?: string | null
+          city?: string | null
+          cover_path?: string | null
+          created_at?: string
+          custom_questions?: Json
+          font_key?: string
+          gallery_paths?: string[]
+          instagram?: string | null
+          logo_path?: string | null
+          provider_id: string
+          salon_address?: string | null
+          sections?: string[]
+          step_order?: string
+          tiktok?: string | null
+          updated_at?: string
+          welcome_message?: string | null
+        }
+        Update: {
+          accent_color?: string
+          bio?: string | null
+          booking_modes?: string
+          booking_rules?: string | null
+          city?: string | null
+          cover_path?: string | null
+          created_at?: string
+          custom_questions?: Json
+          font_key?: string
+          gallery_paths?: string[]
+          instagram?: string | null
+          logo_path?: string | null
+          provider_id?: string
+          salon_address?: string | null
+          sections?: string[]
+          step_order?: string
+          tiktok?: string | null
+          updated_at?: string
+          welcome_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_provider_pages_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
             referencedRelation: "blade_providers"
             referencedColumns: ["id"]
           },
@@ -588,6 +798,7 @@ export type Database = {
       }
       bookings: {
         Row: {
+          answers: Json | null
           appointment_date: string
           appointment_time: string
           blade_reminder_sent_at: string | null
@@ -611,6 +822,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          answers?: Json | null
           appointment_date: string
           appointment_time: string
           blade_reminder_sent_at?: string | null
@@ -634,6 +846,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          answers?: Json | null
           appointment_date?: string
           appointment_time?: string
           blade_reminder_sent_at?: string | null
@@ -2081,18 +2294,51 @@ export type Database = {
         Returns: boolean
       }
       blade_is_active_provider: { Args: never; Returns: boolean }
+      blade_lcs_provider_id: { Args: never; Returns: string }
+      blade_loyalty_add: {
+        Args: {
+          p_amount?: number
+          p_card: string
+          p_kind: string
+          p_label?: string
+          p_points?: number
+        }
+        Returns: Json
+      }
+      blade_loyalty_card_json: {
+        Args: { p_card: string; p_full: boolean }
+        Returns: Json
+      }
+      blade_loyalty_find: { Args: { p_code: string }; Returns: Json }
+      blade_loyalty_issue_card: {
+        Args: { p_email: string; p_name: string }
+        Returns: Json
+      }
+      blade_loyalty_overview: { Args: never; Returns: Json }
+      blade_loyalty_public_card: { Args: { p_code: string }; Returns: Json }
+      blade_loyalty_redeem: {
+        Args: { p_card: string; p_reward: string }
+        Returns: Json
+      }
+      blade_loyalty_save_program: { Args: { p_values: Json }; Returns: Json }
       blade_mark_deposit_received: {
         Args: { p_booking: string; p_method: string }
         Returns: undefined
       }
+      blade_my_loyalty_cards: { Args: never; Returns: Json }
       blade_my_provider: { Args: never; Returns: Json }
+      blade_my_provider_id: { Args: never; Returns: string }
+      blade_owns_media: { Args: { p_name: string }; Returns: boolean }
       blade_owns_provider: { Args: { p_provider: string }; Returns: boolean }
+      blade_provider_active: { Args: { p_provider: string }; Returns: boolean }
       blade_provider_bundle: { Args: never; Returns: Json }
       blade_provider_visible: { Args: { p_provider: string }; Returns: boolean }
+      blade_public_page: { Args: { p_provider?: string }; Returns: Json }
       blade_register_provider: {
         Args: { p_display_name: string }
         Returns: Json
       }
+      blade_save_page: { Args: { p_values: Json }; Returns: Json }
       blade_save_record: {
         Args: {
           p_entity: string

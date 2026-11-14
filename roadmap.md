@@ -13,3 +13,6 @@
 # Roadmap — Personnalisation & fidélité
 - [ ] 11. Chaque prestataire personnalise son profil public et son interface de réservation (en attente des choix de Lucas)
 - [ ] 12. Carte de fidélité digitale par prestataire avec système de points (en attente des choix de Lucas)
+  - 11a. Profil : couleur, police, logo, couverture, bio, réseaux, sections choisies et ordonnées, galerie
+  - 11b. Réservation : lieux proposés, message d'accueil, conditions à accepter, questions au client, ordre des étapes
+  - 12a. Fidélité : le prestataire choisit visites ou euros + récompenses ; carte dans l'espace client, QR code, envoi par email
