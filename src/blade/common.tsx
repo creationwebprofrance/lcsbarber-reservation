@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Search, CalendarDays, MessageSquare, UserRound, House, UsersRound, ChartNoAxesColumnIncreasing, MapPin, Car, Bell, Scissors, Coins, CreditCard, MoreHorizontal, ChevronDown, ChevronRight, ArrowRight, X, Plus, SlidersHorizontal, ArrowLeft, LoaderCircle, CircleAlert, Check, Menu, Image, Calculator, Settings, type LucideIcon } from 'lucide-react';
+import { Search, CalendarDays, MessageSquare, UserRound, House, UsersRound, ChartNoAxesColumnIncreasing, MapPin, Car, Bell, Scissors, Coins, CreditCard, MoreHorizontal, ChevronDown, ChevronRight, ArrowRight, X, Plus, SlidersHorizontal, ArrowLeft, LoaderCircle, CircleAlert, Check, Menu, Image, Calculator, Settings, Gift, Palette, type LucideIcon } from 'lucide-react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { useSession } from './data';
 import { proAccess } from './provider-admin-model';
@@ -11,7 +11,7 @@ import { PreferenceControls, useBladePreferences } from './preferences';
 import type { TextKey } from './translations';
 const navKeys:Record<string,TextKey>={'Recherche':'search','Rendez-vous':'appointments','Messages':'messages','Profil':'myProfile','Dashboard':'dashboard','Prix':'prices','Clients':'clients','Emails':'emails','Prestations':'services','Mon véhicule':'vehicle','Chat coiffeurs':'offers'};
 
-const icons: Record<string, LucideIcon> = { search: Search, calendar: CalendarDays, message: MessageSquare, user: UserRound, home: House, users: UsersRound, chart: ChartNoAxesColumnIncreasing, pin: MapPin, car: Car, bell: Bell, scissors: Scissors, coins: Coins, card: CreditCard, more: MoreHorizontal, image: Image, calculator: Calculator, settings: Settings };
+const icons: Record<string, LucideIcon> = { search: Search, calendar: CalendarDays, message: MessageSquare, user: UserRound, home: House, users: UsersRound, chart: ChartNoAxesColumnIncreasing, pin: MapPin, car: Car, bell: Bell, scissors: Scissors, coins: Coins, card: CreditCard, more: MoreHorizontal, image: Image, calculator: Calculator, settings: Settings, gift: Gift, palette: Palette };
 export function Icon({ name, ...props }: { name: string; size?: number; className?: string }) { const Component = icons[name] || CircleAlert; return <Component size={20} aria-hidden="true" {...props} />; }
 export function BladeButton({ className = '', variant = 'outline', ...props }: ButtonProps) { return <Button variant={variant} {...props} className={`blade-button ${variant === 'default' ? 'blade-primary' : ''} ${className}`} />; }
 export function BladeLogo() { return <Link className="blade-logo" to="/blade" aria-label="BLADE — accueil"><img src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" /></Link>; }

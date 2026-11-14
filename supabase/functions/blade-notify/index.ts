@@ -11,6 +11,7 @@ const Body = z.discriminatedUnion('event', [
   z.object({ event: z.literal('booking_confirmed'), booking_id: z.uuid() }),
   z.object({ event: z.literal('booking_cancelled'), booking_id: z.uuid() }),
   z.object({ event: z.literal('offer_reply'), reply_id: z.uuid() }),
+  z.object({ event: z.literal('loyalty_card'), card_id: z.uuid() }),
 ]);
 const res = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
@@ -85,6 +86,25 @@ Deno.serve(async req => {
         layout(confirmed ? 'Rendez-vous confirmé' : 'Rendez-vous annulé', `<p>${confirmed ? 'Le rendez-vous suivant est confirmé.' : 'Le rendez-vous suivant a été annulé.'}</p>${detailRows([['Client', b.client_name], ['Email', b.client_email], ['Prestation', service], ['Date', frDate(b.appointment_date)], ['Heure', String(b.appointment_time).slice(0, 5)]])}`,
           { label: 'Ouvrir mon espace', url: `${BLADE_SITE}/pro` }), `blade-${input.event}-provider-${b.id}`);
       return res({ email_sent: clientSent || providerSent, client: clientSent, provider: providerSent });
+    }
+
+    if (input.event === 'loyalty_card') {
+      // Explicit provider action: send the client a link to their loyalty card (works without a BLADE account).
+      const { data: c } = await db.from('blade_loyalty_cards').select('id,provider_id,client_name,client_email,points,code').eq('id', input.card_id).maybeSingle();
+      if (!c) return res({ error: 'Carte introuvable' }, 404);
+      const p = await providerOf({ id: c.provider_id });
+      if (!p || p.user_id !== user.id || p.status !== 'active') return res({ error: 'Forbidden' }, 403);
+      if (!p.opt_auto_emails) return res({ email_sent: false, reason: 'emails_disabled' });
+      const { data: prog } = await db.from('blade_loyalty_programs').select('active,name,kind,points_per_visit,points_per_euro,rewards').eq('provider_id', p.id).maybeSingle();
+      if (!prog?.active) return res({ email_sent: false, reason: 'program_inactive' });
+      const proName = p.display_name ?? 'Ton professionnel';
+      const earn = prog.kind === 'visits' ? `${prog.points_per_visit} point${prog.points_per_visit > 1 ? 's' : ''} par visite` : `${Number(prog.points_per_euro)} point${Number(prog.points_per_euro) > 1 ? 's' : ''} par euro dépensé`;
+      const rewards = (prog.rewards as { label: string; points: number }[] ?? []).map(r => [r.label, `${r.points} points`] as [string, string]);
+      const sent = await sendEmail([c.client_email], `BLADE — ${proName} t'offre une carte de fidélité`,
+        layout(`Ta carte de fidélité ${proName}`, `<p>Bonjour ${esc(c.client_name)},</p><p>${esc(proName)} t'offre sa carte « ${esc(prog.name)} » : tu gagnes ${esc(earn)}.</p><p>Solde actuel : <strong>${c.points} points</strong>.</p>${rewards.length ? `<p style="margin-bottom:0">Récompenses :</p>${detailRows(rewards)}` : ''}<p>Montre le QR code de ta carte à chaque passage pour cumuler tes points. Pour la retrouver dans ton espace BLADE, connecte-toi avec cette adresse email.</p>`,
+          { label: 'Voir ma carte', url: `${BLADE_SITE}/fidelite/${c.code}` }), undefined, p.email ?? undefined);
+      if (sent) await db.from('blade_loyalty_cards').update({ sent_at: new Date().toISOString() }).eq('id', c.id);
+      return res({ email_sent: sent });
     }
 
     // offer_reply

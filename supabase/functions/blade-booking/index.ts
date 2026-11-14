@@ -4,7 +4,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@4';
 import { BLADE_SITE, detailRows, esc, frDate, layout, sendEmail } from '../_shared/blade-email.ts';
-import { DEFAULT_PRICING, DOMICILE_ADDRESS, MODE_LABEL, PHONE_OK, bookableSlots, depositFor, initialStatus, quote, slotsForDate, type Mode, type Pricing } from '../_shared/blade-booking-rules.ts';
+import { DEFAULT_PRICING, DOMICILE_ADDRESS, DOMICILE_OFFERS, PHONE_OK, allowedModes, bookableSlots, checkAnswers, depositFor, initialStatus, modeLabel, quote, slotsForDate, type BookingModes, type Mode, type Pricing, type Question } from '../_shared/blade-booking-rules.ts';
 
 // Public Mapbox token already shipped to browsers (domain-restricted).
 const MAPBOX = 'pk.eyJ1IjoibGNoaXBhbiIsImEiOiJjbWZtOHc1dG4wZDdzMmlzN3hmeDRldnhzIn0.lK1A8wh63mIkudWk8h7f6Q';
@@ -14,10 +14,11 @@ const Iso = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const Time = z.string().regex(/^\d{2}:\d{2}$/);
 const ModeS = z.enum(['domicile', 'deplacement']);
 const Body = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('slots'), service_id: z.uuid(), mode: ModeS, date: Iso }),
+  z.object({ action: z.literal('slots'), service_id: z.uuid().optional(), provider_id: z.uuid().optional(), mode: ModeS, date: Iso }),
   z.object({ action: z.literal('quote'), service_id: z.uuid(), mode: ModeS, date: Iso, time: Time, address: z.string().max(300).optional() }),
   z.object({ action: z.literal('create'), service_id: z.uuid(), mode: ModeS, date: Iso, time: Time, address: z.string().max(300).optional(),
-    name: z.string().trim().min(2).max(100), phone: z.string().trim().max(25), notes: z.string().trim().max(500).optional() }),
+    name: z.string().trim().min(2).max(100), phone: z.string().trim().max(25), notes: z.string().trim().max(500).optional(),
+    answers: z.record(z.string().max(40), z.string().max(300)).optional(), rules_ack: z.boolean().optional() }),
 ]);
 const res = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
@@ -52,10 +53,20 @@ Deno.serve(async req => {
   const mode = input.mode as Mode;
 
   try {
-    const { data: service } = await db.from('services').select('id,name,price,duration_minutes,is_active,provider_id').eq('id', input.service_id).maybeSingle();
-    if (!service?.is_active || !service.provider_id) return res({ error: 'Prestation indisponible' }, 404);
-    const { data: provider } = await db.from('blade_providers').select('id,user_id,status,display_name,email,opt_auto_emails,opt_payment_links,revolut_url,stripe_link_url').eq('id', service.provider_id).maybeSingle();
+    let service: { id: string; name: string; price: number; duration_minutes: number; is_active: boolean; provider_id: string | null } | null = null;
+    if (input.service_id) {
+      const { data } = await db.from('services').select('id,name,price,duration_minutes,is_active,provider_id').eq('id', input.service_id).maybeSingle();
+      if (!data?.is_active || !data.provider_id) return res({ error: 'Prestation indisponible' }, 404);
+      service = data;
+    }
+    const providerId = service?.provider_id ?? (input.action === 'slots' ? input.provider_id : undefined);
+    if (!providerId || (input.action === 'slots' && input.provider_id && service && input.provider_id !== service.provider_id)) return res({ error: 'Professionnel introuvable' }, 404);
+    const { data: provider } = await db.from('blade_providers').select('id,user_id,status,display_name,email,opt_auto_emails,opt_payment_links,revolut_url,stripe_link_url').eq('id', providerId).maybeSingle();
     if (!provider || provider.status !== 'active') return res({ error: 'Ce professionnel ne prend pas de rendez-vous pour le moment' }, 409);
+    // Provider booking page settings: offered places, questions, conditions, "sur place" address.
+    const { data: page } = await db.from('blade_provider_pages').select('booking_modes,custom_questions,booking_rules,salon_address').eq('provider_id', provider.id).maybeSingle();
+    if (!allowedModes(page?.booking_modes as BookingModes | undefined).includes(mode)) return res({ error: 'Ce lieu n’est pas proposé par ce professionnel' }, 400);
+    const proName = provider.display_name ?? 'Le professionnel';
     // Opening hours live in the LCS Barber calendar; other providers have no online calendar yet.
     const { data: superadmins } = await db.from('user_roles').select('user_id').eq('role', 'superadmin');
     const hasCalendar = (superadmins ?? []).some(r => r.user_id === provider.user_id);
@@ -71,13 +82,14 @@ Deno.serve(async req => {
     const takenByOthers = (taken ?? []).filter(b => String(b.client_email).toLowerCase() !== user.email!.toLowerCase()).map(b => String(b.appointment_time));
     const slots = bookableSlots(open, takenByOthers, input.date, today, minutes);
     if (input.action === 'slots') return res({ slots });
+    if (!service) return res({ error: 'Choisis une prestation' }, 400);
 
     if (!slots.includes(input.time)) return res({ error: 'Ce créneau n’est plus disponible. Choisis-en un autre.' }, 409);
     const { data: priceRows } = await db.from('pricing_settings').select('setting_key,setting_value').eq('provider_id', provider.id);
     const pricing: Pricing = { ...DEFAULT_PRICING };
     for (const r of priceRows ?? []) if (r.setting_key in pricing) (pricing as Record<string, number>)[r.setting_key] = Number(r.setting_value);
 
-    const address = mode === 'domicile' ? DOMICILE_ADDRESS : (input.address ?? '').trim();
+    const address = mode === 'domicile' ? (hasCalendar ? DOMICILE_ADDRESS : (page?.salon_address ?? 'Chez le professionnel')) : (input.address ?? '').trim();
     let minutesAway = 0;
     if (mode === 'deplacement') {
       if (address.length < 8) return res({ error: 'Indique ton adresse complète' }, 400);
@@ -85,13 +97,17 @@ Deno.serve(async req => {
       if (m === null) return res({ error: 'Adresse introuvable. Vérifie-la (numéro, rue, ville).' }, 400);
       minutesAway = m;
     }
-    const q = quote(service, mode, input.date, input.time, today, pricing, minutesAway);
+    const q = quote(service, mode, input.date, input.time, today, pricing, minutesAway, hasCalendar ? DOMICILE_OFFERS : null);
     if (!q) return res({ error: 'Cette prestation n’est pas proposée pour ce lieu' }, 400);
     const status = initialStatus(provider);
     const deposit = status === 'pending' ? depositFor(q.total) : 0;
     if (input.action === 'quote') return res({ quote: q, status, deposit, travel_minutes: minutesAway });
 
     if (!PHONE_OK(input.phone)) return res({ error: 'Numéro de téléphone invalide' }, 400);
+    if (page?.booking_rules && input.rules_ack !== true) return res({ error: 'Accepte les conditions du professionnel pour réserver' }, 400);
+    const checked = checkAnswers((page?.custom_questions ?? []) as Question[], input.answers);
+    if (checked.error) return res({ error: checked.error }, 400);
+    const answers = checked.rows ?? [];
     const since = (ms: number) => new Date(Date.now() - ms).toISOString();
     const [{ count: hour }, { count: day }] = await Promise.all([
       db.from('bookings').select('id', { count: 'exact', head: true }).ilike('client_email', user.email).gte('created_at', since(3600e3)),
@@ -99,11 +115,11 @@ Deno.serve(async req => {
     ]);
     if ((hour ?? 0) >= 3 || (day ?? 0) >= 5) return res({ error: 'Trop de réservations récentes. Réessaie plus tard.' }, 429);
 
-    const notes = [`Réservé via BLADE · ${MODE_LABEL[mode]}`, deposit ? `Acompte attendu : ${deposit} €` : null, input.notes || null].filter(Boolean).join('\n');
+    const notes = [`Réservé via BLADE · ${modeLabel(mode, proName)}`, deposit ? `Acompte attendu : ${deposit} €` : null, ...answers.map(a => `${a.label} : ${a.answer}`), input.notes || null].filter(Boolean).join('\n');
     const { data: booking, error } = await db.from('bookings').insert({
       service_id: service.id, provider_id: provider.id, client_name: input.name, client_email: user.email, client_phone: input.phone,
       client_address: address, appointment_date: input.date, appointment_time: input.time, status, total_price: q.total,
-      travel_fee: q.travel, deposit_paid: false, notes,
+      travel_fee: q.travel, deposit_paid: false, notes, answers: answers.length ? answers : null,
     }).select('id,status').single();
     if (error || !booking) { console.error('insert', error); return res({ error: 'La réservation n’a pas pu être enregistrée' }, 500); }
 
@@ -112,14 +128,13 @@ Deno.serve(async req => {
 
     let emailSent = false;
     if (provider.opt_auto_emails) {
-      const proName = provider.display_name ?? 'ton professionnel';
-      const rows = detailRows([['Professionnel', proName], ['Prestation', q.label], ['Lieu', `${MODE_LABEL[mode]} — ${address}`], ['Date', frDate(input.date)], ['Heure', input.time], ['Total', `${q.total} €`], ...(deposit ? [['Acompte', `${deposit} €`] as [string, string]] : [])]);
+      const rows = detailRows([['Professionnel', proName], ['Prestation', q.label], ['Lieu', `${modeLabel(mode, proName)} — ${address}`], ['Date', frDate(input.date)], ['Heure', input.time], ['Total', `${q.total} €`], ...(deposit ? [['Acompte', `${deposit} €`] as [string, string]] : [])]);
       const clientHtml = status === 'confirmed'
         ? layout('Rendez-vous confirmé', `<p>Bonjour ${esc(input.name)},</p><p>Ton rendez-vous avec ${esc(proName)} est confirmé.</p>${rows}`, { label: 'Mes rendez-vous', url: `${BLADE_SITE}/client/rendez-vous` })
         : layout('Réservation enregistrée — acompte à régler', `<p>Bonjour ${esc(input.name)},</p><p>Ta réservation est enregistrée. Elle sera confirmée dès que ${esc(proName)} aura reçu ton acompte de <strong>${deposit} €</strong>.</p>${rows}`, { label: 'Payer l’acompte', url: `${BLADE_SITE}/client/rendez-vous` });
       const a = await sendEmail([user.email], status === 'confirmed' ? 'BLADE — Rendez-vous confirmé' : 'BLADE — Acompte à régler pour ton rendez-vous', clientHtml, `blade-book-client-${booking.id}`);
       const b = await sendEmail([provider.email ?? ''], `BLADE — Nouveau rendez-vous : ${input.name}`,
-        layout('Nouveau rendez-vous', `<p><strong>${esc(input.name)}</strong> (${esc(user.email)} · ${esc(input.phone)}) a réservé.</p>${rows}<p>${status === 'pending' ? 'Le rendez-vous reste en attente jusqu’à ce que tu confirmes la réception de l’acompte.' : 'Le rendez-vous est confirmé.'}</p>`, { label: 'Ouvrir mon agenda', url: `${BLADE_SITE}/pro/${status === 'pending' ? 'paiements' : 'agenda'}` }), `blade-book-provider-${booking.id}`);
+        layout('Nouveau rendez-vous', `<p><strong>${esc(input.name)}</strong> (${esc(user.email)} · ${esc(input.phone)}) a réservé.</p>${rows}${answers.length ? detailRows(answers.map(a => [a.label, a.answer] as [string, string])) : ''}<p>${status === 'pending' ? 'Le rendez-vous reste en attente jusqu’à ce que tu confirmes la réception de l’acompte.' : 'Le rendez-vous est confirmé.'}</p>`, { label: 'Ouvrir mon agenda', url: `${BLADE_SITE}/pro/${status === 'pending' ? 'paiements' : 'agenda'}` }), `blade-book-provider-${booking.id}`);
       emailSent = a || b;
     }
     return res({ booking_id: booking.id, status: booking.status, total: q.total, deposit, email_sent: emailSent });

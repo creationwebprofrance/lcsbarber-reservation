@@ -1,6 +1,15 @@
 import { Link, useParams } from 'react-router-dom';
-import { useCommunityRead, providerById, COMMUNITY_ACTIVE } from './community-data';
-import { BladeButton, PageHeading, Section } from './common';
-import { useBladePreferences } from './preferences';
-import { bookingTarget } from './community-model';
-export function PublicProviderProfile(){const {id}=useParams();const {t,language}=useBladePreferences();const state=useCommunityRead(()=>providerById(id??''),[id]);return <div className="blade-app"><main className="blade-main"><BladeButton asChild><Link to="/blade">BLADE</Link></BladeButton><PageHeading title={state.data?.name??t('publicProfile')}/>{!COMMUNITY_ACTIVE?<p>{t('activation')}</p>:state.loading?<p role="status">{t('loading')}</p>:state.error?<p role="alert">{t('error')}</p>:!state.data?<p>{t('missing')}</p>:<><p>{state.data.city}</p><p>{state.data.zone}</p><p>{state.data.home?t('home'):''} {state.data.near?t('near'):''}</p><Section title={t('services')}>{state.data.services.map(s=>{const target=bookingTarget(state.data?.booking_path??null,state.data?.provider_id??'',s.id);return <article key={s.id} className="blade-provider-price"><div><h3>{s.name}</h3><p>{s.duration_minutes} {t('min')} · {new Intl.NumberFormat(language,{style:'currency',currency:'EUR'}).format(s.price)}</p></div>{target?<BladeButton asChild variant="default"><a href={target}>{t('reserve')}</a></BladeButton>:<p>{t('bookingUnavailable')}</p>}</article>;})}</Section><p className="blade-note">{t('travelFees')}</p></>}</main></div>;}
+import { BladeButton, EmptyState } from './common';
+import { usePublicPage } from './customization-data';
+import { ProviderProfileView } from './brand';
+
+/** Public provider profile, outside account guards so it can be shared. */
+export function PublicProviderProfile() {
+  const { id } = useParams();
+  const valid = /^[0-9a-f-]{36}$/i.test(id ?? '');
+  const state = usePublicPage(valid ? id! : '00000000-0000-0000-0000-000000000000');
+  return <div className="blade-app"><main className="blade-main">
+    <BladeButton asChild><Link to="/blade">BLADE</Link></BladeButton>
+    {state.loading ? <p role="status">Chargement…</p> : !state.data ? <EmptyState icon="user" title="Profil introuvable" description="Ce professionnel n’existe pas ou n’est plus actif." /> : <ProviderProfileView data={state.data} />}
+  </main></div>;
+}
