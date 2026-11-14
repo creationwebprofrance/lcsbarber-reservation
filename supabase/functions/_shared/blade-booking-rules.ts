@@ -70,8 +70,11 @@ export type Quote = { label: string; base: number; hourly: number; sameDay: numb
 
 /** Price breakdown. "Le client se déplace": reduced price + hourly supplement only.
  * "LCS Barber se déplace": catalogue price + hourly, same-day, Sunday and travel fees. Returns null when the service is not offered in that mode. */
-export function quote(service: { name: string; price: number }, mode: Mode, iso: string, time: string, todayIso: string, p: Pricing, travelMinutes = 0): Quote | null {
-  const offer = mode === 'domicile' ? DOMICILE_OFFERS[service.name] : { label: service.name, price: Number(service.price) };
+export function quote(service: { name: string; price: number }, mode: Mode, iso: string, time: string, todayIso: string, p: Pricing, travelMinutes = 0,
+  domicileOffers: Record<string, { label: string; price: number }> | null = DOMICILE_OFFERS): Quote | null {
+  // domicileOffers = null: the provider has no reduced "sur place" prices, the catalogue price applies.
+  const catalogue = { label: service.name, price: Number(service.price) };
+  const offer = mode === 'domicile' ? (domicileOffers ? domicileOffers[service.name] : catalogue) : catalogue;
   if (!offer) return null;
   const hour = Number(time.slice(0, 2));
   let hourly = 0;
@@ -89,3 +92,34 @@ export function initialStatus(p: { opt_payment_links: boolean; revolut_url: stri
 }
 
 export const PHONE_OK = (v: string) => v.replace(/\D/g, '').length >= 10 && v.replace(/\D/g, '').length <= 15;
+
+// ---- Provider booking customization ----
+export type BookingModes = 'both' | Mode;
+export type StepOrder = 'service' | 'place' | 'date';
+export type StepKey = 'service' | 'place' | 'date' | 'time' | 'recap';
+export type Question = { id: string; label: string; type: 'text' | 'choice' | 'yesno'; required: boolean; options?: string[] };
+
+export const allowedModes = (m: BookingModes | null | undefined): Mode[] => m === 'domicile' || m === 'deplacement' ? [m] : ['domicile', 'deplacement'];
+
+/** Booking steps in the provider's chosen order. The place step disappears when only one place is offered. */
+export function stepsFor(order: StepOrder | null | undefined, modes: BookingModes | null | undefined): StepKey[] {
+  const base: StepKey[] = order === 'place' ? ['place', 'service', 'date', 'time'] : order === 'date' ? ['place', 'date', 'time', 'service'] : ['service', 'place', 'date', 'time'];
+  return [...(allowedModes(modes).length === 1 ? base.filter(s => s !== 'place') : base), 'recap'];
+}
+
+/** Validates the client's answers to the provider's questions; returns the rows to store or the first error. */
+export function checkAnswers(questions: Question[] | null | undefined, answers: Record<string, unknown> | null | undefined): { rows: { id: string; label: string; answer: string }[]; error?: undefined } | { error: string; rows?: undefined } {
+  const rows: { id: string; label: string; answer: string }[] = [];
+  for (const q of questions ?? []) {
+    const raw = answers?.[q.id];
+    const v = typeof raw === 'string' ? raw.trim() : '';
+    if (!v) { if (q.required) return { error: `Réponds à la question « ${q.label} »` }; continue; }
+    if (v.length > 300) return { error: `Réponse trop longue pour « ${q.label} » (300 caractères max)` };
+    if (q.type === 'choice' && !(q.options ?? []).includes(v)) return { error: `Réponse invalide pour « ${q.label} »` };
+    if (q.type === 'yesno' && v !== 'Oui' && v !== 'Non') return { error: `Réponse invalide pour « ${q.label} »` };
+    rows.push({ id: q.id, label: q.label, answer: v });
+  }
+  return { rows };
+}
+
+export const modeLabel = (mode: Mode, providerName: string) => mode === 'domicile' ? 'Le client se déplace' : `${providerName} se déplace`;
