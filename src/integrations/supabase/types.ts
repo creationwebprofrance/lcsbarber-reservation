@@ -2325,6 +2325,7 @@ export type Database = {
         Args: { p_booking: string; p_method: string }
         Returns: undefined
       }
+      blade_media_published: { Args: { p_name: string }; Returns: boolean }
       blade_my_loyalty_cards: { Args: never; Returns: Json }
       blade_my_provider: { Args: never; Returns: Json }
       blade_my_provider_id: { Args: never; Returns: string }
