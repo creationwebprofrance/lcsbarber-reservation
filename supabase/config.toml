@@ -60,3 +60,6 @@ verify_jwt = false
 
 [functions.blade-booking]
 verify_jwt = false
+
+[functions.blade-subscription]
+verify_jwt = false
