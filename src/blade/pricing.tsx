@@ -18,10 +18,10 @@ const copy: Record<Language, PricingCopy> = {
     plans: [
       { id: 'free', name: 'Découverte', price: '0 €', period: '/mois', tagline: 'Pour te lancer sur BLADE.', cta: 'Commencer gratuitement',
         features: ['Profil visible dans la recherche', 'Jusqu’à 20 réservations par mois', 'Agenda et créneaux', 'Paiement sur place', '5 % de commission sur les paiements en ligne'] },
-      { id: 'pro', name: 'Pro', price: '29 €', period: '/mois', tagline: 'Pour les barbers qui travaillent à plein temps.', cta: 'Essayer 30 jours gratuits', badge: 'Le plus choisi',
-        features: ['Réservations illimitées', 'Acomptes en ligne contre les rendez-vous non honorés', 'Rappels automatiques aux clients', 'Galerie de réalisations', 'Messagerie avec les clients', 'Statistiques de base', '0 % de commission'] },
-      { id: 'premium', name: 'Premium', price: '49 €', period: '/mois', tagline: 'Pour être vu en premier et fidéliser.', cta: 'Passer Premium',
-        features: ['Tout le plan Pro', 'Mise en avant dans les résultats', 'Suivi du trajet en direct à domicile', 'Programme de fidélité personnalisé', 'Statistiques avancées', 'Badge « Pro vérifié »', 'Plusieurs barbers pour un salon'] },
+      { id: 'pro', name: 'Pro', price: '14,90 €', period: '/mois', tagline: 'Pour les barbers qui travaillent à plein temps.', cta: 'Essayer 30 jours gratuits', badge: 'Le plus choisi',
+        features: ['Réservations illimitées', '0 % de commission', 'Carte de fidélité incluse (cartes NFC compatibles)', 'Acomptes en ligne contre les rendez-vous non honorés', 'Rappels automatiques aux clients', 'Galerie de réalisations et messagerie', 'Statistiques de base'] },
+      { id: 'premium', name: 'Premium', price: '29,90 €', period: '/mois', tagline: 'Pour être vu en premier en Île-de-France.', cta: 'Passer Premium',
+        features: ['Tout le plan Pro', 'Mise en avant dans les résultats de ta ville', 'Badge « Pro vérifié »', 'Suivi du trajet en direct à domicile', 'Statistiques avancées', 'Plusieurs barbers pour un salon'] },
     ],
   },
   en: {
@@ -32,10 +32,10 @@ const copy: Record<Language, PricingCopy> = {
     plans: [
       { id: 'free', name: 'Starter', price: '€0', period: '/month', tagline: 'To get started on BLADE.', cta: 'Start for free',
         features: ['Profile visible in search', 'Up to 20 bookings per month', 'Calendar and time slots', 'Pay on site', '5% fee on online payments'] },
-      { id: 'pro', name: 'Pro', price: '€29', period: '/month', tagline: 'For full-time barbers.', cta: 'Try 30 days free', badge: 'Most popular',
-        features: ['Unlimited bookings', 'Online deposits against no-shows', 'Automatic client reminders', 'Work gallery', 'Client messaging', 'Basic statistics', '0% fee'] },
-      { id: 'premium', name: 'Premium', price: '€49', period: '/month', tagline: 'To be seen first and build loyalty.', cta: 'Go Premium',
-        features: ['Everything in Pro', 'Featured in search results', 'Live travel tracking for home visits', 'Custom loyalty program', 'Advanced statistics', '“Verified pro” badge', 'Several barbers for one salon'] },
+      { id: 'pro', name: 'Pro', price: '€14.90', period: '/month', tagline: 'For full-time barbers.', cta: 'Try 30 days free', badge: 'Most popular',
+        features: ['Unlimited bookings', '0% fee', 'Loyalty card included (NFC cards supported)', 'Online deposits against no-shows', 'Automatic client reminders', 'Work gallery and messaging', 'Basic statistics'] },
+      { id: 'premium', name: 'Premium', price: '€29.90', period: '/month', tagline: 'To be seen first in Île-de-France.', cta: 'Go Premium',
+        features: ['Everything in Pro', 'Featured in your city’s results', '“Verified pro” badge', 'Live travel tracking for home visits', 'Advanced statistics', 'Several barbers for one salon'] },
     ],
   },
   es: {
@@ -46,10 +46,10 @@ const copy: Record<Language, PricingCopy> = {
     plans: [
       { id: 'free', name: 'Descubrimiento', price: '0 €', period: '/mes', tagline: 'Para empezar en BLADE.', cta: 'Empezar gratis',
         features: ['Perfil visible en la búsqueda', 'Hasta 20 reservas al mes', 'Agenda y horarios', 'Pago en el lugar', '5 % de comisión en pagos online'] },
-      { id: 'pro', name: 'Pro', price: '29 €', period: '/mes', tagline: 'Para barberos a tiempo completo.', cta: 'Probar 30 días gratis', badge: 'El más elegido',
-        features: ['Reservas ilimitadas', 'Anticipos online contra ausencias', 'Recordatorios automáticos', 'Galería de trabajos', 'Mensajería con clientes', 'Estadísticas básicas', '0 % de comisión'] },
-      { id: 'premium', name: 'Premium', price: '49 €', period: '/mes', tagline: 'Para destacar y fidelizar.', cta: 'Pasar a Premium',
-        features: ['Todo el plan Pro', 'Destacado en los resultados', 'Seguimiento del trayecto en directo', 'Programa de fidelidad personalizado', 'Estadísticas avanzadas', 'Insignia «Pro verificado»', 'Varios barberos para un salón'] },
+      { id: 'pro', name: 'Pro', price: '14,90 €', period: '/mes', tagline: 'Para barberos a tiempo completo.', cta: 'Probar 30 días gratis', badge: 'El más elegido',
+        features: ['Reservas ilimitadas', '0 % de comisión', 'Tarjeta de fidelidad incluida (compatible NFC)', 'Anticipos online contra ausencias', 'Recordatorios automáticos', 'Galería de trabajos y mensajería', 'Estadísticas básicas'] },
+      { id: 'premium', name: 'Premium', price: '29,90 €', period: '/mes', tagline: 'Para destacar en Île-de-France.', cta: 'Pasar a Premium',
+        features: ['Todo el plan Pro', 'Destacado en los resultados de tu ciudad', 'Insignia «Pro verificado»', 'Seguimiento del trayecto en directo', 'Estadísticas avanzadas', 'Varios barberos para un salón'] },
     ],
   },
 };

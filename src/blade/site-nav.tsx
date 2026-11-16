@@ -67,7 +67,7 @@ export function SiteNav() {
 export function SiteFooter() {
   const { t, language } = useBladePreferences();
   const x = extra[language] ?? extra.fr;
-  return <footer className="bl2-footer"><span>© BLADE</span><nav aria-label="Liens"><Link to="/blade/tarifs">{x.pricing}</Link><Link to="/blade#blade-gallery">{t('help')}</Link></nav><div className="bl2-legal"><strong>Informations légales</strong><ul><li><a href="/mentions-legales">Mentions légales</a></li><li><a href="/cgv">CGV</a></li><li><a href="/politique-de-confidentialite">Politique de confidentialité</a></li><li><a href="/droit-de-retractation">Droit de rétractation</a></li></ul></div></footer>;
+  return <footer className="bl2-footer"><span>© BLADE</span><nav aria-label="Liens"><Link to="/blade/tarifs">{x.pricing}</Link><Link to="/blade/barber">Barbers en Île-de-France</Link><Link to="/blade/outils/calculateur-barber">Calculateur barber</Link><Link to="/blade#blade-gallery">{t('help')}</Link></nav><div className="bl2-legal"><strong>Informations légales</strong><ul><li><a href="/mentions-legales">Mentions légales</a></li><li><a href="/cgv">CGV</a></li><li><a href="/politique-de-confidentialite">Politique de confidentialité</a></li><li><a href="/droit-de-retractation">Droit de rétractation</a></li></ul></div></footer>;
 }
 
 // Fait défiler jusqu'à l'ancre (#...) après un changement de page.

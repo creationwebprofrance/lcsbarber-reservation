@@ -1,22 +1,45 @@
-import { useEffect } from 'react';
-import { ProChat } from './chat';
+import { Suspense, lazy, useEffect, type ComponentType } from 'react';
 import { BrowserRouter, Navigate, Routes, Route, useLocation, Link } from 'react-router-dom';
 import { ClientLayout, ProLayout, EmptyState, BladeButton } from './common';
 import { ClientSearch, ProfessionalProfile, Appointments, Messages, ClientProfile } from './client';
 import { Reserve, Recap, Confirmation } from './booking';
-import { Daily, Agenda, Performance, Travel, Vehicle, Clients, Reminders, Services, Revenue, Payments, ProProfile, Catalogue, Simulation, Settings } from './pro';
 import { Landing, DemoLogin } from './landing';
 import { PricingPage } from './pricing';
-import { ProviderDashboard, ProviderPrices, ProviderClients, ProviderEmails, ProviderServices, ProviderVehicle } from './provider';
+import { CityPage, CitiesIndex } from './city';
 import './blade.css';
 import { BladePreferences } from './preferences';
+import { applyMeta } from './seo';
 import { BladeAssistant } from './assistant';
-import { PrivateMessages } from './private-messages';
 import { PublicProviderProfile } from './public-profile';
-import { Superadmin } from './superadmin';
-import { ProviderPayments } from './provider-payments';
 import { BecomeProvider } from './become-provider';
-import { ProCustomize } from './customize';
 import { ClientLoyalty, ProLoyalty, PublicLoyaltyCard } from './loyalty';
-function RouteEffects() { const location = useLocation(); useEffect(()=> { window.scrollTo(0,0); document.title='BLADE — Espaces client et professionnel';const description=document.querySelector('meta[name="description"]'); description?.setAttribute('content','BLADE : interfaces de réservation et de suivi professionnel.');const icon=document.querySelector<HTMLLinkElement>('link[rel="icon"]');if(icon)icon.href='/blade/favicon.png';for(const property of ['og:title','og:description'])document.querySelector(`meta[property="${property}"]`)?.setAttribute('content',property==='og:title'?'BLADE':'Espaces client et professionnel BLADE');document.querySelector('meta[property="og:image"]')?.remove();document.querySelector('meta[name="twitter:image"]')?.remove(); },[location.pathname]);return null; }
-export default function BladeApp() { return <BladePreferences><BrowserRouter><RouteEffects/><Routes><Route path="/blade/profil/:id" element={<PublicProviderProfile/>}/><Route path="/blade/fidelite/:code" element={<PublicLoyaltyCard/>}/><Route path="/blade" element={<Landing/>}/><Route path="/blade/tarifs" element={<PricingPage/>}/><Route path="/blade/connexion" element={<DemoLogin/>}/><Route path="/blade/devenir-pro" element={<BecomeProvider/>}/><Route path="/blade/client" element={<ClientLayout/>}><Route index element={<ClientSearch/>}/><Route path="profil-professionnel" element={<ProfessionalProfile/>}/><Route path="reserver" element={<Reserve/>}/><Route path="recapitulatif" element={<Recap/>}/><Route path="confirmation" element={<Confirmation/>}/><Route path="rendez-vous" element={<Appointments/>}/><Route path="fidelite" element={<ClientLoyalty/>}/><Route path="messages" element={<Messages/>}/><Route path="profil" element={<ClientProfile/>}/><Route path="*" element={<EmptyState title="Page introuvable" action={<BladeButton asChild><Link to="/blade/client">Recherche</Link></BladeButton>}/>}/></Route><Route path="/blade/pro" element={<ProLayout/>}><Route index element={<ProviderDashboard/>}/><Route path="prix" element={<ProviderPrices/>}/><Route path="clients" element={<ProviderClients/>}/><Route path="emails" element={<ProviderEmails/>}/><Route path="prestations" element={<ProviderServices/>}/><Route path="vehicule" element={<ProviderVehicle/>}/><Route path="chat" element={<ProChat/>}/><Route path="messages" element={<PrivateMessages/>}/><Route path="profil" element={<ProProfile/>}/><Route path="agenda" element={<Agenda/>}/><Route path="paiements" element={<ProviderPayments/>}/><Route path="fidelite" element={<ProLoyalty/>}/><Route path="personnalisation" element={<ProCustomize/>}/><Route path="superadmin" element={<Superadmin/>}/><Route path="*" element={<Navigate to="/blade/pro" replace/>}/></Route><Route path="*" element={<Navigate to="/blade" replace/>}/></Routes><BladeAssistant/></BrowserRouter></BladePreferences>; }
+const lazyNamed = <M extends Record<string, unknown>>(load: () => Promise<M>, name: keyof M) => lazy(async () => ({ default: (await load())[name] as ComponentType }));
+const ProChat = lazyNamed(() => import('./chat'), 'ProChat');
+const Daily = lazyNamed(() => import('./pro'), 'Daily');
+const Agenda = lazyNamed(() => import('./pro'), 'Agenda');
+const Performance = lazyNamed(() => import('./pro'), 'Performance');
+const Travel = lazyNamed(() => import('./pro'), 'Travel');
+const Vehicle = lazyNamed(() => import('./pro'), 'Vehicle');
+const Clients = lazyNamed(() => import('./pro'), 'Clients');
+const Reminders = lazyNamed(() => import('./pro'), 'Reminders');
+const Services = lazyNamed(() => import('./pro'), 'Services');
+const Revenue = lazyNamed(() => import('./pro'), 'Revenue');
+const Payments = lazyNamed(() => import('./pro'), 'Payments');
+const ProProfile = lazyNamed(() => import('./pro'), 'ProProfile');
+const Catalogue = lazyNamed(() => import('./pro'), 'Catalogue');
+const Simulation = lazyNamed(() => import('./pro'), 'Simulation');
+const Settings = lazyNamed(() => import('./pro'), 'Settings');
+const ProviderDashboard = lazyNamed(() => import('./provider'), 'ProviderDashboard');
+const ProviderPrices = lazyNamed(() => import('./provider'), 'ProviderPrices');
+const ProviderClients = lazyNamed(() => import('./provider'), 'ProviderClients');
+const ProviderEmails = lazyNamed(() => import('./provider'), 'ProviderEmails');
+const ProviderServices = lazyNamed(() => import('./provider'), 'ProviderServices');
+const ProviderVehicle = lazyNamed(() => import('./provider'), 'ProviderVehicle');
+const PrivateMessages = lazyNamed(() => import('./private-messages'), 'PrivateMessages');
+const Superadmin = lazyNamed(() => import('./superadmin'), 'Superadmin');
+const ProviderPayments = lazyNamed(() => import('./provider-payments'), 'ProviderPayments');
+const ProCustomize = lazyNamed(() => import('./customize'), 'ProCustomize');
+const BarberCalculator = lazyNamed(() => import('./tools'), 'BarberCalculator');
+// Pages chargées à la demande : l’espace pro et les outils ne pèsent plus sur le premier affichage.
+function RouteEffects() { const location = useLocation(); useEffect(()=> { window.scrollTo(0,0); const icon=document.querySelector<HTMLLinkElement>('link[rel="icon"]'); if(icon) icon.href='/blade/favicon.png'; applyMeta(location.pathname); },[location.pathname]); return null; }
+export default function BladeApp() { return <BladePreferences><BrowserRouter><RouteEffects/><Suspense fallback={<div className="blade-app" style={{minHeight:'100dvh'}}/>}><Routes><Route path="/blade/profil/:id" element={<PublicProviderProfile/>}/><Route path="/blade/fidelite/:code" element={<PublicLoyaltyCard/>}/><Route path="/blade" element={<Landing/>}/><Route path="/blade/tarifs" element={<PricingPage/>}/><Route path="/blade/barber" element={<CitiesIndex/>}/><Route path="/blade/outils/calculateur-barber" element={<BarberCalculator/>}/><Route path="/blade/barber/:ville" element={<CityPage/>}/><Route path="/blade/connexion" element={<DemoLogin/>}/><Route path="/blade/devenir-pro" element={<BecomeProvider/>}/><Route path="/blade/client" element={<ClientLayout/>}><Route index element={<ClientSearch/>}/><Route path="profil-professionnel" element={<ProfessionalProfile/>}/><Route path="reserver" element={<Reserve/>}/><Route path="recapitulatif" element={<Recap/>}/><Route path="confirmation" element={<Confirmation/>}/><Route path="rendez-vous" element={<Appointments/>}/><Route path="fidelite" element={<ClientLoyalty/>}/><Route path="messages" element={<Messages/>}/><Route path="profil" element={<ClientProfile/>}/><Route path="*" element={<EmptyState title="Page introuvable" action={<BladeButton asChild><Link to="/blade/client">Recherche</Link></BladeButton>}/>}/></Route><Route path="/blade/pro" element={<ProLayout/>}><Route index element={<ProviderDashboard/>}/><Route path="prix" element={<ProviderPrices/>}/><Route path="clients" element={<ProviderClients/>}/><Route path="emails" element={<ProviderEmails/>}/><Route path="prestations" element={<ProviderServices/>}/><Route path="vehicule" element={<ProviderVehicle/>}/><Route path="chat" element={<ProChat/>}/><Route path="messages" element={<PrivateMessages/>}/><Route path="profil" element={<ProProfile/>}/><Route path="agenda" element={<Agenda/>}/><Route path="paiements" element={<ProviderPayments/>}/><Route path="fidelite" element={<ProLoyalty/>}/><Route path="personnalisation" element={<ProCustomize/>}/><Route path="superadmin" element={<Superadmin/>}/><Route path="*" element={<Navigate to="/blade/pro" replace/>}/></Route><Route path="*" element={<Navigate to="/blade" replace/>}/></Routes></Suspense><BladeAssistant/></BrowserRouter></BladePreferences>; }

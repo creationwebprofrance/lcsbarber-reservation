@@ -8,6 +8,8 @@ import { useSession, type ProviderClient } from './data';
 import { codeFromScan, earnRule, nextReward, pointsForAmount, shortId, type Reward } from './customization-model';
 import { addPoints, cardLink, findCard, issueCard, loyaltyOverview, myCards, publicCard, redeemReward, saveProgram, scanLink, sendCardEmail, useAsync, useMediaUrls, type LoyaltyCard, type LoyaltyProgram } from './customization-data';
 import { BrandLogo, BrandScope } from './brand';
+import { Nfc } from 'lucide-react';
+import { nfcErrorText, nfcSupported, readNfcUrl, writeNfcUrl } from './nfc';
 
 const when = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 const errText = (e: unknown) => e instanceof Error ? e.message : 'Action impossible. Réessaie.';
@@ -175,7 +177,9 @@ function CardActions({ card, onChange }: { card: LoyaltyCard; onChange: (c: Loya
     <div className="blade-inline">
       <BladeButton disabled={busy} onClick={async () => { setBusy(true); const r = await sendCardEmail(card.id); setBusy(false); setMessage(r === 'sent' ? `Carte envoyée à ${card.client_email}.` : r === 'disabled' ? 'Les emails automatiques sont désactivés pour ton compte : copie le lien.' : 'Email non envoyé. Copie le lien.'); }}>Envoyer par email</BladeButton>
       <BladeButton onClick={copy}>Copier le lien de la carte</BladeButton>
+      {nfcSupported() && <BladeButton disabled={busy} onClick={async () => { setBusy(true); setError(''); setMessage('Approche la carte NFC du dos du téléphone…'); try { await writeNfcUrl(cardLink(card.code)); setMessage('Carte NFC prête : le client n’a qu’à approcher son téléphone pour voir ses points.'); } catch (e) { setMessage(''); setError(nfcErrorText(e)); } finally { setBusy(false); } }}><Nfc size={16}/>Écrire sur une carte NFC</BladeButton>}
     </div>
+    {!nfcSupported() && <p className="blade-note">Carte NFC : ouvre cette page dans Chrome sur Android pour l’écrire en un geste, ou copie le lien et encode-le avec une appli comme NFC Tools.</p>}
     <Status error={error} message={message}/>
     {card.events.length > 0 && <><h3>Historique</h3><ul className="blade-loyalty-history">{card.events.map((e, i) => <li key={i}><span>{e.label ?? e.kind}<small>{when(e.created_at)}</small></span><strong>{e.delta > 0 ? `+${e.delta}` : e.delta}</strong></li>)}</ul></>}
   </div>;
@@ -184,10 +188,21 @@ function CardActions({ card, onChange }: { card: LoyaltyCard; onChange: (c: Loya
 type Detector = { detect: (s: HTMLVideoElement) => Promise<{ rawValue: string }[]> };
 function ScanPanel({ onCode }: { onCode: (code: string) => void }) {
   const [text, setText] = useState(''); const [scan, setScan] = useState(false); const [error, setError] = useState('');
+  const [nfc, setNfc] = useState<AbortController | null>(null);
+  useEffect(() => () => nfc?.abort(), [nfc]);
   const supported = typeof window !== 'undefined' && 'BarcodeDetector' in window;
+  const readNfc = async () => {
+    const ctrl = new AbortController(); setNfc(ctrl); setError('');
+    try { const url = await readNfcUrl(ctrl.signal); const c = codeFromScan(url); if (c) onCode(c); else setError('Cette carte NFC ne contient pas de carte de fidélité BLADE.'); }
+    catch (e) { if (!ctrl.signal.aborted) setError(e instanceof Error && !(e instanceof DOMException) ? e.message : nfcErrorText(e)); }
+    finally { ctrl.abort(); setNfc(null); }
+  };
   return <>
     <p className="blade-note">{supported ? 'Scanne le QR code de la carte du client.' : 'Scanne le QR code avec l’appareil photo de ton téléphone : la carte s’ouvre directement ici.'}</p>
-    {supported && <BladeButton variant="default" onClick={() => setScan(true)}>Scanner un QR code</BladeButton>}
+    <div className="blade-inline">
+      {supported && <BladeButton variant="default" onClick={() => setScan(true)}>Scanner un QR code</BladeButton>}
+      {nfcSupported() && (nfc ? <BladeButton onClick={() => nfc.abort()}><Nfc size={16}/>Approche la carte… (annuler)</BladeButton> : <BladeButton variant={supported ? 'outline' : 'default'} onClick={() => void readNfc()}><Nfc size={16}/>Lire une carte NFC</BladeButton>)}
+    </div>
     <form className="blade-inline" onSubmit={e => { e.preventDefault(); const c = codeFromScan(text); if (c) { onCode(c); setText(''); setError(''); } else setError('Code ou lien de carte invalide.'); }}>
       <Field label="Ou colle le lien / code de la carte" value={text} onChange={setText}/><BladeButton type="submit">Ouvrir</BladeButton>
     </form>

@@ -7,11 +7,12 @@ import { ProviderProfileView } from './brand';
 import { BladeButton, PageHeading, Section, EmptyState, LocalMap, Tabs, LocalField, SearchField, LocalForm, DisabledAction, Calendar, KeyValues, ResponsiveList, Modal, StatePreview, Icon, ArrowRight, SlidersHorizontal } from './common';
 
 export function ClientSearch() {
-  const [mode,setMode]=useState('Chez vous'); const [view,setView]=useState(SEARCH_VIEWS[0]); const [filters,setFilters]=useState(false); const [category,setCategory]=useState('Tous');
+  const [params]=useSearchParams(); const askedMode=params.get('mode'); const askedPlace=params.get('q') ?? '';
+  const [mode,setMode]=useState(askedMode==='Près de vous'?'Près de vous':'Chez vous'); const [view,setView]=useState(SEARCH_VIEWS[0]); const [filters,setFilters]=useState(false); const [category,setCategory]=useState('Tous');
   return <div className="blade-discovery">
     <header className="blade-discovery-heading"><p className="blade-eyebrow">Client / Recherche</p><h1>Votre prochain style est <span>tout près.</span></h1><p className="blade-lead">Chez vous ou près de vous, trouvez votre professionnel.</p></header>
     <section className="blade-discovery-controls" aria-label="Critères de recherche">
-      <div className="blade-location-row"><SearchField label="Lieu" placeholder="Ville ou code postal"/><div className="blade-location-action"><BladeButton disabled aria-describedby="blade-location-note" className="blade-signature"><Icon name="pin" size={18}/>Me localiser</BladeButton><small id="blade-location-note">Localisation non connectée.</small></div><BladeButton onClick={()=>setFilters(true)}><SlidersHorizontal size={18}/>Filtres</BladeButton></div>
+      <div className="blade-location-row"><SearchField label="Lieu" placeholder="Ville ou code postal" defaultValue={askedPlace}/><div className="blade-location-action"><BladeButton disabled aria-describedby="blade-location-note" className="blade-signature"><Icon name="pin" size={18}/>Me localiser</BladeButton><small id="blade-location-note">Localisation non connectée.</small></div><BladeButton onClick={()=>setFilters(true)}><SlidersHorizontal size={18}/>Filtres</BladeButton></div>
       <div className="blade-discovery-modes"><Tabs options={['Tous','Barbers','Coiffeuses']} value={category} onChange={setCategory}/><div className="blade-place-options" role="group" aria-label="Lieu de prestation">{['Chez vous','Près de vous'].map(place=><BladeButton key={place} className={mode===place?'active':''} aria-pressed={mode===place} onClick={()=>setMode(place)}><Icon name={place==='Chez vous'?'home':'pin'}/><span><strong>{place}</strong><small>{place==='Chez vous'?'Le professionnel se déplace':'Chez le professionnel'}</small></span></BladeButton>)}</div></div>
     </section>
     <div className="blade-results-heading"><h2>Autour de vous</h2><Tabs options={SEARCH_VIEWS} value={view} onChange={setView}/></div>

@@ -3,26 +3,26 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
-import Home from "./pages/Home";
-import Reservation from "./pages/Reservation";
-import Dashboard from "./pages/Dashboard";
-import Simulator from "./pages/Simulator";
-import Carnaval from "./pages/Carnaval";
-import Evenements from "./pages/Evenements";
-import Catalogue from "./pages/Catalogue";
-import MesRendezVous from "./pages/MesRendezVous";
-import AdminEvenements from "./pages/AdminEvenements";
-import NotFound from "./pages/NotFound";
-import MentionsLegales from "./pages/legal/MentionsLegales";
-import CGV from "./pages/legal/CGV";
-import Confidentialite from "./pages/legal/Confidentialite";
-import Retractation from "./pages/legal/Retractation";
-import { Auth } from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
-import ForgotPassword from "./pages/ForgotPassword";
-import { Admin } from "./pages/Admin";
-import AdminVehicules from "./pages/AdminVehicules";
+import { Suspense, lazy, useEffect } from "react";
+const Home = lazy(() => import("./pages/Home"));
+const Reservation = lazy(() => import("./pages/Reservation"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Simulator = lazy(() => import("./pages/Simulator"));
+const Carnaval = lazy(() => import("./pages/Carnaval"));
+const Evenements = lazy(() => import("./pages/Evenements"));
+const Catalogue = lazy(() => import("./pages/Catalogue"));
+const MesRendezVous = lazy(() => import("./pages/MesRendezVous"));
+const AdminEvenements = lazy(() => import("./pages/AdminEvenements"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const MentionsLegales = lazy(() => import("./pages/legal/MentionsLegales"));
+const CGV = lazy(() => import("./pages/legal/CGV"));
+const Confidentialite = lazy(() => import("./pages/legal/Confidentialite"));
+const Retractation = lazy(() => import("./pages/legal/Retractation"));
+const Auth = lazy(() => import("./pages/Auth").then(m => ({ default: m.Auth })));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const Admin = lazy(() => import("./pages/Admin").then(m => ({ default: m.Admin })));
+const AdminVehicules = lazy(() => import("./pages/AdminVehicules"));
 import { AuthProvider } from "./hooks/useAuth";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { ThemeProvider } from "next-themes";
@@ -50,6 +50,7 @@ const App = () => (
           <ScrollToTop />
           <LcsTitle />
 
+          <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
           <Routes>
             <Route path="/" element={<Navigate to="/lcsbarber" replace />} />
             <Route path="/lcsbarber" element={<Home />} />
@@ -74,6 +75,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
           <ChatBot />
         </BrowserRouter>
       </AuthProvider>

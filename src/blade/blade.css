@@ -468,3 +468,77 @@ html[data-blade-theme=dark] .bl3-logo-light{display:none!important}html[data-bla
 .blade-intro-tagline{position:absolute;left:0;right:0;bottom:-52px;text-align:center;font-family:Arial,Helvetica,sans-serif;font-weight:700;text-transform:uppercase;font-size:clamp(11px,2.4vw,16px);letter-spacing:.7em;padding-left:.7em;color:hsl(24 30% 70%);opacity:0;transform:translateY(6px);animation:blade-intro-tag .6s ease-out 1s forwards}
 @keyframes blade-intro-tag{to{opacity:1;transform:none}}
 .blade-logo .blade-hairstyle,.bl-logo .blade-hairstyle{color:hsl(17 27% 23%)}
+
+/* Pages villes Île-de-France */
+.bl-city{max-width:1100px;margin:0 auto;padding:16px clamp(16px,4vw,48px) 64px;line-height:1.55}
+.bl-city-crumbs{display:flex;flex-wrap:wrap;gap:8px;font-size:13px;color:hsl(var(--muted-foreground));margin:8px 0 24px}
+.bl2 .bl-city-crumbs a{min-height:24px;display:inline-flex;align-items:center;text-decoration:underline;text-underline-offset:3px}
+.bl-city-hero{max-width:760px;margin-bottom:40px}
+.blade-app .bl-city-hero h1{font-size:clamp(30px,5vw,48px);line-height:1.1;margin:0 0 14px;font-weight:800}
+.bl-city-hero>p:not(.blade-pricing-eyebrow){font-size:17px;color:hsl(var(--muted-foreground));margin:0 0 24px}
+.bl-city-actions{display:flex;flex-wrap:wrap;gap:12px}
+.bl-city-block{margin:0 0 40px}
+.blade-app .bl-city-block h2{font-size:22px;margin:0 0 16px}
+.bl-city-steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;counter-reset:s}
+.bl-city-steps li{display:flex;flex-direction:column;gap:6px;padding:20px;border:1px solid hsl(var(--border));border-radius:14px;background:hsl(var(--card))}
+.bl-city-steps svg,.bl-city-why svg{color:hsl(var(--primary))}
+.bl-city-steps span{color:hsl(var(--muted-foreground));font-size:14px}
+.bl-city-why{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+.bl-city-why li{display:flex;gap:12px;align-items:flex-start}
+.bl-city-links{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:10px}
+.bl2 .bl-city-links a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid hsl(var(--border));border-radius:999px;font-size:14px;font-weight:600;transition:border-color .2s,background .2s}
+.bl2 .bl-city-links a:hover{border-color:hsl(var(--primary));background:hsl(var(--card))}
+.bl-city-pro{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:28px;border-radius:16px;background:var(--blade-hero-fill);color:hsl(var(--blade-reader-ink))}
+.blade-app .bl-city-pro h2{margin:0 0 6px;font-size:22px;color:inherit}.bl-city-pro p{margin:0;opacity:.85}
+.bl-city-depts{display:grid;gap:8px}
+@media(max-width:767px){.bl-city-steps{grid-template-columns:1fr}.bl-city-actions .bl3-btn{width:100%}.bl-city-pro{padding:22px 18px}.bl-city-pro .bl3-btn{width:100%}}
+
+/* Calculateur pour barbers */
+.bl-tool-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;align-items:start}
+.bl-tool-form{display:grid;gap:20px}
+.bl-tool-form fieldset{border:1px solid hsl(var(--border));border-radius:14px;padding:18px 18px 6px;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.bl-tool-form legend{font-weight:700;padding:0 6px}
+.bl-tool-field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:14px}
+.bl-tool-field label{font-weight:600}
+.bl-tool-field small{color:hsl(var(--muted-foreground));font-size:12px;line-height:1.4}
+.bl-tool-input{display:flex;align-items:center;border:1px solid hsl(var(--input));border-radius:10px;background:hsl(var(--background));overflow:hidden}
+.bl-tool-input:focus-within{outline:2px solid hsl(var(--ring));outline-offset:1px}
+.bl-tool-input input{flex:1;min-width:0;min-height:44px;border:0;background:transparent;color:hsl(var(--foreground));padding:0 12px;font-size:16px;outline:none}
+.bl-tool-input span{padding:0 12px;color:hsl(var(--muted-foreground));font-weight:600}
+.bl-tool-field select{min-height:44px;border:1px solid hsl(var(--input));border-radius:10px;background:hsl(var(--background));color:hsl(var(--foreground));padding:0 10px;font-size:15px}
+.bl-tool-results{position:sticky;top:96px;display:grid;gap:16px;padding:22px;border-radius:16px;border:2px solid hsl(var(--primary));background:hsl(var(--card))}
+.blade-app .bl-tool-results h2{font-size:20px;margin:0}
+.bl-tool-results dl{margin:0;display:grid}
+.bl-tool-results dl>div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid hsl(var(--border));font-size:14px}
+.bl-tool-results dt{color:hsl(var(--muted-foreground))}
+.bl-tool-results dd{margin:0;font-weight:700;white-space:nowrap}
+.bl-tool-results .bl-tool-net{border-bottom:0;padding-top:14px}
+.bl-tool-net dt{color:hsl(var(--foreground));font-weight:700}
+.bl-tool-net dd{font-size:28px;color:hsl(var(--primary))}
+.bl-tool-target{padding:16px;border-radius:12px;background:hsl(var(--background))}
+.blade-app .bl-tool-target h3{margin:0 0 10px;font-size:16px}
+.bl-tool-target p{margin:4px 0 0;font-size:14px}
+.bl-tool-note{margin:0;font-size:12px;color:hsl(var(--muted-foreground))}
+.bl-tool .blade-pricing-eyebrow{display:inline-flex;align-items:center;gap:6px}
+@media(max-width:899px){.bl-tool-grid{grid-template-columns:1fr}.bl-tool-results{position:static}}
+@media(max-width:560px){.bl-tool-form fieldset{grid-template-columns:1fr;padding:14px 14px 2px}.bl-tool-results .bl3-btn{width:100%}}
+
+/* Avis clients sur l'accueil */
+.bl-reviews-band{max-width:1320px;margin:56px auto;padding:0 48px;line-height:1.5}
+.bl-reviews-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+.blade-app .bl-reviews-head h2{font-size:30px;line-height:1.15;margin:0}
+.bl-reviews-score{display:flex;align-items:center;gap:12px}
+.bl-reviews-score>strong{font-size:44px;line-height:1;font-weight:800}
+.bl-reviews-score>div{display:flex;flex-direction:column;gap:2px;font-size:13px;color:hsl(var(--muted-foreground))}
+.bl-reviews-stars{display:inline-flex;gap:2px}
+.bl-reviews-stars svg{color:hsl(var(--border))}
+.bl-reviews-stars svg.on{color:#F4B400;fill:#F4B400}
+.bl-reviews-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.bl-reviews-list li{display:flex;flex-direction:column;gap:10px;padding:22px;border:1px solid hsl(var(--border));border-radius:16px;background:hsl(var(--card))}
+.bl-reviews-list li>svg{color:hsl(var(--primary))}
+.bl-reviews-list p{margin:0;flex:1;font-size:15px}
+.bl-reviews-list footer{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;font-size:13px}
+.bl-reviews-list footer small{color:hsl(var(--muted-foreground))}
+@media(max-width:1023px){.bl-reviews-list{grid-template-columns:1fr}.bl-reviews-band{padding:0 24px}}
+@media(max-width:767px){.bl-reviews-band{padding:0 16px;margin:40px auto}.blade-app .bl-reviews-head h2{font-size:26px}}
+@media(min-width:768px) and (max-width:1199px){.blade-client~.blade-assistant{bottom:84px}.blade-client .blade-main{padding-bottom:110px}}
