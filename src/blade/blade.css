@@ -366,3 +366,6 @@ html[data-blade-theme=dark] .bl2 .bl2-pill-outline{color:hsl(var(--foreground));
 .blade-reward-row{display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:end}
 @media(max-width:600px){.blade-reward-row{grid-template-columns:1fr}}
 .blade-scan-video{width:100%;max-width:360px;border-radius:12px;background:hsl(0 0% 0%)}
+.blade-theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:44px;min-height:44px;border:1px solid hsl(var(--border));border-radius:8px;background:hsl(var(--background));color:hsl(var(--foreground));cursor:pointer;transition:background .15s ease}
+.blade-theme-toggle:hover{background:hsl(var(--muted))}
+.blade-theme-toggle:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}

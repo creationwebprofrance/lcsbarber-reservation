@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { Globe, Sun, Moon, Monitor } from 'lucide-react';
+import { Globe, Sun, Moon } from 'lucide-react';
 import { fr, en, es, type TextKey } from './translations';
 export type Language = 'fr' | 'en' | 'es';
 type Theme = 'light' | 'dark' | 'system';
@@ -18,6 +18,8 @@ export function BladePreferences({children}:{children:ReactNode}) {
 }
 export const useBladePreferences=()=>useContext(Preferences);
 export function PreferenceControls() {
- const {language,theme,setLanguage,setTheme,t}=useBladePreferences(); const ThemeIcon=theme==='light'?Sun:theme==='dark'?Moon:Monitor;
- return <div className="blade-preferences"><label title={t('language')}><Globe size={16}/><select aria-label={t('language')} value={language} onChange={e=>setLanguage(e.target.value as Language)}><option value="fr">Français</option><option value="en">English</option><option value="es">Español</option></select></label><label title={t('theme')}><ThemeIcon size={16}/><select aria-label={t('theme')} value={theme} onChange={e=>setTheme(e.target.value as Theme)}><option value="light">{t('light')}</option><option value="dark">{t('dark')}</option><option value="system">{t('system')}</option></select></label></div>;
+ const {language,theme,setLanguage,setTheme,t}=useBladePreferences();
+ const isDark=theme==='dark'||(theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);
+ const next=isDark?'light':'dark'; const themeLabel=`${t('theme')} : ${t(next)}`;
+ return <div className="blade-preferences"><label title={t('language')}><Globe size={16}/><select aria-label={t('language')} value={language} onChange={e=>setLanguage(e.target.value as Language)}><option value="fr">Français</option><option value="en">English</option><option value="es">Español</option></select></label><button type="button" className="blade-theme-toggle" onClick={()=>setTheme(next)} title={themeLabel} aria-label={themeLabel}>{isDark?<Sun size={18}/>:<Moon size={18}/>}</button></div>;
 }
