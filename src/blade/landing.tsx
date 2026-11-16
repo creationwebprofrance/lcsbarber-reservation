@@ -96,7 +96,7 @@ export function DemoLogin() {
     const { data, error } = signup ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}${target}` } }) : await supabase.auth.signInWithPassword({ email, password });
     setBusy(false); if (error) setMsg(error.message); else if (signup && !data.session) setMsg('Vérifiez vos e-mails pour confirmer votre compte.'); };
   return <div className="bl-landing blade-app">
-    <header className="bl-header"><Link to="/blade" className="bl-logo" aria-label="BLADE — accueil"><img src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" /></Link></header>
+    <header className="bl-header"><Link to="/blade" className="bl-logo" aria-label="BLADE Hairstyle — accueil"><span className="blade-lockup"><img src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" /><span className="blade-hairstyle" aria-hidden="true">Hairstyle</span></span></Link></header>
     <main className="bl-main bl-demo">
       <article className={`bl-card ${pro ? 'bl-card-dark' : ''}`}>
         <h1>{title}</h1>

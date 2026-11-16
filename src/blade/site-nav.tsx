@@ -10,9 +10,12 @@ const extra: Record<Language, { pricing: string; menu: string; close: string; na
 };
 
 function Logo() {
-  return <Link to="/blade" className="bl3-logo" aria-label="BLADE — accueil">
-    <img className="bl3-logo-light" src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" />
-    <img className="bl3-logo-dark" src="/blade/logo-white.png" alt="" aria-hidden="true" width="1920" height="402" />
+  return <Link to="/blade" className="bl3-logo" aria-label="BLADE Hairstyle — accueil">
+    <span className="blade-lockup">
+      <img className="bl3-logo-light" src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" />
+      <img className="bl3-logo-dark" src="/blade/logo-white.png" alt="" aria-hidden="true" width="1920" height="402" />
+      <span className="blade-hairstyle" aria-hidden="true">Hairstyle</span>
+    </span>
   </Link>;
 }
 

@@ -30,6 +30,7 @@ export function BladeIntro() {
     <div className="blade-intro-mark">
       <img src="/blade/logo-white.png" alt="" width="1920" height="402" />
       <span className="blade-intro-line" />
+      <span className="blade-intro-tagline">Hairstyle</span>
     </div>
   </div>;
 }

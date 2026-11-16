@@ -456,3 +456,15 @@ html[data-blade-theme=dark] .bl3-logo-light{display:none!important}html[data-bla
 @media(prefers-reduced-motion:reduce){.bl3-header,.bl3-bar,.bl3-panel,.bl2 .bl3-btn svg{transition:none;animation:none}}
 #blade-gallery,#tarifs,#bl-map{scroll-margin-top:96px}
 .bl-landing.bl2{overflow-x:clip}
+
+/* Mention « Hairstyle » sous le logo BLADE */
+.blade-lockup{display:inline-flex;flex-direction:column;align-items:center;gap:3px;line-height:1}
+.blade-lockup img{display:block}
+.blade-hairstyle{display:block;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.55em;padding-left:.55em;color:hsl(var(--primary));white-space:nowrap}
+.blade-logo .blade-lockup,.bl-logo .blade-lockup{width:100%}
+.blade-logo .blade-hairstyle{font-size:8px}
+.bl-logo .blade-hairstyle{font-size:10px;letter-spacing:.6em;padding-left:.6em}
+@media(max-width:560px){.bl3-logo .blade-hairstyle{font-size:8px;letter-spacing:.5em;padding-left:.5em}}
+.blade-intro-tagline{position:absolute;left:0;right:0;bottom:-52px;text-align:center;font-family:Arial,Helvetica,sans-serif;font-weight:700;text-transform:uppercase;font-size:clamp(11px,2.4vw,16px);letter-spacing:.7em;padding-left:.7em;color:hsl(24 30% 70%);opacity:0;transform:translateY(6px);animation:blade-intro-tag .6s ease-out 1s forwards}
+@keyframes blade-intro-tag{to{opacity:1;transform:none}}
+.blade-logo .blade-hairstyle,.bl-logo .blade-hairstyle{color:hsl(17 27% 23%)}
