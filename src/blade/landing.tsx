@@ -5,6 +5,7 @@ import { useSession } from './data';
 import { ArrowRight, Pause, Play, Home, MapPin, Check } from 'lucide-react';
 import { Gallery } from './gallery';
 import { PricingPlans } from './pricing';
+import { BladeIntro } from './intro';
 import { BladeButton } from './common';
 import { PreferenceControls, useBladePreferences } from './preferences';
 
@@ -37,6 +38,7 @@ export function Landing() {
   const [city, setCity] = useState('');
   const go = (e?: React.FormEvent) => { e?.preventDefault(); const p = new URLSearchParams({ mode: mode === 'chez' ? 'Chez vous' : 'Près de vous' }); if (city.trim()) p.set('q', city.trim()); navigate(`/blade/client?${p}`); };
   return <div className="bl-landing bl2 blade-app">
+    <BladeIntro/>
     <a href="#bl-main" className="blade-skip">Aller au contenu</a>
     <header className="bl2-header">
       <Link to="/blade" className="bl-logo" aria-label="BLADE — accueil"><img src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" /></Link>

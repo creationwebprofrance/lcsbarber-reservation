@@ -405,3 +405,14 @@ html[data-blade-theme=dark] .bl2 .bl2-pill-outline{color:hsl(var(--foreground));
  .bl2-footer{padding-bottom:96px;flex-wrap:wrap;gap:12px}
  .bl2-footer nav{flex-wrap:wrap;gap:8px 20px}
 }
+
+/* Animation d'arrivée du logo BLADE (2,6 s) */
+.blade-intro{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,hsl(24 28% 22%) 0%,hsl(17 27% 9%) 70%);cursor:pointer;animation:blade-intro-curtain .75s cubic-bezier(.76,0,.24,1) 1.85s forwards}
+.blade-intro-mark{position:relative;width:min(62vw,420px);animation:blade-intro-out .5s ease-in 1.6s forwards}
+.blade-intro-mark img{display:block;width:100%;height:auto;clip-path:inset(0 100% 0 0);filter:blur(6px);transform:scale(.94);animation:blade-intro-reveal 1s cubic-bezier(.22,1,.36,1) .15s forwards}
+.blade-intro-line{position:absolute;left:0;right:0;bottom:-18px;height:3px;border-radius:3px;background:hsl(24 30% 70%);transform:scaleX(0);transform-origin:left;animation:blade-intro-line .7s cubic-bezier(.22,1,.36,1) .75s forwards}
+@keyframes blade-intro-reveal{60%{filter:blur(0)}to{clip-path:inset(0 0 0 0);filter:blur(0);transform:scale(1)}}
+@keyframes blade-intro-line{to{transform:scaleX(1)}}
+@keyframes blade-intro-out{to{opacity:0;transform:translateY(-14px) scale(1.04)}}
+@keyframes blade-intro-curtain{to{transform:translateY(-100%)}}
+@media(prefers-reduced-motion:reduce){.blade-intro{display:none}}
