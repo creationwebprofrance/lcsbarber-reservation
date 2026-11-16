@@ -3,6 +3,7 @@ import { Check, ArrowRight } from 'lucide-react';
 import { BladeButton } from './common';
 import { useBladePreferences, type Language } from './preferences';
 import { SiteNav, SiteFooter, useHashScroll } from './site-nav';
+import { useSession } from './data';
 
 type Plan = { id: 'free' | 'pro' | 'premium'; name: string; price: string; period: string; tagline: string; features: string[]; cta: string; badge?: string };
 type PricingCopy = { eyebrow: string; title: string; lead: string; note: string; plans: Plan[] };
@@ -57,6 +58,9 @@ const copy: Record<Language, PricingCopy> = {
 export function PricingPlans() {
   const { language } = useBladePreferences();
   const c = copy[language] ?? copy.fr;
+  // Un prestataire connecté va directement à son abonnement ; les autres créent leur compte pro.
+  const { session, isPro } = useSession();
+  const target = (id: Plan['id']) => session && isPro ? (id === 'free' ? '/blade/pro' : `/blade/pro/abonnement?plan=${id}`) : signup;
   return <section id="tarifs" className="blade-pricing blade-reveal" aria-labelledby="blade-pricing-title">
     <div className="blade-pricing-head">
       <p className="blade-pricing-eyebrow">{c.eyebrow}</p>
@@ -70,7 +74,7 @@ export function PricingPlans() {
         <p className="blade-plan-tagline">{plan.tagline}</p>
         <p className="blade-plan-price"><strong>{plan.price}</strong><span>{plan.period}</span></p>
         <ul>{plan.features.map(f => <li key={f}><Check size={18} aria-hidden="true" /><span>{f}</span></li>)}</ul>
-        <BladeButton asChild variant={plan.badge ? 'default' : 'outline'} className="blade-plan-cta"><Link to={signup}>{plan.cta} <ArrowRight size={18} aria-hidden="true" /></Link></BladeButton>
+        <BladeButton asChild variant={plan.badge ? 'default' : 'outline'} className="blade-plan-cta"><Link to={target(plan.id)}>{plan.cta} <ArrowRight size={18} aria-hidden="true" /></Link></BladeButton>
       </article>)}
     </div>
     <p className="blade-pricing-note">{c.note}</p>

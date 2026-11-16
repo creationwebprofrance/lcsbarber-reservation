@@ -9,8 +9,8 @@ describe('BLADE isolation and empty interface rules', () => {
     expect(isBladePath('/reservation')).toBe(false);
     expect(isBladePath('/')).toBe(false);
   });
-  test('professional navigation has the six requested destinations plus the barber chat and payments', () => {
-    expect(bladeRoutes.filter(path => path.startsWith('/blade/pro'))).toHaveLength(11); expect(bladeRoutes).toContain('/blade/pro/fidelite'); expect(bladeRoutes).toContain('/blade/pro/personnalisation'); expect(bladeRoutes).toContain('/blade/client/fidelite'); expect(bladeRoutes).toContain('/blade/pro/paiements'); expect(bladeRoutes).toContain('/blade/pro/chat');expect(bladeRoutes).toContain('/blade/pro/messages');
+  test('professional navigation has the six requested destinations plus the barber chat, payments and subscription', () => {
+    expect(bladeRoutes.filter(path => path.startsWith('/blade/pro'))).toHaveLength(12); expect(bladeRoutes).toContain('/blade/pro/abonnement'); expect(bladeRoutes).toContain('/blade/pro/fidelite'); expect(bladeRoutes).toContain('/blade/pro/personnalisation'); expect(bladeRoutes).toContain('/blade/client/fidelite'); expect(bladeRoutes).toContain('/blade/pro/paiements'); expect(bladeRoutes).toContain('/blade/pro/chat');expect(bladeRoutes).toContain('/blade/pro/messages');
     expect(bladeRoutes).toContain('/blade/pro/prix');
     expect(bladeRoutes).toContain('/blade/pro/emails');
     expect(bladeRoutes).not.toContain('/blade/pro/catalogue');

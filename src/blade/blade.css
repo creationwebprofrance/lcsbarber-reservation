@@ -542,3 +542,20 @@ html[data-blade-theme=dark] .bl3-logo-light{display:none!important}html[data-bla
 @media(max-width:1023px){.bl-reviews-list{grid-template-columns:1fr}.bl-reviews-band{padding:0 24px}}
 @media(max-width:767px){.bl-reviews-band{padding:0 16px;margin:40px auto}.blade-app .bl-reviews-head h2{font-size:26px}}
 @media(min-width:768px) and (max-width:1199px){.blade-client~.blade-assistant{bottom:84px}.blade-client .blade-main{padding-bottom:110px}}
+
+/* Abonnement prestataire */
+.blade-sub-current{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:18px;border:1px solid hsl(var(--border));border-radius:12px;background:hsl(var(--card))}
+.blade-sub-current>svg{color:hsl(var(--primary))}
+.blade-sub-current>div{flex:1;min-width:200px}
+.blade-sub-current strong{font-size:18px}
+.blade-sub-current p{margin:4px 0 0;color:hsl(var(--muted-foreground));font-size:13px}
+.blade-sub-plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:12px}
+.blade-sub-plan{display:flex;flex-direction:column;gap:12px;padding:20px;border:1px solid hsl(var(--border));border-radius:12px;background:hsl(var(--background))}
+.blade-sub-plan.is-current,.blade-sub-plan.is-wanted{border:2px solid hsl(var(--primary))}
+.blade-sub-plan header{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.blade-app .blade-sub-plan h3{font-size:18px;margin:0}
+.blade-sub-plan ul{list-style:none;margin:0;padding:0;display:grid;gap:8px;flex:1;font-size:13px}
+.blade-sub-plan li{display:flex;gap:8px;align-items:center}
+.blade-sub-plan li svg{color:hsl(var(--primary))}
+.blade-sub-badge{margin:0;font-weight:700;color:hsl(var(--primary));min-height:44px;display:flex;align-items:center}
+@media(max-width:767px){.blade-sub-plans{grid-template-columns:1fr}.blade-sub-current .blade-button{width:100%}}
