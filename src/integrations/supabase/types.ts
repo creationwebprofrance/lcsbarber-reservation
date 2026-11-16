@@ -731,6 +731,8 @@ export type Database = {
       blade_subscriptions: {
         Row: {
           cancel_at_period_end: boolean
+          comp_plan: string | null
+          comp_until: string | null
           current_period_end: string | null
           had_trial: boolean
           plan: string
@@ -743,6 +745,8 @@ export type Database = {
         }
         Insert: {
           cancel_at_period_end?: boolean
+          comp_plan?: string | null
+          comp_until?: string | null
           current_period_end?: string | null
           had_trial?: boolean
           plan?: string
@@ -755,6 +759,8 @@ export type Database = {
         }
         Update: {
           cancel_at_period_end?: boolean
+          comp_plan?: string | null
+          comp_until?: string | null
           current_period_end?: string | null
           had_trial?: boolean
           plan?: string
@@ -2312,6 +2318,10 @@ export type Database = {
     }
     Functions: {
       blade_admin_overview: { Args: never; Returns: Json }
+      blade_admin_set_comp_plan: {
+        Args: { p_plan: string; p_provider: string; p_until: string }
+        Returns: Json
+      }
       blade_admin_set_provider: {
         Args: {
           p_auto_emails: boolean
@@ -2340,6 +2350,7 @@ export type Database = {
         Args: { p_conversation: string }
         Returns: boolean
       }
+      blade_effective_plan: { Args: { p_provider: string }; Returns: string }
       blade_is_active_provider: { Args: never; Returns: boolean }
       blade_lcs_provider_id: { Args: never; Returns: string }
       blade_loyalty_add: {
@@ -2373,13 +2384,20 @@ export type Database = {
         Returns: undefined
       }
       blade_media_published: { Args: { p_name: string }; Returns: boolean }
+      blade_month_booking_count: {
+        Args: { p_day: string; p_provider: string }
+        Returns: number
+      }
       blade_my_loyalty_cards: { Args: never; Returns: Json }
+      blade_my_plan: { Args: never; Returns: Json }
       blade_my_provider: { Args: never; Returns: Json }
       blade_my_provider_id: { Args: never; Returns: string }
       blade_my_subscription: {
         Args: never
         Returns: {
           cancel_at_period_end: boolean
+          comp_plan: string | null
+          comp_until: string | null
           current_period_end: string | null
           had_trial: boolean
           plan: string
@@ -2403,6 +2421,7 @@ export type Database = {
       blade_provider_bundle: { Args: never; Returns: Json }
       blade_provider_visible: { Args: { p_provider: string }; Returns: boolean }
       blade_public_page: { Args: { p_provider?: string }; Returns: Json }
+      blade_public_providers: { Args: never; Returns: Json }
       blade_register_provider: {
         Args: { p_display_name: string }
         Returns: Json
