@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { PlanBanner } from './plan';
+import { ProTrips } from './trip';
 import { Link } from 'react-router-dom';
 import { PageHeading, Section, EmptyState, BladeButton, Modal, Tabs, Icon } from './common';
 import { useSession, useProviderData, useProviderVehicle, saveProviderRecord, saveVehicleReading, saveVehicleMaintenance, sendProviderEmail, fmtPrice, fmtDate, isoDate, type ProviderBundle, type ProviderService, type ProviderTemplate, type ProviderClient } from './data';
@@ -17,7 +18,7 @@ export function ProviderPage({ title, children }: {title:string;children:(data:P
   const [refresh,setRefresh]=useState(0);const state=useProviderData(refresh);
   return <><PageHeading pro title={title}/>{!state.ready||state.loading?<p role="status">Chargement…</p>:!state.signedIn?<EmptyState title="Connexion requise" icon="user" action={<BladeButton asChild><Link to="/auth">Se connecter</Link></BladeButton>}/>:!state.isAdmin?<EmptyState title="Espace professionnel réservé" icon="user"/>:state.error?<><Status error={state.error}/><BladeButton onClick={()=>setRefresh(n=>n+1)}>Réessayer</BladeButton></>:state.data?children(state.data,()=>setRefresh(n=>n+1)):null}</>;
 }
-export function ProviderDashboard() { return <ProviderPage title="Dashboard">{data=><><PlanBanner/><DashboardBody data={data}/></>}</ProviderPage>; }
+export function ProviderDashboard() { return <ProviderPage title="Dashboard">{data=><><PlanBanner/><ProTrips data={data}/><DashboardBody data={data}/></>}</ProviderPage>; }
 function DashboardBody({data}:{data:ProviderBundle}) {
   const [year,setYear]=useState(new Date().getFullYear());const [from,setFrom]=useState(`${year}-01-01`);const [to,setTo]=useState(`${year}-12-31`);
   const revenue=revenueByMonth(data.bookings,data.work,year); const visits=cityVisits(data.bookings,from,to,isoDate(new Date()));

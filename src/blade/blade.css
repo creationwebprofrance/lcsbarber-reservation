@@ -578,3 +578,27 @@ html[data-blade-theme=dark] .bl3-logo-light{display:none!important}html[data-bla
 .blade-verified{display:inline-flex;align-items:center;gap:5px;margin:6px 0;padding:4px 10px;border-radius:999px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-size:12px;font-weight:700}
 @media(max-width:767px){.blade-plan-banner .blade-button,.blade-plan-gate .blade-button{width:100%}}
 .blade-verified{margin-right:10px;vertical-align:middle}
+
+/* Trajet estimé */
+.blade-trip-page .blade-main{max-width:900px}
+.blade-trip-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin:8px 0 16px}
+.blade-trip-head h1{margin:0 0 8px}
+.blade-trip-eta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0;font-size:16px}
+.blade-trip-delay{margin:6px 0 0;font-size:13px;color:hsl(var(--muted-foreground))}
+.blade-trip-tag{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px dashed hsl(var(--primary));color:hsl(var(--primary));font-size:12px;font-weight:700;white-space:nowrap}
+.blade-trip-map{height:min(60vh,460px);border-radius:14px;overflow:hidden;border:1px solid hsl(var(--border));z-index:0}
+.blade-trip-car span,.blade-trip-pin span{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:20px;border-radius:50%;background:#fff;box-shadow:0 2px 10px rgb(0 0 0/.25)}
+.blade-trip-car span{background:#4a2f22;border:3px solid #fff}
+.blade-trip-progress{height:8px;margin:14px 0 0;border-radius:999px;background:hsl(var(--muted));overflow:hidden}
+.blade-trip-progress span{display:block;height:100%;background:hsl(var(--primary));transition:width 1s linear}
+.blade-trip-note{display:flex;gap:8px;align-items:flex-start;margin:14px 0 0;font-size:12px;color:hsl(var(--muted-foreground));line-height:1.5}
+.blade-trip-note svg{flex-shrink:0;margin-top:1px}
+.blade-trip-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.blade-trip-row{padding:14px;border:1px solid hsl(var(--border));border-radius:12px;background:hsl(var(--background));display:grid;gap:10px}
+.blade-trip-row-head{display:flex;flex-direction:column;gap:4px}
+.blade-trip-row-head span{display:flex;gap:6px;align-items:center;font-size:12px;color:hsl(var(--muted-foreground));overflow-wrap:anywhere}
+.blade-trip-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 16px;margin-bottom:20px;border-radius:12px;border:2px solid hsl(var(--primary));background:hsl(var(--card))}
+.blade-trip-banner span{flex:1;font-weight:700}
+@media(max-width:767px){.blade-trip-map{height:52vh}.blade-trip-row .blade-inline .blade-button,.blade-trip-banner .blade-button{width:100%}}
+@media(prefers-reduced-motion:reduce){.blade-trip-progress span{transition:none}}
+.blade-trip-demo{margin:0 0 12px;padding:10px 14px;border-radius:10px;background:hsl(var(--muted));font-size:13px;font-weight:600}
