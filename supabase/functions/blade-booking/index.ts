@@ -1,6 +1,6 @@
 // BLADE client booking: slot list, price quote and booking creation for a signed-in client.
 // Every price, slot and status is recomputed here; the browser only sends choices.
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@4';
 import { BLADE_SITE, detailRows, esc, frDate, layout, sendEmail } from '../_shared/blade-email.ts';
@@ -21,7 +21,7 @@ const Body = z.discriminatedUnion('action', [
     answers: z.record(z.string().max(40), z.string().max(300)).optional(), rules_ack: z.boolean().optional() }),
 ]);
 const FREE_MONTHLY_BOOKINGS = 20;
-async function effectivePlan(db: ReturnType<typeof createClient>, providerId: string): Promise<string> {
+async function effectivePlan(db: SupabaseClient, providerId: string): Promise<string> {
   const { data, error } = await db.rpc('blade_effective_plan', { p_provider: providerId });
   if (error) throw error;
   return typeof data === 'string' ? data : 'free';
