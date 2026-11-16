@@ -9,7 +9,9 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "bun test src/blade"
+    "test": "bun test src/blade",
+    "db:sql": "node scripts/supabase-sql.mjs",
+    "fn:deploy": "node scripts/supabase-deploy.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
