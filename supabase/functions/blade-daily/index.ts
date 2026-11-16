@@ -18,7 +18,13 @@ Deno.serve(async req => {
   // 1. Reminders for tomorrow (Paris time), only for providers with automatic emails on.
   const tomorrow = parisDate(new Date(Date.now() + 24 * 3600 * 1000));
   const { data: providers } = await db.from('blade_providers').select('id,user_id,status,display_name,email,opt_auto_emails,last_active_at,inactivity_notified_at');
-  const emailing = new Map((providers ?? []).filter(p => p.status === 'active' && p.opt_auto_emails).map(p => [p.id, p]));
+  // Automatic reminders are a Pro/Premium feature: skip providers on the free plan.
+  const candidates = (providers ?? []).filter(p => p.status === 'active' && p.opt_auto_emails);
+  const plans = await Promise.all(candidates.map(async p => {
+    const { data, error } = await db.rpc('blade_effective_plan', { p_provider: p.id });
+    return error ? 'free' : String(data ?? 'free');
+  }));
+  const emailing = new Map(candidates.filter((_, i) => plans[i] !== 'free').map(p => [p.id, p]));
   if (emailing.size) {
     const { data: bookings } = await db.from('bookings').select('id,provider_id,client_name,client_email,appointment_date,appointment_time,services(name)')
       .eq('appointment_date', tomorrow).eq('status', 'confirmed').is('blade_reminder_sent_at', null).in('provider_id', [...emailing.keys()]).limit(500);

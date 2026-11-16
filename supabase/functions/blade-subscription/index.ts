@@ -69,9 +69,6 @@ type SubRow = {
   updated_at: string;
 };
 
-function effectivePlan(row: Pick<SubRow, "plan" | "status">) {
-  return LIVE_STATUSES.includes(row.status) ? row.plan : "free";
-}
 
 function toIso(seconds: number | null | undefined) {
   return seconds ? new Date(seconds * 1000).toISOString() : null;
@@ -294,7 +291,10 @@ serve(async (req) => {
       had_trial: false,
       updated_at: new Date().toISOString(),
     };
-    return json({ ...current, effective_plan: effectivePlan(current) });
+    // Single source of truth (Stripe, offered plan, superadmin) lives in SQL.
+    const { data: effective, error: planError } = await admin.rpc("blade_effective_plan", { p_provider: provider.id });
+    if (planError) throw planError;
+    return json({ ...current, effective_plan: typeof effective === "string" ? effective : "free" });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     log("ERROR", { message });
