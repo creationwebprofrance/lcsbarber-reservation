@@ -63,3 +63,6 @@ verify_jwt = false
 
 [functions.blade-subscription]
 verify_jwt = false
+
+[functions.blade-trip]
+verify_jwt = false

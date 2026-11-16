@@ -781,6 +781,72 @@ export type Database = {
           },
         ]
       }
+      blade_trips: {
+        Row: {
+          arrived_at: string | null
+          booking_id: string
+          created_at: string
+          delay_min: number
+          dest: Json
+          distance_m: number
+          duration_s: number
+          id: string
+          provider_id: string
+          route: Json
+          started_at: string
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          arrived_at?: string | null
+          booking_id: string
+          created_at?: string
+          delay_min?: number
+          dest: Json
+          distance_m: number
+          duration_s: number
+          id?: string
+          provider_id: string
+          route: Json
+          started_at: string
+          status: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          arrived_at?: string | null
+          booking_id?: string
+          created_at?: string
+          delay_min?: number
+          dest?: Json
+          distance_m?: number
+          duration_s?: number
+          id?: string
+          provider_id?: string
+          route?: Json
+          started_at?: string
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_trips_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blade_trips_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blade_work_likes: {
         Row: {
           actor_hash: string
@@ -2415,6 +2481,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      blade_my_trips: { Args: never; Returns: Json }
       blade_owns_media: { Args: { p_name: string }; Returns: boolean }
       blade_owns_provider: { Args: { p_provider: string }; Returns: boolean }
       blade_provider_active: { Args: { p_provider: string }; Returns: boolean }
@@ -2436,6 +2503,7 @@ export type Database = {
         }
         Returns: string
       }
+      blade_trip_public: { Args: { p_token: string }; Returns: Json }
       blade_update_own_provider: {
         Args: {
           p_display_name: string
