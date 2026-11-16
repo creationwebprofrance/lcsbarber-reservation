@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from './data';
 import { ArrowRight, Pause, Play, Home, MapPin, Check } from 'lucide-react';
 import { Gallery } from './gallery';
+import { PricingPlans } from './pricing';
 import { BladeButton } from './common';
 import { PreferenceControls, useBladePreferences } from './preferences';
 
@@ -30,7 +31,7 @@ function HeroVideo() {
 }
 
 export function Landing() {
-  const {t}=useBladePreferences();const {session,isPro:isAdmin}=useSession();
+  const {t,language}=useBladePreferences();const {session,isPro:isAdmin}=useSession();
   const navigate = useNavigate();
   const [mode, setMode] = useState<'chez' | 'pres'>('chez');
   const [city, setCity] = useState('');
@@ -80,10 +81,11 @@ export function Landing() {
         <div className="bl2-map-art" aria-hidden="true"><span className="bl2-map-halo"><MapPin size={40} /></span></div>
       </section>
       <Gallery/>
+      <PricingPlans/>
       <section className="blade-collaboration blade-reveal"><div><h2>{t('collaborationTitle')}</h2><p>{t('collaborationText')}</p><ul>{(['recommend','availability','collaborate'] as const).map(key=><li key={key}><Check size={18}/>{t(key)}</li>)}</ul><BladeButton asChild><Link to={session&&isAdmin?'/blade/pro/messages':'/blade/connexion?espace=pro'}>{session&&isAdmin?t('messages'):t('network')} <ArrowRight size={18}/></Link></BladeButton></div></section>
       <section className="blade-travel-band blade-reveal"><MapPin size={32}/><div><h2>{t('slogan1')} {t('slogan2')}</h2><p>{t('travel')}</p></div><BladeButton asChild variant="default"><Link to="/blade/client">{t('find')} <ArrowRight size={18}/></Link></BladeButton></section>
     </main>
-    <footer className="bl2-footer"><span>© BLADE</span><nav aria-label="Liens"><a href="#blade-gallery">{t('help')}</a></nav><div className="bl2-legal"><strong>Informations légales</strong><ul><li><a href="/mentions-legales">Mentions légales</a></li><li><a href="/cgv">CGV</a></li><li><a href="/politique-de-confidentialite">Politique de confidentialité</a></li><li><a href="/droit-de-retractation">Droit de rétractation</a></li></ul></div></footer>
+    <footer className="bl2-footer"><span>© BLADE</span><nav aria-label="Liens"><a href="#tarifs">{({fr:'Tarifs pros',en:'Pro pricing',es:'Precios pro'} as const)[language]}</a><a href="#blade-gallery">{t('help')}</a></nav><div className="bl2-legal"><strong>Informations légales</strong><ul><li><a href="/mentions-legales">Mentions légales</a></li><li><a href="/cgv">CGV</a></li><li><a href="/politique-de-confidentialite">Politique de confidentialité</a></li><li><a href="/droit-de-retractation">Droit de rétractation</a></li></ul></div></footer>
   </div>;
 }
 

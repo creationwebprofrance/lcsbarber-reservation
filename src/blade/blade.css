@@ -369,3 +369,39 @@ html[data-blade-theme=dark] .bl2 .bl2-pill-outline{color:hsl(var(--foreground));
 .blade-theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:44px;min-height:44px;border:1px solid hsl(var(--border));border-radius:8px;background:hsl(var(--background));color:hsl(var(--foreground));cursor:pointer;transition:background .15s ease}
 .blade-theme-toggle:hover{background:hsl(var(--muted))}
 .blade-theme-toggle:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}
+
+/* Plans d'abonnement prestataires (page d'accueil) */
+.blade-pricing{max-width:1320px;margin:56px auto;padding:0 48px;line-height:1.5}
+.blade-pricing-head{max-width:720px;margin-bottom:28px}
+.blade-pricing-eyebrow{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:hsl(var(--primary));margin:0 0 8px}
+.blade-pricing-head h2{font-size:30px;line-height:1.15;margin:0}
+.blade-pricing-head p:last-child{color:hsl(var(--muted-foreground));margin:12px 0 0;font-size:16px}
+.blade-pricing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:stretch}
+.blade-plan{position:relative;display:flex;flex-direction:column;gap:12px;padding:28px 24px;border:1px solid hsl(var(--border));border-radius:16px;background:hsl(var(--card))}
+.blade-plan-featured{border:2px solid hsl(var(--primary));background:hsl(var(--background));box-shadow:var(--blade-shadow)}
+.blade-plan-badge{position:absolute;top:-13px;left:24px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
+.blade-app .blade-plan h3{font-size:20px;font-weight:700;margin:0}
+.blade-plan-tagline{margin:0;color:hsl(var(--muted-foreground));font-size:14px}
+.blade-plan-price{margin:4px 0 4px;display:flex;align-items:baseline;gap:4px}
+.blade-plan-price strong{font-size:40px;line-height:1;font-weight:800}
+.blade-plan-price span{color:hsl(var(--muted-foreground));font-size:14px}
+.blade-plan ul{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:10px;flex:1}
+.blade-plan li{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.blade-plan li svg{color:hsl(var(--primary));margin-top:1px}
+.blade-plan-cta{width:100%;justify-content:center;text-align:center}
+.blade-pricing-note{margin:16px 0 0;font-size:13px;color:hsl(var(--muted-foreground))}
+@media(max-width:1023px){.blade-pricing-grid{grid-template-columns:1fr;max-width:520px}.blade-pricing{padding:0 24px}}
+@media(max-width:767px){.blade-pricing{padding:0 16px;margin:40px auto}.blade-pricing-head h2{font-size:26px}.blade-pricing-grid{gap:24px;max-width:none}.blade-plan{padding:26px 18px 20px}.blade-plan-price strong{font-size:34px}}
+
+/* Mobile : aucun bouton ne doit en recouvrir un autre */
+.blade-key-values dd{flex-shrink:1;min-width:0;text-align:right;overflow-wrap:anywhere}
+@media(max-width:767px){
+ .blade-header-inner{flex-wrap:wrap;row-gap:10px}
+ .blade-header-inner>.blade-preferences{order:3;width:100%;justify-content:flex-end;flex-wrap:nowrap}
+ .blade-main,.blade-pro .blade-main{padding-bottom:160px}
+ .blade-assistant-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+ .blade-assistant .blade-assistant-trigger{width:52px;height:52px;min-height:52px;padding:0;border-radius:50%;justify-content:center}
+ .blade-assistant-trigger img{width:36px;height:36px}
+ .bl2-footer{padding-bottom:96px;flex-wrap:wrap;gap:12px}
+ .bl2-footer nav{flex-wrap:wrap;gap:8px 20px}
+}
