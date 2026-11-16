@@ -1,6 +1,6 @@
 // BLADE client booking: slot list, price quote and booking creation for a signed-in client.
 // Every price, slot and status is recomputed here; the browser only sends choices.
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@4';
 import { BLADE_SITE, detailRows, esc, frDate, layout, sendEmail } from '../_shared/blade-email.ts';
@@ -20,6 +20,12 @@ const Body = z.discriminatedUnion('action', [
     name: z.string().trim().min(2).max(100), phone: z.string().trim().max(25), notes: z.string().trim().max(500).optional(),
     answers: z.record(z.string().max(40), z.string().max(300)).optional(), rules_ack: z.boolean().optional() }),
 ]);
+const FREE_MONTHLY_BOOKINGS = 20;
+async function effectivePlan(db: SupabaseClient, providerId: string): Promise<string> {
+  const { data, error } = await db.rpc('blade_effective_plan', { p_provider: providerId });
+  if (error) throw error;
+  return typeof data === 'string' ? data : 'free';
+}
 const res = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
 function parisNow() {
@@ -99,10 +105,17 @@ Deno.serve(async req => {
     }
     const q = quote(service, mode, input.date, input.time, today, pricing, minutesAway, hasCalendar ? DOMICILE_OFFERS : null);
     if (!q) return res({ error: 'Cette prestation n’est pas proposée pour ce lieu' }, 400);
-    const status = initialStatus(provider);
+    // Plan rules: the Découverte (free) plan never offers online deposit links.
+    const plan = await effectivePlan(db, provider.id);
+    const status = initialStatus(plan === 'free' ? { ...provider, opt_payment_links: false } : provider);
     const deposit = status === 'pending' ? depositFor(q.total) : 0;
     if (input.action === 'quote') return res({ quote: q, status, deposit, travel_minutes: minutesAway });
 
+    if (plan === 'free') {
+      const { data: used, error: countError } = await db.rpc('blade_month_booking_count', { p_provider: provider.id, p_day: input.date });
+      if (countError) throw countError;
+      if (Number(used ?? 0) >= FREE_MONTHLY_BOOKINGS) return res({ error: 'Ce professionnel a atteint sa limite de réservations en ligne pour ce mois. Contacte-le directement pour prendre rendez-vous.', code: 'plan_limit' }, 409);
+    }
     if (!PHONE_OK(input.phone)) return res({ error: 'Numéro de téléphone invalide' }, 400);
     if (page?.booking_rules && input.rules_ack !== true) return res({ error: 'Accepte les conditions du professionnel pour réserver' }, 400);
     const checked = checkAnswers((page?.custom_questions ?? []) as Question[], input.answers);

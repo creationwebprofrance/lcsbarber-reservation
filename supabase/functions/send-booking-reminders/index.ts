@@ -13,6 +13,7 @@ const corsHeaders = {
 
 interface Booking {
   id: string;
+  provider_id: string | null;
   client_name: string;
   client_email: string;
   appointment_date: string;
@@ -44,6 +45,7 @@ serve(async (req: Request): Promise<Response> => {
       .from('bookings')
       .select(`
         id,
+        provider_id,
         client_name,
         client_email,
         appointment_date,
@@ -63,10 +65,19 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log(`Found ${bookings?.length || 0} pending bookings`);
 
+    // Automatic reminders are a Pro/Premium feature: skip BLADE providers on the free plan.
+    const providerIds = [...new Set((bookings ?? []).map((b: Booking) => b.provider_id).filter((id): id is string => Boolean(id)))];
+    const freeProviders = new Set<string>();
+    for (const id of providerIds) {
+      const { data: plan, error: planError } = await supabase.rpc('blade_effective_plan', { p_provider: id });
+      if (planError || plan === 'free') freeProviders.add(id);
+    }
+
     const remindersToSend: { booking: Booking; type: 'tomorrow' | '2hours' }[] = [];
 
     // Filtrer les rendez-vous qui nécessitent un rappel
     bookings?.forEach((booking: Booking) => {
+      if (booking.provider_id && freeProviders.has(booking.provider_id)) return;
       const appointmentDateTime = new Date(`${booking.appointment_date}T${booking.appointment_time}`);
       
       // Rappel la veille (entre 18h et 20h la veille)
@@ -113,8 +124,8 @@ serve(async (req: Request): Promise<Response> => {
           // Email au barbier (toujours envoyé)
           const barberEmail = Deno.env.get("BARBER_EMAIL");
           if (!barberEmail) {
-            console.error("BARBER_EMAIL secret missing, skipping barber notification");
-            continue;
+            console.error("BARBER_EMAIL secret missing, skipping reminder");
+            return { success: false, bookingId: booking.id, type, error: "BARBER_EMAIL missing" };
           }
           await resend.emails.send({
             from: "LCS Barber <onboarding@resend.dev>",
