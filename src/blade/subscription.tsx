@@ -14,7 +14,7 @@ type Subscription = {
 };
 
 const PLANS: { id: Exclude<Plan, 'free'>; name: string; price: string; points: string[] }[] = [
-  { id: 'pro', name: 'Pro', price: '14,90 €/mois', points: ['Réservations illimitées', '0 % de commission', 'Carte de fidélité incluse', 'Rappels automatiques'] },
+  { id: 'pro', name: 'Pro', price: '14,90 €/mois', points: ['Réservations illimitées', 'Acomptes en ligne contre les no-shows', 'Carte de fidélité incluse', 'Rappels automatiques'] },
   { id: 'premium', name: 'Premium', price: '29,90 €/mois', points: ['Tout le plan Pro', 'Mise en avant dans ta ville', 'Badge « Pro vérifié »', 'Statistiques avancées'] },
 ];
 const NAMES: Record<Plan, string> = { free: 'Découverte (gratuit)', pro: 'Pro', premium: 'Premium' };
