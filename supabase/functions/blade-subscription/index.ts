@@ -66,6 +66,8 @@ type SubRow = {
   trial_end: string | null;
   cancel_at_period_end: boolean;
   had_trial: boolean;
+  comp_plan?: string | null;
+  comp_until?: string | null;
   updated_at: string;
 };
 
@@ -289,6 +291,8 @@ serve(async (req) => {
       trial_end: null,
       cancel_at_period_end: false,
       had_trial: false,
+      comp_plan: null,
+      comp_until: null,
       updated_at: new Date().toISOString(),
     };
     // Single source of truth (Stripe, offered plan, superadmin) lives in SQL.
