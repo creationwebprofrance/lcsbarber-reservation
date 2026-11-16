@@ -10,6 +10,7 @@ import { addPoints, cardLink, findCard, issueCard, loyaltyOverview, myCards, pub
 import { BrandLogo, BrandScope } from './brand';
 import { Nfc } from 'lucide-react';
 import { nfcErrorText, nfcSupported, readNfcUrl, writeNfcUrl } from './nfc';
+import { PlanGate } from './plan';
 
 const when = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 const errText = (e: unknown) => e instanceof Error ? e.message : 'Action impossible. Réessaie.';
@@ -56,7 +57,7 @@ export function PublicLoyaltyCard() {
 }
 
 // ---------------- Provider ----------------
-export function ProLoyalty() { return <ProviderPage title="Fidélité">{data => <LoyaltyBody clients={data.clients}/>}</ProviderPage>; }
+export function ProLoyalty() { return <ProviderPage title="Fidélité">{data => <PlanGate need="pro" feature="La carte de fidélité"><LoyaltyBody clients={data.clients}/></PlanGate>}</ProviderPage>; }
 
 function LoyaltyBody({ clients }: { clients: ProviderClient[] }) {
   const [refresh, setRefresh] = useState(0);

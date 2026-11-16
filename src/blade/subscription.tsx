@@ -6,6 +6,7 @@ import { Check, CreditCard, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { BladeButton, Section } from './common';
 import { ProviderPage, Status } from './provider';
+import { useMyPlan } from './plan';
 
 type Plan = 'free' | 'pro' | 'premium';
 type Subscription = {
@@ -46,6 +47,7 @@ function SubscriptionPanel() {
   const [error, setError] = useState(''); const [message, setMessage] = useState('');
   const started = useRef(false);
   const wanted = params.get('plan');
+  const plan = useMyPlan(sub ? 1 : 0);
 
   useEffect(() => {
     if (started.current) return; started.current = true;
@@ -71,14 +73,19 @@ function SubscriptionPanel() {
   };
 
   const current = sub?.effective_plan ?? 'free';
-  const paying = current !== 'free';
+  // « paying » = un vrai abonnement Stripe en cours ; un plan offert ou administrateur n'en est pas un.
+  const paying = !!sub && ['trialing', 'active', 'past_due'].includes(sub.status);
+  const source = plan.data?.source;
+  const info = !sub ? '' : source === 'superadmin' ? 'Compte administrateur : toutes les fonctions sont incluses, sans abonnement.'
+    : source === 'offert' && !paying ? `Plan ${NAMES[current]} offert jusqu’au ${day(plan.data?.comp_until ?? null)}. Abonne-toi avant cette date pour ne rien perdre.`
+    : statusText(sub);
   return <>
     <Section title="Mon plan">
       <div className="blade-sub-current">
         <CreditCard size={22} aria-hidden="true" />
         <div>
-          <strong>{busy === 'sync' && !sub ? 'Chargement…' : NAMES[current]}</strong>
-          {sub && <p>{statusText(sub)}</p>}
+          <strong>{busy === 'sync' && !sub ? 'Chargement…' : `${NAMES[current]}${source === 'offert' && !paying ? ' (offert)' : ''}`}</strong>
+          {info && <p>{info}</p>}
         </div>
         {sub?.stripe_customer_id && <BladeButton disabled={!!busy} onClick={() => go({ action: 'portal' }, 'portal')}>{busy === 'portal' ? 'Ouverture…' : <>Gérer, factures, résilier <ExternalLink size={16} aria-hidden="true" /></>}</BladeButton>}
       </div>
@@ -88,12 +95,14 @@ function SubscriptionPanel() {
     <Section title={paying ? 'Changer de plan' : 'Passer à un plan payant'}>
       <div className="blade-sub-plans">
         {PLANS.map(p => {
-          const isCurrent = current === p.id;
+          // Un plan offert reste « à souscrire » : le prestataire doit pouvoir s'abonner avant la fin de l'offre.
+          const isCurrent = current === p.id && paying;
           const trial = p.id === 'pro' && !sub?.had_trial && !paying;
           return <article key={p.id} className={`blade-sub-plan${isCurrent ? ' is-current' : ''}${wanted === p.id && !isCurrent ? ' is-wanted' : ''}`}>
             <header><h3>{p.name}</h3><strong>{p.price}</strong></header>
             <ul>{p.points.map(t => <li key={t}><Check size={16} aria-hidden="true" />{t}</li>)}</ul>
-            {isCurrent ? <p className="blade-sub-badge">Ton plan actuel</p>
+            {source === 'superadmin' ? <p className="blade-sub-badge">Inclus pour ton compte</p>
+              : isCurrent ? <p className="blade-sub-badge">Ton plan actuel</p>
               : <BladeButton variant="default" disabled={!!busy || !sub} onClick={() => paying ? go({ action: 'portal' }, 'portal') : go({ action: 'checkout', plan: p.id }, p.id)}>
                 {busy === p.id ? 'Redirection vers Stripe…' : paying ? `Passer au plan ${p.name}` : trial ? 'Essayer 30 jours gratuits' : `Choisir ${p.name}`}
               </BladeButton>}

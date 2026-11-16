@@ -3,6 +3,7 @@ import { useEffect, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { BladeButton, EmptyState, Section, ArrowRight } from './common';
+import { VerifiedBadge } from './plan';
 import { fmtPrice } from './data';
 import { FONTS, brandVars, type FontKey } from './customization-model';
 import { pageOf, useMediaUrls, type OpeningHour, type PublicPage } from './customization-data';
@@ -60,7 +61,7 @@ export function ProviderProfileView({ data, preview = false }: { data: PublicPag
       <div className="blade-brand-cover">{page.cover_path && urls[page.cover_path] && <img src={urls[page.cover_path]} alt="" />}</div>
       <div className="blade-brand-identity">
         <BrandLogo url={page.logo_path ? urls[page.logo_path] : undefined} name={data.name} />
-        <div><p className="blade-eyebrow">Professionnel</p><h1>{data.name}</h1>{page.city && <p>{page.city}</p>}
+        <div><p className="blade-eyebrow">Professionnel</p><h1>{data.name}</h1>{data.is_premium && <VerifiedBadge/>}{page.city && <p>{page.city}</p>}
           {avg !== null && <span className="blade-rating" aria-label={`Note ${avg.toFixed(1)} sur 5, ${data.reviews.length} avis`}><strong>{avg.toFixed(1).replace('.', ',')}</strong><Stars value={avg} /><small>({data.reviews.length})</small></span>}</div>
         {!preview && <BladeButton asChild variant="default"><Link to={book}>Réserver</Link></BladeButton>}
       </div>

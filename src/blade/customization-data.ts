@@ -34,7 +34,7 @@ export const DEFAULT_PAGE: PageSettings = {
   sections: ALL_SECTIONS, gallery_paths: [], booking_modes: 'both', step_order: 'service', welcome_message: null, booking_rules: null, custom_questions: [],
 };
 export type OpeningHour = { day_of_week: number; start_time: string; end_time: string; mode: string };
-export type PublicPage = { provider_id: string; name: string; is_lcs: boolean; page: Partial<PageSettings> | null; services: Service[]; reviews: Review[]; hours: OpeningHour[] };
+export type PublicPage = { provider_id: string; name: string; is_lcs: boolean; is_premium?: boolean; page: Partial<PageSettings> | null; services: Service[]; reviews: Review[]; hours: OpeningHour[] };
 export const pageOf = (p: PublicPage): PageSettings => ({ ...DEFAULT_PAGE, ...(p.page ?? {}) } as PageSettings);
 
 /** Public profile + booking settings of an active provider (null id = LCS Barber). */

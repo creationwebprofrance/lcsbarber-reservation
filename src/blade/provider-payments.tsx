@@ -5,6 +5,7 @@ import { BladeButton, EmptyState, Section } from './common';
 import { cancelProviderBooking, fmtDate, fmtPrice, markDepositReceived, updateOwnProvider, useSession } from './data';
 import { Field, ProviderPage, Status } from './provider';
 import { PAYMENT_OPTION_OFF, needsDeposit, paymentLinksError } from './provider-admin-model';
+import { PlanGate } from './plan';
 
 function LinksForm() {
   const { provider } = useSession();
@@ -55,7 +56,7 @@ export function ProviderPayments() {
       finally { setBusy(''); }
     }
     return <>
-      <LinksForm/>
+      <PlanGate need="pro" feature="L’acompte en ligne"><LinksForm/></PlanGate>
       <Section title="Acomptes en attente">
         <Status error={error} message={message}/>
         {!provider?.opt_payment_links ? <p className="blade-note">{PAYMENT_OPTION_OFF}.</p> : null}
