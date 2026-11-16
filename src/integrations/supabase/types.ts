@@ -728,6 +728,53 @@ export type Database = {
           },
         ]
       }
+      blade_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          current_period_end: string | null
+          had_trial: boolean
+          plan: string
+          provider_id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_end: string | null
+          updated_at: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          current_period_end?: string | null
+          had_trial?: boolean
+          plan?: string
+          provider_id: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          current_period_end?: string | null
+          had_trial?: boolean
+          plan?: string
+          provider_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blade_subscriptions_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "blade_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blade_work_likes: {
         Row: {
           actor_hash: string
@@ -2329,6 +2376,27 @@ export type Database = {
       blade_my_loyalty_cards: { Args: never; Returns: Json }
       blade_my_provider: { Args: never; Returns: Json }
       blade_my_provider_id: { Args: never; Returns: string }
+      blade_my_subscription: {
+        Args: never
+        Returns: {
+          cancel_at_period_end: boolean
+          current_period_end: string | null
+          had_trial: boolean
+          plan: string
+          provider_id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_end: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "blade_subscriptions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       blade_owns_media: { Args: { p_name: string }; Returns: boolean }
       blade_owns_provider: { Args: { p_provider: string }; Returns: boolean }
       blade_provider_active: { Args: { p_provider: string }; Returns: boolean }
