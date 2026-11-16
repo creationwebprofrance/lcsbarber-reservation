@@ -7,7 +7,8 @@ import { Gallery } from './gallery';
 import { PricingPlans } from './pricing';
 import { BladeIntro } from './intro';
 import { BladeButton } from './common';
-import { PreferenceControls, useBladePreferences } from './preferences';
+import { useBladePreferences } from './preferences';
+import { SiteNav, SiteFooter, useHashScroll } from './site-nav';
 
 function GoogleMark() {
   return <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>;
@@ -32,7 +33,7 @@ function HeroVideo() {
 }
 
 export function Landing() {
-  const {t,language}=useBladePreferences();const {session,isPro:isAdmin}=useSession();
+  const {t}=useBladePreferences();const {session,isPro:isAdmin}=useSession();useHashScroll();
   const navigate = useNavigate();
   const [mode, setMode] = useState<'chez' | 'pres'>('chez');
   const [city, setCity] = useState('');
@@ -40,17 +41,7 @@ export function Landing() {
   return <div className="bl-landing bl2 blade-app">
     <BladeIntro/>
     <a href="#bl-main" className="blade-skip">Aller au contenu</a>
-    <header className="bl2-header">
-      <Link to="/blade" className="bl-logo" aria-label="BLADE — accueil"><img src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" /></Link>
-      <nav className="bl2-nav" aria-label="Navigation principale">
-        <Link to="/blade/client" className="bl2-navlink">{t('explore')}</Link>
-        <span className="bl2-sep" aria-hidden="true" />
-        <a href="#blade-gallery" className="bl2-navlink">{t('how')}</a>
-        <Link to="/blade/connexion?espace=client" className="bl2-pill bl2-pill-outline">{t('personal')}</Link>
-        <Link to="/blade/connexion?espace=pro" className="bl2-pill bl2-pill-dark">{t('professional')}</Link>
-        <PreferenceControls/>
-      </nav>
-    </header>
+    <SiteNav/>
     <main id="bl-main" className="bl2-main">
       <section className="bl2-hero">
         <div className="bl2-hero-text">
@@ -87,7 +78,7 @@ export function Landing() {
       <section className="blade-collaboration blade-reveal"><div><h2>{t('collaborationTitle')}</h2><p>{t('collaborationText')}</p><ul>{(['recommend','availability','collaborate'] as const).map(key=><li key={key}><Check size={18}/>{t(key)}</li>)}</ul><BladeButton asChild><Link to={session&&isAdmin?'/blade/pro/messages':'/blade/connexion?espace=pro'}>{session&&isAdmin?t('messages'):t('network')} <ArrowRight size={18}/></Link></BladeButton></div></section>
       <section className="blade-travel-band blade-reveal"><MapPin size={32}/><div><h2>{t('slogan1')} {t('slogan2')}</h2><p>{t('travel')}</p></div><BladeButton asChild variant="default"><Link to="/blade/client">{t('find')} <ArrowRight size={18}/></Link></BladeButton></section>
     </main>
-    <footer className="bl2-footer"><span>© BLADE</span><nav aria-label="Liens"><a href="#tarifs">{({fr:'Tarifs pros',en:'Pro pricing',es:'Precios pro'} as const)[language]}</a><a href="#blade-gallery">{t('help')}</a></nav><div className="bl2-legal"><strong>Informations légales</strong><ul><li><a href="/mentions-legales">Mentions légales</a></li><li><a href="/cgv">CGV</a></li><li><a href="/politique-de-confidentialite">Politique de confidentialité</a></li><li><a href="/droit-de-retractation">Droit de rétractation</a></li></ul></div></footer>
+    <SiteFooter/>
   </div>;
 }
 

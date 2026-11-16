@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Check, ArrowRight } from 'lucide-react';
 import { BladeButton } from './common';
 import { useBladePreferences, type Language } from './preferences';
+import { SiteNav, SiteFooter, useHashScroll } from './site-nav';
 
 type Plan = { id: 'free' | 'pro' | 'premium'; name: string; price: string; period: string; tagline: string; features: string[]; cta: string; badge?: string };
 type PricingCopy = { eyebrow: string; title: string; lead: string; note: string; plans: Plan[] };
@@ -74,4 +75,17 @@ export function PricingPlans() {
     </div>
     <p className="blade-pricing-note">{c.note}</p>
   </section>;
+}
+
+// Page « Tarifs » accessible depuis la barre de navigation.
+export function PricingPage() {
+  useHashScroll();
+  return <div className="bl-landing bl2 blade-app">
+    <a href="#bl-main" className="blade-skip">Aller au contenu</a>
+    <SiteNav />
+    <main id="bl-main" className="bl2-main bl3-page">
+      <PricingPlans />
+    </main>
+    <SiteFooter />
+  </div>;
 }

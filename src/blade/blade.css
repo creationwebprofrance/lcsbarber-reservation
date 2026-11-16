@@ -416,3 +416,43 @@ html[data-blade-theme=dark] .bl2 .bl2-pill-outline{color:hsl(var(--foreground));
 @keyframes blade-intro-out{to{opacity:0;transform:translateY(-14px) scale(1.04)}}
 @keyframes blade-intro-curtain{to{transform:translateY(-100%)}}
 @media(prefers-reduced-motion:reduce){.blade-intro{display:none}}
+
+/* Barre de navigation des pages publiques (accueil, tarifs) */
+.bl3-header{position:sticky;top:0;z-index:60;background:hsl(var(--background)/.78);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border-bottom:1px solid transparent;transition:box-shadow .25s,border-color .25s,background .25s}
+.bl3-header.is-scrolled,.bl3-header.is-open{border-bottom-color:hsl(var(--border));box-shadow:0 8px 28px hsl(0 0% 0%/.08);background:hsl(var(--background)/.92)}
+.bl3-bar{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;padding:14px clamp(16px,4vw,48px);transition:padding .25s}
+.is-scrolled .bl3-bar{padding-block:9px}
+.bl3-logo{display:flex;align-items:center;min-height:44px}
+.bl3-logo img{height:30px;width:auto;display:block}
+.bl3-logo-dark{display:none!important}
+html[data-blade-theme=dark] .bl3-logo-light{display:none!important}html[data-blade-theme=dark] .bl3-logo-dark{display:block!important}
+.bl3-links{justify-self:center;display:flex;align-items:center;gap:4px;padding:5px;border:1px solid hsl(var(--border));border-radius:999px;background:hsl(var(--card)/.65)}
+.bl2 .bl3-link{display:inline-flex;align-items:center;min-height:38px;padding:0 18px;border-radius:999px;font-size:14.5px;font-weight:600;color:hsl(var(--muted-foreground));transition:background .2s,color .2s}
+.bl2 .bl3-link:hover{color:hsl(var(--foreground));background:hsl(var(--background))}
+.bl2 .bl3-link.active{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
+.bl3-right{display:flex;align-items:center;gap:10px;justify-self:end}
+.bl3-actions{display:flex;align-items:center;gap:8px}
+.bl2 .bl3-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;font-size:14.5px;font-weight:700;white-space:nowrap;border:1.5px solid transparent;transition:background .2s,color .2s,border-color .2s}
+.bl2 .bl3-btn svg{transition:transform .2s}
+.bl2 .bl3-btn-ghost{color:hsl(var(--foreground));border-color:hsl(var(--border))}
+.bl2 .bl3-btn-ghost:hover{background:hsl(var(--card));border-color:hsl(var(--primary))}
+.bl2 .bl3-btn-solid{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
+.bl2 .bl3-btn-solid:hover{background:hsl(var(--blade-hover))}
+.bl2 .bl3-btn-solid:hover svg{transform:translateX(3px)}
+.bl3-burger{display:none;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid hsl(var(--border));background:hsl(var(--background));color:hsl(var(--foreground));cursor:pointer}
+.bl3-panel{position:absolute;top:100%;left:0;right:0;background:hsl(var(--background));border-bottom:1px solid hsl(var(--border));box-shadow:0 18px 30px hsl(0 0% 0%/.12);padding:12px 16px 20px;display:grid;gap:16px;animation:bl3-drop .22s ease-out}
+.bl3-panel-links{display:grid;gap:4px}
+.bl2 .bl3-panel-links .bl3-link{min-height:50px;border-radius:12px;font-size:16px;padding:0 14px;color:hsl(var(--foreground))}
+.bl3-panel-actions{display:grid;gap:10px}
+.bl3-panel-actions .bl3-btn{width:100%}
+.bl3-panel-prefs{display:none}
+.bl3-panel-prefs .blade-preferences{justify-content:flex-start}
+@keyframes bl3-drop{from{opacity:0;transform:translateY(-8px)}}
+.bl3-page{padding-top:8px;min-height:60vh}
+@media(min-width:1024px){.bl3-panel{display:none}}
+@media(max-width:1180px){.bl2 .bl3-link{padding:0 13px}.bl2 .bl3-btn{padding:0 14px}}
+@media(max-width:1023px){.bl3-links,.bl3-actions{display:none}.bl3-burger{display:inline-flex}.bl3-bar{grid-template-columns:auto 1fr;gap:12px}}
+@media(max-width:560px){.bl3-right>.blade-preferences{display:none}.bl3-panel-prefs{display:block}.bl3-logo img{height:26px}}
+@media(prefers-reduced-motion:reduce){.bl3-header,.bl3-bar,.bl3-panel,.bl2 .bl3-btn svg{transition:none;animation:none}}
+#blade-gallery,#tarifs,#bl-map{scroll-margin-top:96px}
+.bl-landing.bl2{overflow-x:clip}
