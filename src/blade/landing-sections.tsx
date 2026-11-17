@@ -21,9 +21,9 @@ export function useScrollReveal() {
 export function HowItWorks() {
   const { language } = useBladePreferences();
   const c = L(language, {
-    fr: { eyebrow: 'Comment ça marche', title: 'Ta coupe en trois étapes', steps: [['Cherche', 'Indique ta ville et choisis : ton barber vient chez toi, ou tu vas près de chez toi.'], ['Choisis', 'Compare les profils, les avis et les prix affichés avant de réserver.'], ['Ton pro arrive', 'Réserve ton créneau en ligne et suis son trajet estimé jusqu’à ta porte.']] },
-    en: { eyebrow: 'How it works', title: 'Your haircut in three steps', steps: [['Search', 'Enter your city and choose: your barber comes to you, or you go nearby.'], ['Choose', 'Compare profiles, reviews and prices before you book.'], ['Your barber arrives', 'Book your slot online and follow their estimated trip to your door.']] },
-    es: { eyebrow: 'Cómo funciona', title: 'Tu corte en tres pasos', steps: [['Busca', 'Indica tu ciudad y elige: tu barbero va a tu casa o vas cerca de ti.'], ['Elige', 'Compara perfiles, opiniones y precios antes de reservar.'], ['Tu barbero llega', 'Reserva online y sigue su trayecto estimado hasta tu puerta.']] },
+    fr: { eyebrow: 'Comment ça marche', title: 'Ta coupe en trois étapes', steps: [['Cherche', 'Indique ta ville et choisis : ton pro de la coiffure vient chez toi, ou tu vas près de chez toi.'], ['Choisis', 'Compare les profils, les avis et les prix affichés avant de réserver.'], ['Ton pro arrive', 'Réserve ton créneau en ligne et suis son trajet estimé jusqu’à ta porte.']] },
+    en: { eyebrow: 'How it works', title: 'Your haircut in three steps', steps: [['Search', 'Enter your city and choose: your hair pro comes to you, or you go nearby.'], ['Choose', 'Compare profiles, reviews and prices before you book.'], ['Your barber arrives', 'Book your slot online and follow their estimated trip to your door.']] },
+    es: { eyebrow: 'Cómo funciona', title: 'Tu corte en tres pasos', steps: [['Busca', 'Indica tu ciudad y elige: tu profesional va a tu casa o vas cerca de ti.'], ['Elige', 'Compara perfiles, opiniones y precios antes de reservar.'], ['Tu barbero llega', 'Reserva online y sigue su trayecto estimado hasta tu puerta.']] },
   });
   const icons = [Search, Scissors, Car];
   return <section id="blade-gallery" className="bl-section bl-how" aria-labelledby="bl-how-title">
