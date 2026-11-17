@@ -55,7 +55,7 @@ Deno.serve(async req => {
     const { data: provider } = await db.from('blade_providers')
       .select('id,user_id,display_name,opt_auto_emails').eq('id', booking.provider_id).maybeSingle();
     if (!provider || provider.user_id !== user.id) return res({ error: 'Cette réservation ne t’appartient pas' }, 403);
-    const proName = provider.display_name?.trim() || 'Ton barber';
+    const proName = provider.display_name?.trim() || 'Ton professionnel';
 
     if (input.action === 'start') {
       const { data: plan, error: planError } = await db.rpc('blade_effective_plan', { p_provider: provider.id });
@@ -90,8 +90,8 @@ Deno.serve(async req => {
       const eta = new Date(startedAt.getTime() + trip.duration_s * 1000);
       if (provider.opt_auto_emails && booking.client_email) {
         const link = `${resolveSite(input.site, BLADE_SITE.replace(/\/blade$/, ''))}/blade/trajet/${trip.token}`;
-        await sendEmail([booking.client_email], 'Ton barber est en route',
-          layout('Ton barber est en route', `<p>${esc(proName)} est parti. Arrivée estimée vers <strong>${parisHHMM(eta)}</strong> (heure de Paris).</p><p>Suis son trajet estimé en direct.</p>`, { label: 'Suivre le trajet estimé', url: link }),
+        await sendEmail([booking.client_email], 'Ton professionnel est en route',
+          layout('Ton professionnel est en route', `<p>${esc(proName)} est parti. Arrivée estimée vers <strong>${parisHHMM(eta)}</strong> (heure de Paris).</p><p>Suis son trajet estimé en direct.</p>`, { label: 'Suivre le trajet estimé', url: link }),
           `blade-trip-start-${trip.id}-${startedAt.getTime()}`);
       }
       return res({ token: trip.token, eta: eta.toISOString(), duration_s: trip.duration_s, distance_m: trip.distance_m });
@@ -116,8 +116,8 @@ Deno.serve(async req => {
         .eq('id', trip.id).select(TRIP_COLS).single();
       if (error || !updated) throw error ?? new Error('update failed');
       if (provider.opt_auto_emails && booking.client_email) {
-        await sendEmail([booking.client_email], 'Ton barber est arrivé',
-          layout('Ton barber est arrivé', `<p>${esc(proName)} est arrivé à ton adresse.</p>`),
+        await sendEmail([booking.client_email], 'Ton professionnel est arrivé',
+          layout('Ton professionnel est arrivé', `<p>${esc(proName)} est arrivé à ton adresse.</p>`),
           `blade-trip-arrived-${trip.id}-${new Date(trip.started_at).getTime()}`);
       }
       return res(tripJson(updated));

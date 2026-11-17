@@ -13,6 +13,7 @@ import type { ProviderBundle } from './data';
 import { PlanGate } from './plan';
 import { bearing, cumulative, haversine, estimatedProgress, etaMs, minutesLeft, pointAt, pointAtTime, type LngLat, type TripStatus } from './trip-model';
 import { MAPBOX_PUBLIC_TOKEN as MAPBOX_TOKEN } from '@/lib/mapbox';
+import { searchPlaces, simulateTo, type Place } from './trip-sim';
 import { DEMO_DISTANCE_M, DEMO_DURATION_S, DEMO_ROUTE, DEMO_TIMES } from './demo-route';
 
 export type PublicTrip = {
@@ -60,26 +61,28 @@ function liveFromTrip(trip: PublicTrip, cum: number[], now: number): Live {
     minutes: minutesLeft(trip, now), remainingM: (1 - fraction) * trip.distance_m, arrivedAt: trip.arrived_at ? Date.parse(trip.arrived_at) : null };
 }
 
-// Démo : vrai itinéraire routier parisien, vitesse variable selon chaque tronçon, en boucle.
-const DEMO_START_AT = DEMO_DURATION_S * 0.18; // on arrive alors que le barber est parti depuis ~2-3 min
-const DEMO_PAUSE_S = 25;                     // le barber reste « arrivé » avant de recommencer
-const DEMO_CUM = cumulative(DEMO_ROUTE);
-const DEMO_TOTAL_M = DEMO_CUM[DEMO_CUM.length - 1];
-function demoTrip(): PublicTrip {
-  return { status: 'en_route', started_at: new Date().toISOString(), duration_s: DEMO_DURATION_S, distance_m: DEMO_DISTANCE_M, delay_min: 0, arrived_at: null,
-    route: DEMO_ROUTE, dest: DEMO_ROUTE[DEMO_ROUTE.length - 1], provider_name: 'Ton barber', appointment_date: '', appointment_time: '', server_now: new Date().toISOString() };
+// Simulation : vrai itinéraire routier, vitesse variable selon chaque tronçon, accélérée et en boucle.
+// Par défaut : trajet parisien de démonstration ; le visiteur peut entrer sa propre adresse.
+type Sim = { route: LngLat[]; times: number[]; distance_m: number; duration_s: number; dest: LngLat; label: string; traffic: boolean; startAt: number; cum: number[] };
+const PAUSE_S = 25; // le pro reste « arrivé » quelques secondes avant que la simulation recommence
+function makeSim(r: Omit<Sim, 'cum' | 'startAt'>, startAt = 0): Sim { return { ...r, startAt, cum: cumulative(r.route) }; }
+const DEFAULT_SIM = makeSim({ route: DEMO_ROUTE, times: DEMO_TIMES, distance_m: DEMO_DISTANCE_M, duration_s: DEMO_DURATION_S, dest: DEMO_ROUTE[DEMO_ROUTE.length - 1], label: 'Paris 11ᵉ', traffic: true }, DEMO_DURATION_S * 0.15);
+function simTrip(sim: Sim): PublicTrip {
+  return { status: 'en_route', started_at: new Date().toISOString(), duration_s: sim.duration_s, distance_m: sim.distance_m, delay_min: 0, arrived_at: null,
+    route: sim.route, dest: sim.dest, provider_name: 'Ton coiffeur', appointment_date: '', appointment_time: '', server_now: new Date().toISOString() };
 }
-function liveFromDemo(t0: number, speed: number, now: number): Live {
-  const cycle = DEMO_DURATION_S + DEMO_PAUSE_S;
-  const elapsed = (DEMO_START_AT + ((now - t0) / 1000) * speed) % cycle;
-  const startedAt = t0 - (DEMO_START_AT * 1000) / speed;
-  const arrived = elapsed >= DEMO_DURATION_S;
-  const s = Math.min(elapsed, DEMO_DURATION_S);
-  const { point, index, heading } = pointAtTime(DEMO_ROUTE, DEMO_TIMES, s);
-  const done = DEMO_CUM[index] + haversine(DEMO_ROUTE[index], point);
-  const fraction = arrived ? 1 : Math.min(1, done / DEMO_TOTAL_M);
-  return { status: arrived ? 'arrived' : 'en_route', fraction, point, index, heading, eta: t0 + ((DEMO_DURATION_S - DEMO_START_AT) * 1000),
-    startedAt, minutes: arrived ? 0 : Math.max(1, Math.ceil((DEMO_DURATION_S - s) / 60)), remainingM: Math.max(0, DEMO_TOTAL_M - done), arrivedAt: arrived ? now : null };
+function liveFromSim(sim: Sim, t0: number, speed: number, now: number): Live {
+  const total = sim.cum[sim.cum.length - 1] || 1;
+  const cycle = sim.duration_s + PAUSE_S * speed;
+  const elapsed = (sim.startAt + ((now - t0) / 1000) * speed) % cycle;
+  const arrived = elapsed >= sim.duration_s;
+  const s = Math.min(elapsed, sim.duration_s);
+  const { point, index, heading } = pointAtTime(sim.route, sim.times, s);
+  const done = sim.cum[index] + haversine(sim.route[index], point);
+  const left = Math.max(0, sim.duration_s - s);
+  return { status: arrived ? 'arrived' : 'en_route', fraction: arrived ? 1 : Math.min(1, done / total), point, index, heading,
+    eta: now + (left * 1000), startedAt: now - (s * 1000), minutes: arrived ? 0 : Math.max(1, Math.ceil(left / 60)),
+    remainingM: Math.max(0, total - done), arrivedAt: arrived ? now : null };
 }
 
 /* ---------------- Carte animée ---------------- */
@@ -157,7 +160,7 @@ function TripMap({ route, dest, getLive }: { route: LngLat[]; dest: LngLat; getL
   }, [getLive, latlngs]);
 
   return <div className="blade-trip-mapwrap">
-    <div ref={box} className="blade-trip-map" role="img" aria-label="Carte du trajet estimé de ton barber" />
+    <div ref={box} className="blade-trip-map" role="img" aria-label="Carte du trajet estimé de ton professionnel" />
     <div className="blade-trip-mapbtns">
       {follow ? <button type="button" onClick={showAll}><Maximize2 size={16} aria-hidden="true" />Tout le trajet</button>
         : <button type="button" onClick={() => setFollow(true)}><Crosshair size={16} aria-hidden="true" />Suivre</button>}
@@ -174,11 +177,72 @@ function TripSteps({ live }: { live: Live }) {
   </ol>;
 }
 
+/* ---------------- Simulation avec l'adresse du visiteur ---------------- */
+const SPEEDS = [8, 16, 32];
+const minutesText = (s: number) => { const m = Math.round(s / 60); return m >= 60 ? `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}` : `${Math.max(1, m)} min`; };
+
+function SimPanel({ sim, speed, onSpeed, onRoute }: { sim: Sim; speed: number; onSpeed: (s: number) => void; onRoute: (r: Omit<Sim, 'cum' | 'startAt'>) => void }) {
+  const [query, setQuery] = useState('');
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const listId = 'blade-sim-places';
+  const picked = useRef('');
+  useEffect(() => {
+    if (query.trim().length < 3 || query === picked.current) { setPlaces([]); return; }
+    const ctrl = new AbortController();
+    const id = window.setTimeout(() => { searchPlaces(query, ctrl.signal).then(p => { setPlaces(p); setOpen(true); }).catch(() => {}); }, 300);
+    return () => { window.clearTimeout(id); ctrl.abort(); };
+  }, [query]);
+  const run = async (place: Place) => {
+    picked.current = place.label; setOpen(false); setPlaces([]); setBusy(true); setError(''); setQuery(place.label);
+    try { onRoute(await simulateTo(place)); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Itinéraire introuvable pour cette adresse.'); }
+    finally { setBusy(false); }
+  };
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault(); if (busy) return;
+    if (places[0]) { void run(places[0]); return; }
+    setBusy(true); setError('');
+    try { const p = await searchPlaces(query); if (p[0]) await run(p[0]); else setError('Adresse introuvable. Essaie avec la rue, le numéro et la ville.'); }
+    catch { setError('Recherche d’adresse indisponible pour le moment.'); }
+    finally { setBusy(false); }
+  };
+  return <section className="blade-sim" aria-labelledby="blade-sim-title">
+    <h2 id="blade-sim-title">Simule l’arrivée de ton pro chez toi</h2>
+    <p>Entre ton adresse : on simule un coiffeur, barber ou lockticien qui part à quelques kilomètres, avec le trafic réel.</p>
+    <form className="blade-sim-form" onSubmit={submit} role="search">
+      <div className="blade-sim-field">
+        <MapPin size={18} aria-hidden="true" />
+        <input value={query} onChange={e => { setQuery(e.target.value); setError(''); }} onFocus={() => places.length && setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+          placeholder="Ton adresse (ex. 12 rue de la Roquette, Paris)" aria-label="Ton adresse" autoComplete="street-address"
+          role="combobox" aria-expanded={open && places.length > 0} aria-controls={listId} aria-autocomplete="list" />
+        {open && places.length > 0 && <ul id={listId} role="listbox" className="blade-sim-list">
+          {places.map(p => <li key={p.label} role="option" aria-selected="false"><button type="button" onMouseDown={e => e.preventDefault()} onClick={() => void run(p)}>{p.label}</button></li>)}
+        </ul>}
+      </div>
+      <BladeButton type="submit" variant="default" disabled={busy || query.trim().length < 3}><Navigation size={16} aria-hidden="true" />{busy ? 'Calcul…' : 'Simuler'}</BladeButton>
+    </form>
+    {error && <p className="blade-form-error" role="alert">{error}</p>}
+    <div className="blade-sim-result" role="status">
+      <span><strong>{km(sim.distance_m)}</strong> de trajet</span>
+      <span><strong>{minutesText(sim.duration_s)}</strong> {sim.traffic ? 'avec le trafic actuel' : 'estimées avec trafic'}</span>
+      <span className="blade-sim-dest">vers {sim.label}</span>
+    </div>
+    <div className="blade-trip-speed" role="group" aria-label="Vitesse de la simulation">
+      <span>Vitesse</span>
+      {SPEEDS.map(s => <button key={s} type="button" aria-pressed={speed === s} onClick={() => onSpeed(s)}>×{s}</button>)}
+    </div>
+  </section>;
+}
+
 /* ---------------- Page client publique : /blade/trajet/:token ---------------- */
 export function TripPage() {
   const { token = '' } = useParams();
   const demo = token === 'demo';
-  const [trip, setTrip] = useState<PublicTrip | null>(demo ? demoTrip() : null);
+  const [sim, setSim] = useState<Sim>(DEFAULT_SIM);
+  const [trip, setTrip] = useState<PublicTrip | null>(demo ? simTrip(DEFAULT_SIM) : null);
   const [state, setState] = useState<'loading' | 'ok' | 'missing' | 'error'>(demo ? 'ok' : 'loading');
   const [offset, setOffset] = useState(0);
   const [speed, setSpeed] = useState(8);
@@ -203,29 +267,24 @@ export function TripPage() {
     const now = Date.now(); const elapsed = ((now - t0.current) / 1000) * speed;
     t0.current = now - (elapsed * 1000) / s; setSpeed(s);
   };
-  const getLive = useCallback((now: number): Live => (demo ? liveFromDemo(t0.current, speed, now) : liveFromTrip(trip!, cum, now + offset)), [demo, speed, trip, cum, offset]);
+  const getLive = useCallback((now: number): Live => (demo ? liveFromSim(sim, t0.current, speed, now) : liveFromTrip(trip!, cum, now + offset)), [demo, sim, speed, trip, cum, offset]);
+  const startSim = (r: Omit<Sim, 'cum' | 'startAt'>) => { const s = makeSim(r, 0); t0.current = Date.now(); setSim(s); setTrip(simTrip(s)); };
 
-  const name = trip?.provider_name || 'Ton barber';
+  const name = trip?.provider_name || 'Ton coiffeur';
   const live = trip ? getLive(Date.now()) : null;
   return <div className="blade-app blade-trip-page"><main className="blade-main">
     <p className="blade-eyebrow"><Link to="/blade">BLADE</Link> <span>/</span> Trajet</p>
     {state === 'loading' && <p role="status">Chargement du trajet…</p>}
-    {state === 'missing' && <EmptyState icon="pin" title="Trajet introuvable" description="Ce lien n’est plus valable. Le trajet apparaîtra ici dès que ton barber sera parti." />}
+    {state === 'missing' && <EmptyState icon="pin" title="Trajet introuvable" description="Ce lien n’est plus valable. Le trajet apparaîtra ici dès que ton professionnel sera parti." />}
     {state === 'error' && <EmptyState icon="pin" title="Trajet indisponible" description="Impossible de charger le trajet pour le moment. Réessaie dans un instant." action={<BladeButton onClick={() => { setState('loading'); void load(); }}>Réessayer</BladeButton>} />}
     {state === 'ok' && trip && live && <>
-      {demo && <div className="blade-trip-demo" role="note">
-        <span>Démo : vrai itinéraire dans Paris (gare de l’Est → Paris 11ᵉ), barber fictif.</span>
-        <span className="blade-trip-speed" role="group" aria-label="Vitesse de la démo">
-          <button type="button" aria-pressed={speed !== 1} onClick={() => changeSpeed(8)}>Accélérée ×8</button>
-          <button type="button" aria-pressed={speed === 1} onClick={() => changeSpeed(1)}>Vitesse réelle</button>
-        </span>
-      </div>}
+      {demo && <SimPanel sim={sim} speed={speed} onSpeed={changeSpeed} onRoute={startSim} />}
       <header className="blade-trip-head">
         <div>
           <h1>{live.status === 'arrived' ? `${name} est arrivé` : trip.status === 'cancelled' ? 'Trajet annulé' : `${name} est en route`}</h1>
           {live.status === 'en_route' && <p className="blade-trip-eta"><Clock size={18} aria-hidden="true" />Arrivée vers <strong>{hm(live.eta)}</strong> · {live.minutes > 0 ? `${live.minutes} min` : 'imminente'} · encore {km(live.remainingM)}</p>}
           {live.status === 'arrived' && <p className="blade-trip-eta"><CheckCircle2 size={18} aria-hidden="true" />Arrivé{live.arrivedAt ? ` à ${hm(live.arrivedAt)}` : ''} · il sonne bientôt à ta porte</p>}
-          {trip.delay_min > 0 && live.status === 'en_route' && <p className="blade-trip-delay">Retard signalé par ton barber : {trip.delay_min} min</p>}
+          {trip.delay_min > 0 && live.status === 'en_route' && <p className="blade-trip-delay">Retard signalé par ton professionnel : {trip.delay_min} min</p>}
         </div>
         <span className="blade-trip-tag"><Navigation size={14} aria-hidden="true" />Position estimée</span>
       </header>
@@ -239,8 +298,8 @@ export function TripPage() {
         <TripSteps live={live} />
       </>}
       <p className="blade-trip-note"><Info size={16} aria-hidden="true" />{demo
-        ? 'Démo : le trajet suit de vraies rues avec des vitesses variables selon le trafic. Pour un vrai rendez-vous, la position est estimée à partir de l’itinéraire et du trafic au départ, puis mise à jour par ton barber (retard, arrivée).'
-        : `Position estimée à partir de l’itinéraire et du trafic au moment du départ (${km(trip.distance_m)}). Elle n’est pas transmise en direct par GPS : ton barber met à jour son retard et confirme son arrivée.`}</p>
+        ? 'Simulation : le trajet suit de vraies rues avec des vitesses variables selon le trafic, en accéléré. Pour un vrai rendez-vous, la position est estimée à partir de l’itinéraire et du trafic au départ, puis mise à jour par ton professionnel (retard, arrivée).'
+        : `Position estimée à partir de l’itinéraire et du trafic au moment du départ (${km(trip.distance_m)}). Elle n’est pas transmise en direct par GPS : ton professionnel met à jour son retard et confirme son arrivée.`}</p>
     </>}
   </main></div>;
 }
@@ -309,7 +368,7 @@ export function MyTripLinks() {
   if (!live.length) return null;
   return <div className="blade-trip-banner" role="status">
     <Car size={20} aria-hidden="true" />
-    <span>{live.some(t => t.status === 'en_route') ? 'Ton barber est en route.' : 'Ton barber est arrivé.'}</span>
+    <span>{live.some(t => t.status === 'en_route') ? 'Ton professionnel est en route.' : 'Ton professionnel est arrivé.'}</span>
     <BladeButton asChild variant="default"><Link to={`/blade/trajet/${live[0].token}`}>Suivre le trajet</Link></BladeButton>
   </div>;
 }

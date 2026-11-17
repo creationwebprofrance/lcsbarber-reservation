@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BadgeCheck, CalendarCheck, Calculator, Car, ChevronDown, Gift, MapPin, Percent, Scissors, Search } from 'lucide-react';
 import { useBladePreferences, type Language } from './preferences';
-import { CITIES } from './seo';
 
 const L = <T,>(language: Language, m: Record<Language, T>) => m[language] ?? m.fr;
 
@@ -22,7 +21,7 @@ export function useScrollReveal() {
 export function HowItWorks() {
   const { language } = useBladePreferences();
   const c = L(language, {
-    fr: { eyebrow: 'Comment ça marche', title: 'Ta coupe en trois étapes', steps: [['Cherche', 'Indique ta ville et choisis : ton barber vient chez toi, ou tu vas près de chez toi.'], ['Choisis', 'Compare les profils, les avis et les prix affichés avant de réserver.'], ['Ton barber arrive', 'Réserve ton créneau en ligne et suis son trajet estimé jusqu’à ta porte.']] },
+    fr: { eyebrow: 'Comment ça marche', title: 'Ta coupe en trois étapes', steps: [['Cherche', 'Indique ta ville et choisis : ton barber vient chez toi, ou tu vas près de chez toi.'], ['Choisis', 'Compare les profils, les avis et les prix affichés avant de réserver.'], ['Ton pro arrive', 'Réserve ton créneau en ligne et suis son trajet estimé jusqu’à ta porte.']] },
     en: { eyebrow: 'How it works', title: 'Your haircut in three steps', steps: [['Search', 'Enter your city and choose: your barber comes to you, or you go nearby.'], ['Choose', 'Compare profiles, reviews and prices before you book.'], ['Your barber arrives', 'Book your slot online and follow their estimated trip to your door.']] },
     es: { eyebrow: 'Cómo funciona', title: 'Tu corte en tres pasos', steps: [['Busca', 'Indica tu ciudad y elige: tu barbero va a tu casa o vas cerca de ti.'], ['Elige', 'Compara perfiles, opiniones y precios antes de reservar.'], ['Tu barbero llega', 'Reserva online y sigue su trayecto estimado hasta tu puerta.']] },
   });
@@ -44,9 +43,9 @@ const ROUTE = 'M40 210 C 90 200, 110 150, 150 140 S 230 120, 250 80 S 300 40, 33
 export function TripShowcase() {
   const { language } = useBladePreferences();
   const c = L(language, {
-    fr: { eyebrow: 'Exclusif BLADE', title: 'Suis ton barber jusqu’à ta porte', text: 'Dès qu’il part, tu vois son trajet estimé, l’heure d’arrivée et les éventuels retards. Plus besoin d’appeler pour savoir où il en est.', points: ['Heure d’arrivée estimée', 'Retards signalés en direct', 'Ta vie privée et la sienne respectées'], cta: 'Voir la démo', eta: 'Arrivée vers', live: 'Position estimée', min: 'min' },
-    en: { eyebrow: 'Only on BLADE', title: 'Follow your barber to your door', text: 'As soon as they leave, you see their estimated trip, arrival time and any delays. No need to call.', points: ['Estimated arrival time', 'Delays shared live', 'Privacy respected on both sides'], cta: 'See the demo', eta: 'Arriving around', live: 'Estimated position', min: 'min' },
-    es: { eyebrow: 'Exclusivo BLADE', title: 'Sigue a tu barbero hasta tu puerta', text: 'En cuanto sale, ves su trayecto estimado, la hora de llegada y los retrasos. Sin llamadas.', points: ['Hora de llegada estimada', 'Retrasos avisados en directo', 'Privacidad respetada'], cta: 'Ver la demo', eta: 'Llegada hacia', live: 'Posición estimada', min: 'min' },
+    fr: { eyebrow: 'Exclusif BLADE', title: 'Suis ton coiffeur jusqu’à ta porte', text: 'Barber, coiffeuse, lockticien… dès qu’il part, tu vois son trajet estimé, l’heure d’arrivée et les éventuels retards. Plus besoin d’appeler pour savoir où il en est.', points: ['Heure d’arrivée estimée', 'Retards signalés en direct', 'Ta vie privée et la sienne respectées'], cta: 'Simuler avec mon adresse', eta: 'Arrivée vers', live: 'Position estimée', min: 'min' },
+    en: { eyebrow: 'Only on BLADE', title: 'Follow your hairstylist to your door', text: 'As soon as they leave, you see their estimated trip, arrival time and any delays. No need to call.', points: ['Estimated arrival time', 'Delays shared live', 'Privacy respected on both sides'], cta: 'Try it with my address', eta: 'Arriving around', live: 'Estimated position', min: 'min' },
+    es: { eyebrow: 'Exclusivo BLADE', title: 'Sigue a tu peluquero hasta tu puerta', text: 'En cuanto sale, ves su trayecto estimado, la hora de llegada y los retrasos. Sin llamadas.', points: ['Hora de llegada estimada', 'Retrasos avisados en directo', 'Privacidad respetada'], cta: 'Simular con mi dirección', eta: 'Llegada hacia', live: 'Posición estimada', min: 'min' },
   });
   const eta = new Date(Date.now() + 12 * 60000).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   return <section className="bl-section bl-trip" aria-labelledby="bl-trip-title">
@@ -81,18 +80,13 @@ export function TripShowcase() {
 export function IdfBand() {
   const { language } = useBladePreferences();
   const c = L(language, {
-    fr: { eyebrow: 'Île-de-France', title: 'Disponible dans toute l’Île-de-France', text: 'Paris et sa petite couronne, et bien plus. Choisis ta ville :', all: 'Toutes les villes' },
-    en: { eyebrow: 'Île-de-France', title: 'Available across Île-de-France', text: 'Paris, its suburbs and more. Pick your city:', all: 'All cities' },
-    es: { eyebrow: 'Île-de-France', title: 'Disponible en toda Île-de-France', text: 'París, sus alrededores y más. Elige tu ciudad:', all: 'Todas las ciudades' },
+    fr: { eyebrow: 'Île-de-France', title: 'Disponible dans toute l’Île-de-France', text: 'BLADE se lance en Île-de-France : de nouveaux pros de la coiffure rejoignent la plateforme chaque semaine.', cta: 'Explorer autour de moi' },
+    en: { eyebrow: 'Île-de-France', title: 'Available across Île-de-France', text: 'BLADE is launching in Île-de-France: new hair professionals join every week.', cta: 'Explore near me' },
+    es: { eyebrow: 'Île-de-France', title: 'Disponible en toda Île-de-France', text: 'BLADE se lanza en Île-de-France: cada semana se unen nuevos profesionales.', cta: 'Explorar cerca de mí' },
   });
-  const featured = ['paris', 'boulogne-billancourt', 'saint-denis', 'montreuil', 'nanterre', 'creteil', 'versailles', 'argenteuil', 'vitry-sur-seine', 'levallois-perret', 'aubervilliers', 'cergy'];
-  const cities = featured.map(s => CITIES.find(x => x.slug === s)!).filter(Boolean);
   return <section className="bl-section bl-idf bl-reveal" aria-labelledby="bl-idf-title">
     <div className="bl-idf-head"><MapPin size={34} aria-hidden="true" /><div><p className="bl-eyebrow">{c.eyebrow}</p><h2 id="bl-idf-title">{c.title}</h2><p>{c.text}</p></div></div>
-    <ul className="bl-idf-cities">
-      {cities.map(city => <li key={city.slug}><Link to={`/blade/barber/${city.slug}`}>{city.name}</Link></li>)}
-      <li><Link to="/blade/barber" className="is-all">{c.all} <ArrowRight size={16} aria-hidden="true" /></Link></li>
-    </ul>
+    <Link to="/blade/client" className="bl3-btn bl3-btn-solid">{c.cta} <ArrowRight size={18} aria-hidden="true" /></Link>
   </section>;
 }
 
@@ -100,9 +94,9 @@ export function IdfBand() {
 export function ProBand() {
   const { language } = useBladePreferences();
   const c = L(language, {
-    fr: { eyebrow: 'Pour les barbers', title: 'Tu es barber ? Rejoins BLADE', text: 'Reçois des réservations près de chez toi et garde 100 % de tes prestations.', points: [['Aucune commission', 'Tes acomptes arrivent sur ton propre lien.'], ['Fidélité incluse', 'Carte de fidélité, compatible NFC, dès le plan Pro.'], ['Trajet estimé', 'Tes clients te suivent jusqu’à leur porte (Premium).']], cta: 'Voir les offres', calc: 'Calculer mes revenus' },
-    en: { eyebrow: 'For barbers', title: 'Are you a barber? Join BLADE', text: 'Get bookings near you and keep 100% of your earnings.', points: [['No commission', 'Deposits go to your own link.'], ['Loyalty included', 'NFC-ready loyalty card from the Pro plan.'], ['Estimated trip', 'Clients follow you to their door (Premium).']], cta: 'See plans', calc: 'Estimate my income' },
-    es: { eyebrow: 'Para barberos', title: '¿Eres barbero? Únete a BLADE', text: 'Recibe reservas cerca de ti y quédate con el 100 % de tus servicios.', points: [['Sin comisión', 'Los anticipos llegan a tu propio enlace.'], ['Fidelidad incluida', 'Tarjeta de fidelidad compatible NFC desde Pro.'], ['Trayecto estimado', 'Tus clientes te siguen hasta su puerta (Premium).']], cta: 'Ver planes', calc: 'Calcular mis ingresos' },
+    fr: { eyebrow: 'Pour les pros de la coiffure', title: 'Barber, coiffeur·se, lockticien·ne ? Rejoins BLADE', text: 'Reçois des réservations près de chez toi et garde 100 % de tes prestations.', points: [['Aucune commission', 'Tes acomptes arrivent sur ton propre lien.'], ['Fidélité incluse', 'Carte de fidélité, compatible NFC, dès le plan Pro.'], ['Trajet estimé', 'Tes clients te suivent jusqu’à leur porte (Premium).']], cta: 'Voir les offres', calc: 'Calculer mes revenus' },
+    en: { eyebrow: 'For hair professionals', title: 'Barber, hairstylist, loctician? Join BLADE', text: 'Get bookings near you and keep 100% of your earnings.', points: [['No commission', 'Deposits go to your own link.'], ['Loyalty included', 'NFC-ready loyalty card from the Pro plan.'], ['Estimated trip', 'Clients follow you to their door (Premium).']], cta: 'See plans', calc: 'Estimate my income' },
+    es: { eyebrow: 'Para profesionales del cabello', title: '¿Barbero, peluquero, loctician? Únete a BLADE', text: 'Recibe reservas cerca de ti y quédate con el 100 % de tus servicios.', points: [['Sin comisión', 'Los anticipos llegan a tu propio enlace.'], ['Fidelidad incluida', 'Tarjeta de fidelidad compatible NFC desde Pro.'], ['Trayecto estimado', 'Tus clientes te siguen hasta su puerta (Premium).']], cta: 'Ver planes', calc: 'Calcular mis ingresos' },
   });
   const icons = [Percent, Gift, Car];
   return <section className="bl-section bl-pro bl-reveal" aria-labelledby="bl-pro-title">
@@ -118,10 +112,10 @@ export function Faq() {
   const { language } = useBladePreferences();
   const c = L(language, {
     fr: { eyebrow: 'Questions fréquentes', title: 'Tu te poses une question ?', items: [
-      ['Combien coûte une coupe sur BLADE ?', 'Chaque barber fixe ses prix, affichés avant de réserver. Pour une prestation à domicile, les frais de déplacement sont indiqués à l’avance.'],
-      ['Le barber vient-il avec son matériel ?', 'Oui. Pour une prestation à domicile, il arrive avec tout le nécessaire. Prévois simplement une chaise et un point d’eau à proximité.'],
-      ['Dois-je payer en ligne ?', 'Certains barbers demandent un acompte en ligne pour bloquer le créneau. Le reste se règle directement avec eux.'],
-      ['Comment suivre l’arrivée de mon barber ?', 'Quand il part, tu reçois un lien vers son trajet estimé avec l’heure d’arrivée. Il signale aussi ses éventuels retards.'],
+      ['Combien coûte une prestation sur BLADE ?', 'Chaque professionnel fixe ses prix, affichés avant de réserver. Pour une prestation à domicile, les frais de déplacement sont indiqués à l’avance.'],
+      ['Le professionnel vient-il avec son matériel ?', 'Oui. Pour une prestation à domicile, il arrive avec tout le nécessaire. Prévois simplement une chaise et un point d’eau à proximité.'],
+      ['Dois-je payer en ligne ?', 'Certains professionnels demandent un acompte en ligne pour bloquer le créneau. Le reste se règle directement avec eux.'],
+      ['Comment suivre l’arrivée de mon professionnel ?', 'Quand il part, tu reçois un lien vers son trajet estimé avec l’heure d’arrivée. Il signale aussi ses éventuels retards.'],
       ['Dans quelles villes BLADE est-il disponible ?', 'BLADE se lance en Île-de-France : Paris, Hauts-de-Seine, Seine-Saint-Denis, Val-de-Marne et au-delà.'],
     ] },
     en: { eyebrow: 'FAQ', title: 'Got a question?', items: [
@@ -155,7 +149,7 @@ export function Faq() {
 export function FinalCta() {
   const { language } = useBladePreferences();
   const c = L(language, {
-    fr: { title: 'Prêt pour ta prochaine coupe ?', text: 'Trouve ton barber en quelques secondes, chez toi ou près de toi.', cta: 'Trouver mon barber' },
+    fr: { title: 'Prêt pour ta prochaine coupe ?', text: 'Barber, coiffeuse, lockticien… trouve ton pro en quelques secondes, chez toi ou près de toi.', cta: 'Trouver mon pro' },
     en: { title: 'Ready for your next cut?', text: 'Find your barber in seconds, at home or nearby.', cta: 'Find my barber' },
     es: { title: '¿Listo para tu próximo corte?', text: 'Encuentra a tu barbero en segundos, en casa o cerca.', cta: 'Encontrar mi barbero' },
   });
