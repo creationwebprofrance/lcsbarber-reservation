@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from './data';
 import { ArrowRight, Pause, Play, Home, MapPin, Check } from 'lucide-react';
-import { Gallery } from './gallery';
+import { HowItWorks, TripShowcase, IdfBand, ProBand, Faq, FinalCta, useScrollReveal } from './landing-sections';
 import { BladeIntro } from './intro';
 import { ReviewsBand } from './reviews-band';
 import { BladeButton } from './common';
@@ -33,7 +33,7 @@ function HeroVideo() {
 }
 
 export function Landing() {
-  const {t}=useBladePreferences();const {session,isPro:isAdmin}=useSession();useHashScroll();
+  const {t}=useBladePreferences();const {session,isPro:isAdmin}=useSession();useHashScroll();useScrollReveal();
   const navigate = useNavigate();
   const [mode, setMode] = useState<'chez' | 'pres'>('chez');
   const [city, setCity] = useState('');
@@ -61,22 +61,13 @@ export function Landing() {
         </div>
         <HeroVideo />
       </section>
-      <section id="bl-map" className="bl2-map" aria-label="Carte">
-        <div className="bl2-map-text">
-          <MapPin size={44} className="bl2-map-pin" aria-hidden="true" />
-          <div>
-            <h2>{t('mapTitle')}</h2>
-            <p>{t('mapText')}</p>
-            <Link to="/blade/client" className="bl2-pill bl2-pill-outline bl2-map-cta">{t('map')} <ArrowRight size={18} aria-hidden="true" /></Link>
-          </div>
-          <span className="bl2-tag">— barbers</span>
-        </div>
-        <div className="bl2-map-art" aria-hidden="true"><span className="bl2-map-halo"><MapPin size={40} /></span></div>
-      </section>
-      <Gallery/>
+      <HowItWorks/>
+      <TripShowcase/>
       <ReviewsBand/>
-      <section className="blade-collaboration blade-reveal"><div><h2>{t('collaborationTitle')}</h2><p>{t('collaborationText')}</p><ul>{(['recommend','availability','collaborate'] as const).map(key=><li key={key}><Check size={18}/>{t(key)}</li>)}</ul><BladeButton asChild><Link to={session&&isAdmin?'/blade/pro/messages':'/blade/connexion?espace=pro'}>{session&&isAdmin?t('messages'):t('network')} <ArrowRight size={18}/></Link></BladeButton></div></section>
-      <section className="blade-travel-band blade-reveal"><MapPin size={32}/><div><h2>{t('slogan1')} {t('slogan2')}</h2><p>{t('travel')}</p></div><BladeButton asChild variant="default"><Link to="/blade/client">{t('find')} <ArrowRight size={18}/></Link></BladeButton></section>
+      <IdfBand/>
+      <ProBand/>
+      <Faq/>
+      <FinalCta/>
     </main>
     <SiteFooter/>
   </div>;
