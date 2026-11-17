@@ -894,3 +894,67 @@ html[data-blade-theme=dark] .bl-phone-screen{background:#2a1d16}
 html[data-blade-theme=dark] .bl-phone-status{background:#1c120d;color:#f3ece4}
 html[data-blade-theme=dark] .bl-phone-icons i{background:#f3ece4}
 html[data-blade-theme=dark] .bl-phone-icons b{border-color:#f3ece4;background-image:linear-gradient(90deg,#f3ece4 72%,transparent 72%)}
+
+/* ---------- Profil en widgets ---------- */
+.blade-widgets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.blade-widget{min-width:0}
+.blade-widget-full{grid-column:1/-1}
+.blade-widget>section,.blade-widget>.blade-section{margin:0;height:100%}
+.blade-widget-text{margin:0;white-space:pre-line;line-height:1.6}
+.blade-widget-cta{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:22px 24px;border-radius:16px;background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
+.blade-widget-cta div{display:flex;flex-direction:column;gap:2px}.blade-widget-cta strong{font-family:var(--blade-brand-heading,inherit);font-size:20px}
+.blade-widget-cta span{opacity:.85;font-size:14px}
+.blade-widget-cta .blade-button,.blade-widget-cta a{background:hsl(var(--primary-foreground));color:hsl(var(--primary))}
+@media(max-width:767px){.blade-widgets{grid-template-columns:1fr}}
+
+/* Éditeur */
+.blade-wlayout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:start}
+.blade-wgrid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.blade-wtile{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:14px;border:1px solid hsl(var(--border));background:hsl(var(--card));cursor:grab;transition:border-color .15s,box-shadow .15s,transform .15s}
+.blade-wtile.is-full{grid-column:1/-1}
+.blade-wtile:active{cursor:grabbing}
+.blade-wtile.is-over{border-color:hsl(var(--primary));box-shadow:0 0 0 3px hsl(var(--primary)/.18);transform:scale(1.01)}
+.blade-wtile-head{display:flex;align-items:center;gap:6px}
+.blade-wtile-head strong{flex:1;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.blade-wtile-grip{color:hsl(var(--muted-foreground));flex:none}
+.blade-wtile-tools{display:inline-flex;gap:2px}
+.blade-wtile-tools button{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:0;background:transparent;color:hsl(var(--foreground));cursor:pointer}
+.blade-wtile-tools button:hover:not(:disabled){background:hsl(var(--muted))}
+.blade-wtile-tools button:disabled{opacity:.3;cursor:default}
+.blade-wtile>small{color:hsl(var(--muted-foreground));font-size:12px}
+.blade-wtile-field{display:flex;flex-direction:column;gap:3px;font-size:12px;color:hsl(var(--muted-foreground))}
+.blade-wtile-field input,.blade-wtile-field textarea{width:100%;font:inherit;font-size:14px;color:hsl(var(--foreground));padding:7px 9px;border-radius:9px;border:1px solid hsl(var(--border));background:hsl(var(--background));cursor:text}
+.blade-wadd{margin-top:14px;display:grid;gap:8px}
+.blade-wadd small{font-weight:400;color:hsl(var(--muted-foreground))}
+.blade-wadd>div{display:flex;flex-wrap:wrap;gap:6px}
+.blade-wadd button{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 12px;border-radius:999px;border:1px dashed hsl(var(--primary)/.5);background:transparent;color:hsl(var(--foreground));font:inherit;font-size:13px;cursor:pointer}
+.blade-wadd button:hover:not(:disabled){background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-style:solid}
+.blade-wadd button:disabled{opacity:.35;cursor:default}
+.blade-wpreview{position:sticky;top:90px;max-height:calc(100vh - 110px);overflow:auto;padding:14px;border-radius:18px;border:1px solid hsl(var(--border));background:hsl(var(--background))}
+.blade-wpreview-tag{display:inline-block;margin-bottom:10px;padding:4px 10px;border-radius:999px;background:hsl(var(--primary)/.1);font-size:12px;font-weight:700}
+.blade-wpreview .blade-widgets{gap:10px}
+@media(max-width:1100px){.blade-wlayout{grid-template-columns:1fr}.blade-wpreview{position:static;max-height:none}}
+@media(max-width:600px){.blade-wgrid{grid-template-columns:1fr}}
+
+/* Repère au logo du prestataire */
+.blade-logo-marker{background:none;border:0}
+.blade-logo-pin{position:absolute;left:0;top:0;width:52px;height:52px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:hsl(var(--primary,17 27% 23%));color:#fff;border:3px solid #fff;box-shadow:0 6px 16px rgb(0 0 0/.3);font:800 20px/1 'Outfit',sans-serif;transition:transform .2s}
+.blade-logo-pin img{width:100%;height:100%;object-fit:cover;background:#fff}
+.blade-logo-pin-tip{position:absolute;left:50%;top:47px;width:14px;height:14px;margin-left:-7px;background:#fff;transform:rotate(45deg);border-radius:2px;box-shadow:3px 3px 6px rgb(0 0 0/.15);z-index:-1}
+.blade-logo-marker:hover .blade-logo-pin{transform:translateY(-3px) scale(1.06)}
+.blade-salons-map{height:340px;border-radius:16px;overflow:hidden;border:1px solid hsl(var(--border));margin-bottom:18px}
+
+/* Animation du logo à l'ouverture d'un profil */
+.blade-logo-intro{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:hsl(var(--background));animation:blade-intro-out .45s ease 1.25s forwards;cursor:pointer}
+.blade-logo-intro-logo{position:relative;z-index:1;animation:blade-intro-logo 1.25s cubic-bezier(.2,.9,.2,1.15) both}
+.blade-logo-intro .blade-brand-logo{width:132px;height:132px;font-size:46px;border:5px solid hsl(var(--background));box-shadow:0 20px 50px -10px hsl(var(--primary)/.55)}
+.blade-logo-intro-ring{position:absolute;left:50%;top:50%;width:132px;height:132px;margin:-90px 0 0 -66px;border-radius:50%;border:2px solid hsl(var(--primary));opacity:0;animation:blade-intro-ring 1.2s ease-out .25s}
+.blade-logo-intro-ring.is-2{animation-delay:.5s}
+.blade-logo-intro-name{font-family:var(--blade-brand-heading,'Outfit',sans-serif);font-size:24px;font-weight:800;color:hsl(var(--foreground));animation:blade-intro-name .6s ease .45s both}
+.blade-brand-hero.has-intro .blade-brand-logo{animation:blade-intro-land .5s cubic-bezier(.2,.9,.2,1.2) 1.4s both}
+@keyframes blade-intro-logo{0%{opacity:0;transform:scale(.3) rotate(-25deg)}60%{opacity:1;transform:scale(1.08) rotate(4deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes blade-intro-ring{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(2.4)}}
+@keyframes blade-intro-name{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes blade-intro-out{to{opacity:0;visibility:hidden;transform:scale(1.04)}}
+@keyframes blade-intro-land{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.blade-logo-intro{display:none}.blade-brand-hero.has-intro .blade-brand-logo{animation:none}}

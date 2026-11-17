@@ -63,3 +63,24 @@ describe('Loyalty card', () => {
     expect(codeFromScan('bonjour')).toBeNull();
   });
 });
+
+import { widgetsOf, addWidget, canAddWidget, moveWidget, sectionsOfWidgets } from './customization-model.ts';
+describe('Profile widgets', () => {
+  test('older pages get bio and social first, then their sections', () => {
+    expect(widgetsOf({ sections: ['services', 'reviews'] }).map(w => w.type)).toEqual(['about', 'social', 'services', 'reviews']);
+    expect(widgetsOf({ widgets: [], sections: ['services'] })).toEqual([]);
+  });
+  test('each block once, except free text', () => {
+    const a = addWidget([], 'services', 's');
+    expect(addWidget(a, 'services')).toBe(a);
+    expect(canAddWidget(a, 'text')).toBe(true);
+    expect(addWidget(addWidget(a, 'text', 't1'), 'text', 't2').map(w => w.id)).toEqual(['s', 't1', 't2']);
+  });
+  test('drag and drop moves a block and keeps legacy sections in sync', () => {
+    const list = ['about', 'services', 'gallery', 'text'].map(type => ({ id: type, type, size: 'full' }));
+    const moved = moveWidget(list, 2, 0);
+    expect(moved.map(w => w.type)).toEqual(['gallery', 'about', 'services', 'text']);
+    expect(moveWidget(list, 0, 9)).toBe(list);
+    expect(sectionsOfWidgets(moved)).toEqual(['gallery', 'services']);
+  });
+});

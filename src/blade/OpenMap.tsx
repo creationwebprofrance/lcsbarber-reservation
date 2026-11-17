@@ -7,6 +7,8 @@ import { Plus, Minus, LocateFixed, X } from 'lucide-react';
 import { LiveProCard } from './live';
 
 import { useReviews } from './data';
+import { usePublicPage, useMediaUrls, pageOf } from './customization-data';
+import { logoPinHtml } from './customization-model';
 
 // OpenStreetMap's verified town centre, not the professional's exact address.
 const townCentre: L.LatLngTuple = [49.0597512, 2.5009544];
@@ -29,6 +31,10 @@ export function OpenMap({ mode = 'deplacement' }: { mode?: 'domicile' | 'deplace
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const { data: reviews } = useReviews();
+  // Le repère affiche le logo du prestataire (personnalisation du profil).
+  const lcs = usePublicPage(null);
+  const logoPath = lcs.data ? pageOf(lcs.data).logo_path : null;
+  const logo = useMediaUrls([logoPath])[logoPath ?? ''];
 
   useEffect(() => {
     if (!container.current) return;
@@ -53,6 +59,10 @@ export function OpenMap({ mode = 'deplacement' }: { mode?: 'domicile' | 'deplace
     return () => { resize.disconnect(); map.remove(); mapRef.current = null; markerRef.current = null; };
   }, []);
 
+  useEffect(() => {
+    markerRef.current?.setIcon(L.divIcon({ className: 'blade-logo-marker', html: logoPinHtml(logo, 'LCS Barber'), iconSize: [52, 60], iconAnchor: [26, 58] }));
+  }, [logo]);
+
   // Google-Maps-style permanent label pinned to the marker: name + average rating.
   useEffect(() => {
     const marker = markerRef.current;
@@ -65,7 +75,7 @@ export function OpenMap({ mode = 'deplacement' }: { mode?: 'domicile' | 'deplace
     marker.bindTooltip(`<span class="blade-marker-label-name">LCS Barber</span>${rating}`, {
       permanent: true,
       direction: 'top',
-      offset: [0, -30],
+      offset: [0, -58],
       className: 'blade-marker-label',
       interactive: true,
     });
@@ -83,6 +93,6 @@ export function OpenMap({ mode = 'deplacement' }: { mode?: 'domicile' | 'deplace
     </div>
     {status !== 'ready' && <p className="blade-osm-status" role="status">{status === 'loading' ? 'Chargement de la carte…' : 'Carte indisponible. Vérifiez votre connexion.'}</p>}
     {open ? <div className="blade-osm-detail" role="dialog" aria-label="LCS Barber"><button type="button" className="blade-osm-close" aria-label="Fermer" onClick={() => setOpen(false)}><X size={18} /></button><LiveProCard mode={mode} /></div>
-      : <p className="blade-osm-hint">Touchez le repère ✂ pour voir le profil</p>}
+      : <p className="blade-osm-hint">Touchez le logo pour voir le profil</p>}
   </div>;
 }

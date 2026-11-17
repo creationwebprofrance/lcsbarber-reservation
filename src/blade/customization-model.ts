@@ -83,3 +83,46 @@ export function codeFromScan(text: string): string | null {
 }
 export const earnRule = (p: { kind: 'visits' | 'euros'; points_per_visit: number; points_per_euro: number }) =>
   p.kind === 'visits' ? `${p.points_per_visit} point${p.points_per_visit > 1 ? 's' : ''} par visite` : `${Number(p.points_per_euro).toLocaleString('fr-FR')} point${Number(p.points_per_euro) > 1 ? 's' : ''} par euro dépensé`;
+
+// ---- Profil en widgets ----
+export const WIDGETS = {
+  about: { label: 'Présentation', hint: 'Ta bio, quelques mots sur toi' },
+  social: { label: 'Réseaux sociaux', hint: 'Instagram et TikTok' },
+  services: { label: 'Prestations', hint: 'Tes prestations et tarifs' },
+  gallery: { label: 'Galerie', hint: 'Tes réalisations' },
+  reviews: { label: 'Avis', hint: 'Ce que disent tes clients' },
+  hours: { label: 'Horaires', hint: 'Tes jours et heures' },
+  map: { label: 'Adresse et zone', hint: 'Où tu reçois, où tu te déplaces' },
+  booking: { label: 'Bouton Réserver', hint: 'Un grand appel à réserver' },
+  text: { label: 'Texte libre', hint: 'Promo, infos pratiques, message…' },
+} as const;
+export type WidgetType = keyof typeof WIDGETS;
+export const WIDGET_TYPES = Object.keys(WIDGETS) as WidgetType[];
+export type Widget = { id: string; type: WidgetType; size: 'full' | 'half'; title?: string; text?: string };
+export const MAX_WIDGETS = 16;
+
+/** Widgets of a page; older pages (sections only) get the bio and social blocks first, then their sections. */
+export function widgetsOf(page: { widgets?: Widget[] | null; sections?: SectionKey[] | null }): Widget[] {
+  if (Array.isArray(page.widgets)) return page.widgets.filter(w => w && w.type in WIDGETS);
+  const sections = page.sections ?? ALL_SECTIONS;
+  return (['about', 'social', ...sections] as WidgetType[]).map(type => ({ id: type, type, size: 'full' as const }));
+}
+export const canAddWidget = (list: Widget[], type: WidgetType) => list.length < MAX_WIDGETS && (type === 'text' || !list.some(w => w.type === type));
+export function addWidget(list: Widget[], type: WidgetType, id = shortId(type)): Widget[] {
+  if (!canAddWidget(list, type)) return list;
+  return [...list, type === 'text' ? { id, type, size: 'full', title: 'Bon à savoir', text: '' } : { id, type, size: 'full' }];
+}
+/** Moves the widget at `from` to position `to` (drag and drop). */
+export function moveWidget<T>(list: T[], from: number, to: number): T[] {
+  if (from === to || from < 0 || from >= list.length || to < 0 || to >= list.length) return list;
+  const next = [...list]; const [item] = next.splice(from, 1); next.splice(to, 0, item); return next;
+}
+/** Legacy `sections` column kept in sync for older readers. */
+export const sectionsOfWidgets = (list: Widget[]) => list.map(w => w.type).filter((t): t is SectionKey => t in SECTIONS);
+
+/** Repère de carte au logo du prestataire (initiale ou ciseaux s'il n'a pas de logo). */
+export function logoPinHtml(url: string | undefined, name: string): string {
+  const esc = (v: string) => v.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+  const letter = esc(name.trim().slice(0, 1).toUpperCase() || '✂');
+  return `<span class="blade-logo-pin${url ? '' : ' is-empty'}">${url ? `<img src="${esc(url)}" alt="" />` : letter}</span><span class="blade-logo-pin-tip"></span>`;
+}

@@ -3,9 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BladeButton, EmptyState, Section, Tabs, Plus, ArrowRight } from './common';
 import { Field, ProviderPage, Status } from './provider';
-import { ALL_SECTIONS, FONTS, FONT_KEYS, PALETTE, SECTIONS, moveItem, parseOptions, shortId, toggleSection, type FontKey } from './customization-model';
+import { FONTS, FONT_KEYS, PALETTE, moveItem, parseOptions, sectionsOfWidgets, shortId, widgetsOf, type FontKey } from './customization-model';
 import { pageOf, savePage, uploadMedia, useMediaUrls, usePublicPage, type PageSettings } from './customization-data';
-import { BrandScope, BrandLogo, useBrandFont } from './brand';
+import { BrandScope, BrandLogo, ProviderProfileView, useBrandFont } from './brand';
+import { WidgetBoard } from './widget-board';
 import { stepsFor, type BookingModes, type Question, type StepOrder } from '../../supabase/functions/_shared/blade-booking-rules';
 
 export function ProCustomize() { return <ProviderPage title="Personnalisation">{data => <CustomizeBody providerId={data.provider_id}/>}</ProviderPage>; }
@@ -40,7 +41,7 @@ function CustomizeBody({ providerId }: { providerId: string }) {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const galleryRef = useRef<HTMLInputElement>(null);
-  useEffect(() => { if (state.data) setDraft(pageOf(state.data)); }, [state.data]);
+  useEffect(() => { if (state.data) { const p = pageOf(state.data); setDraft({ ...p, widgets: widgetsOf(p) }); } }, [state.data]);
   const urls = useMediaUrls(draft ? [draft.logo_path, draft.cover_path, ...draft.gallery_paths] : []);
   if (state.loading && !draft) return <p role="status">Chargement…</p>;
   if (!state.data || !draft) return <EmptyState icon="user" title="Profil indisponible" description={state.error ?? 'Ton compte doit être actif pour personnaliser ton profil.'}/>;
@@ -61,12 +62,12 @@ function CustomizeBody({ providerId }: { providerId: string }) {
     if (bad) { setError('Chaque question doit avoir un intitulé, et une question à choix au moins 2 réponses (séparées par des virgules).'); setTab('Réservation'); return; }
     setSaving(true); setError(''); setMessage('');
     try {
-      await savePage({ ...draft!, custom_questions: draft!.custom_questions.map(q => ({ id: q.id, label: q.label.trim(), type: q.type, required: q.required, ...(q.type === 'choice' ? { options: q.options } : {}) })) });
+      const widgets = (draft!.widgets ?? []).map(w => ({ ...w, title: w.title?.trim() || undefined, text: w.text?.trim() || undefined }));
+      await savePage({ ...draft!, widgets, sections: sectionsOfWidgets(widgets), custom_questions: draft!.custom_questions.map(q => ({ id: q.id, label: q.label.trim(), type: q.type, required: q.required, ...(q.type === 'choice' ? { options: q.options } : {}) })) });
       setMessage('Enregistré. Ton profil et ta page de réservation sont à jour.'); setRefresh(n => n + 1);
     } catch (e) { setError((e as Error).message); } finally { setSaving(false); }
   }
 
-  const ordered = [...draft.sections, ...ALL_SECTIONS.filter(k => !draft.sections.includes(k))];
   const saveBar = <div className="blade-save-bar"><BladeButton variant="default" disabled={saving || !!busy} onClick={save}>{saving ? 'Enregistrement…' : 'Enregistrer'}</BladeButton>
     <Link className="blade-text-link" to={`/blade/profil/${providerId}`} target="_blank">Voir mon profil <ArrowRight size={16}/></Link>
     <Link className="blade-text-link" to={`/blade/client/reserver?pro=${providerId}`} target="_blank">Voir ma page de réservation <ArrowRight size={16}/></Link>
@@ -110,12 +111,13 @@ function CustomizeBody({ providerId }: { providerId: string }) {
           <Field label="TikTok (sans @)" value={draft.tiktok ?? ''} onChange={v => set({ tiktok: v })}/>
         </div>
       </Section>
-      <Section title="Sections du profil">
-        <p className="blade-note">Coche les sections à afficher et choisis leur ordre.</p>
-        <ol className="blade-order-list">{ordered.map(k => { const on = draft.sections.includes(k); const i = draft.sections.indexOf(k); return <li key={k} className={on ? '' : 'off'}>
-          <label className="blade-checkbox"><input type="checkbox" checked={on} onChange={() => set({ sections: toggleSection(draft.sections, k) })}/>{SECTIONS[k]}</label>
-          {on && <span className="blade-inline"><BladeButton aria-label={`Monter ${SECTIONS[k]}`} disabled={i === 0} onClick={() => set({ sections: moveItem(draft.sections, i, -1) })}>↑</BladeButton><BladeButton aria-label={`Descendre ${SECTIONS[k]}`} disabled={i === draft.sections.length - 1} onClick={() => set({ sections: moveItem(draft.sections, i, 1) })}>↓</BladeButton></span>}
-        </li>; })}</ol>
+      <Section title="Mon profil, bloc par bloc">
+        <p className="blade-note">Glisse les blocs pour les réordonner, passe-les en demi-largeur pour les mettre côte à côte, renomme-les ou ajoute un texte libre. L’aperçu se met à jour en direct.</p>
+        <div className="blade-wlayout">
+          <WidgetBoard value={draft.widgets ?? []} onChange={widgets => set({ widgets })}/>
+          <div className="blade-wpreview" aria-label="Aperçu en direct du profil"><span className="blade-wpreview-tag">Aperçu en direct</span>
+            <ProviderProfileView preview data={{ ...state.data, page: draft }}/></div>
+        </div>
       </Section>
       <Section title={`Galerie (${draft.gallery_paths.length}/12)`} action={<BladeButton disabled={draft.gallery_paths.length >= 12 || busy === 'gallery'} onClick={() => galleryRef.current?.click()}><Plus size={16}/>{busy === 'gallery' ? 'Envoi…' : 'Ajouter'}</BladeButton>}>
         <input ref={galleryRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => { const f = e.target.files?.[0]; if (f) void upload(f, 'gallery'); e.target.value = ''; }}/>
