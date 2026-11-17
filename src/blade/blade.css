@@ -737,3 +737,45 @@ html[data-blade-theme=dark] .bl-phone-map{background:#2a1d16;color:#f3ece4}
 .blade-sim .blade-trip-speed{align-items:center}
 .blade-sim .blade-trip-speed>span{padding:0 8px 0 10px;font-size:12px;font-weight:700;color:hsl(var(--muted-foreground))}
 @media(max-width:600px){.blade-sim-form{flex-direction:column}.blade-sim-form .blade-button{width:100%}}
+
+/* Fiches salon */
+.blade-salon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.blade-salons-nearby{margin:28px 0}
+.blade-salon-card{display:flex;flex-direction:column;border:1px solid hsl(var(--border));border-radius:16px;overflow:hidden;background:hsl(var(--background));transition:transform .2s,box-shadow .2s}
+.blade-salon-card:hover{transform:translateY(-3px);box-shadow:var(--blade-shadow)}
+.blade-salon-card-img{display:flex;align-items:center;justify-content:center;height:150px;background:hsl(var(--card));color:hsl(var(--primary))}
+.blade-salon-card-img img{width:100%;height:100%;object-fit:cover}
+.blade-salon-card-body{display:flex;flex-direction:column;gap:6px;padding:14px 16px 16px}
+.blade-salon-card-body strong{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:16px}
+.blade-salon-card-body small{display:flex;align-items:center;gap:4px;color:hsl(var(--muted-foreground))}
+.blade-salon-tags{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.blade-salon-tags em{font-style:normal;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:hsl(var(--card));border:1px solid hsl(var(--border))}
+.blade-salon-card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:4px;font-size:13px;color:hsl(var(--muted-foreground))}
+.blade-salon-card-foot b{color:hsl(var(--foreground))}
+.blade-salon-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:24px;align-items:center;margin:8px 0 20px}
+.blade-salon-cover{display:flex;align-items:center;justify-content:center;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background:hsl(var(--card));color:hsl(var(--primary))}
+.blade-salon-cover img{width:100%;height:100%;object-fit:cover}
+.blade-salon-head h1{margin:0 0 8px}
+.blade-salon-address{display:flex;gap:6px;align-items:center;color:hsl(var(--muted-foreground));margin:8px 0}
+.blade-salon-price{margin:10px 0 0}.blade-salon-price strong{font-size:20px}
+.blade-salon-actions{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 24px}
+.blade-salon-grid2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start}
+.blade-salon-text{white-space:pre-line;line-height:1.6;margin:0}
+.blade-salon-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.blade-salon-gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px}
+.blade-salon-map{height:300px;border-radius:16px;overflow:hidden;border:1px solid hsl(var(--border));z-index:0}
+.blade-salon-pin span{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#4a2f22;border:3px solid #fff;box-shadow:0 2px 8px rgb(0 0 0/.3)}
+.blade-salon-stats{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.blade-salon-stats li{display:flex;flex-direction:column;gap:4px;padding:14px;border-radius:12px;border:1px solid hsl(var(--border));background:hsl(var(--card))}
+.blade-salon-stats li svg{color:hsl(var(--primary))}.blade-salon-stats strong{font-size:24px}.blade-salon-stats span{font-size:12px;color:hsl(var(--muted-foreground))}
+.blade-salon-address-field{position:relative;display:flex;flex-direction:column;gap:4px}
+.blade-salon-specs{display:flex;flex-wrap:wrap;gap:8px;border:0;padding:0;margin:0}
+.blade-salon-specs legend{font-size:12px;font-weight:600;margin-bottom:8px}
+.blade-salon-specs label{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid hsl(var(--border));cursor:pointer;font-size:13px}
+.blade-salon-specs label.is-on{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary))}
+.blade-salon-specs input{position:absolute;opacity:0;width:1px;height:1px}
+.blade-salon-specs label:focus-within{outline:2px solid hsl(var(--ring));outline-offset:2px}
+.blade-salon-cover-edit{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.blade-salon-cover-edit img,.blade-salon-cover-edit>span{width:140px;height:96px;border-radius:12px;object-fit:cover;display:flex;align-items:center;justify-content:center;background:hsl(var(--card));color:hsl(var(--primary))}
+.blade-salon-upload{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+@media(max-width:767px){.blade-salon-hero,.blade-salon-grid2{grid-template-columns:1fr}.blade-salon-actions .blade-button{flex:1 1 calc(50% - 10px)}}

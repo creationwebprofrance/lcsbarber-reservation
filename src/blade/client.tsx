@@ -3,6 +3,7 @@ import { SEARCH_VIEWS } from './request-model';
 import { LiveServices, LiveReviews, LiveAvailability, LiveProCard, LiveMyBookings, LiveAdminBookings, LiveClients } from './live';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MyTripLinks } from './trip';
+import { SalonsNearby } from './salon';
 import { usePublicPage } from './customization-data';
 import { ProviderProfileView } from './brand';
 import { BladeButton, PageHeading, Section, EmptyState, LocalMap, Tabs, LocalField, SearchField, LocalForm, DisabledAction, Calendar, KeyValues, ResponsiveList, Modal, StatePreview, Icon, ArrowRight, SlidersHorizontal } from './common';
@@ -20,6 +21,7 @@ export function ClientSearch() {
     <div className="blade-discovery-results">
       {view==='Carte' ? <LocalMap mode={mode==='Chez vous'?'deplacement':'domicile'}/> : <section className="blade-nearby" aria-label="Professionnels à proximité"><div className="blade-nearby-filters"><LocalField label="Disponibilité" kind="date"/><LocalField label="Zone d’intervention" options={['Autour de vous']}/></div><p className="blade-nearby-mode"><Icon name={mode==='Chez vous'?'home':'pin'} size={16}/>{mode==='Chez vous'?'Professionnels qui se déplacent chez vous':'Professionnels près de vous'}</p><LiveProCard mode={mode==='Chez vous'?'deplacement':'domicile'}/></section>}
     </div>
+    {mode==='Près de vous' && <SalonsNearby place={askedPlace}/>}
     <section className="blade-account-band"><div><Icon name="calendar"/><h2>Un compte, vos rendez-vous au même endroit.</h2></div><BladeButton asChild><Link to="/blade/connexion?espace=client&mode=google">Continuer avec Google <ArrowRight size={16}/></Link></BladeButton></section>
     <div className="blade-secondary-links"><Link to="/blade/client/profil-professionnel">Profil professionnel <ArrowRight size={16}/></Link><Link to="/blade/client/reserver">Réservation <ArrowRight size={16}/></Link></div><StatePreview/>
     {filters && <Modal title="Filtres de recherche" onClose={()=>setFilters(false)}><div className="blade-fields"><LocalField label="Lieu de prestation" options={['Chez vous','Près de vous']}/><LocalField label="Prestation" options={[]}/><LocalField label="Distance maximale (km)" kind="number"/><LocalField label="Date" kind="date"/></div><div className="blade-modal-actions"><BladeButton variant="default" onClick={()=>setFilters(false)}>Afficher les résultats</BladeButton></div></Modal>}
