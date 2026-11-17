@@ -60,3 +60,27 @@ export function minutesLeft(t: TripTiming, nowMs: number): number {
   if (t.status !== 'en_route') return 0;
   return Math.max(0, Math.ceil((etaMs(t) - nowMs) / 60000));
 }
+
+/** Cap en degrés (0 = nord, sens horaire) pour orienter le véhicule sur la carte. */
+export function bearing(a: LngLat, b: LngLat): number {
+  const φ1 = rad(a[1]), φ2 = rad(b[1]), Δλ = rad(b[0] - a[0]);
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+/**
+ * Position après `seconds` secondes, quand on connaît le temps de passage à chaque point
+ * (times[i]) : le véhicule ralentit là où la route est lente (feux, carrefours, bouchons).
+ */
+export function pointAtTime(route: LngLat[], times: number[], seconds: number): { point: LngLat; index: number; heading: number } {
+  const n = Math.min(route.length, times.length);
+  if (n < 2) return { point: route[0], index: 0, heading: 0 };
+  const s = Math.max(0, Math.min(times[n - 1], seconds));
+  let i = 1;
+  while (i < n - 1 && times[i] < s) i++;
+  const span = times[i] - times[i - 1];
+  const t = span > 0 ? (s - times[i - 1]) / span : 1;
+  const [a, b] = [route[i - 1], route[i]];
+  return { point: [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t], index: i - 1, heading: bearing(a, b) };
+}

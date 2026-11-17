@@ -32,3 +32,20 @@ describe('trajet estimé', () => {
     expect(minutesLeft(trip({ status: 'arrived' }), at(5))).toBe(0);
   });
 });
+
+import { bearing, pointAtTime } from './trip-model';
+describe('trajet de démo réaliste', () => {
+  test('le cap indique la direction du déplacement', () => {
+    expect(Math.round(bearing([2.35, 48.85], [2.35, 48.86]))).toBe(0);
+    expect(Math.round(bearing([2.35, 48.85], [2.36, 48.85]))).toBe(90);
+    expect(Math.round(bearing([2.35, 48.86], [2.35, 48.85]))).toBe(180);
+  });
+  test('le véhicule va plus lentement sur les tronçons lents', () => {
+    const r = [[0, 0], [0, 1], [0, 2]];
+    const times = [0, 10, 110]; // 2e tronçon dix fois plus lent
+    expect(pointAtTime(r, times, 5).point[1]).toBeCloseTo(0.5, 5);
+    expect(pointAtTime(r, times, 60).point[1]).toBeCloseTo(1.5, 5);
+    expect(pointAtTime(r, times, 999).point).toEqual([0, 2]);
+    expect(pointAtTime(r, times, -3).point).toEqual([0, 0]);
+  });
+});

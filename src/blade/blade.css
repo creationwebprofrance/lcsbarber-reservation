@@ -686,3 +686,35 @@ html[data-blade-theme=dark] .bl-phone-map{background:#2a1d16;color:#f3ece4}
 @media(max-width:767px){.bl-section{margin:60px auto}.bl-head{margin-bottom:28px}.bl-step{padding:24px 20px}.bl-step-num{font-size:84px}.bl-phone-map{height:320px}.bl-pro{padding:32px 20px}.bl-pro-actions .bl3-btn,.bl-final .bl3-btn,.bl-trip-text .bl3-btn{width:100%}.bl-idf-head{flex-direction:column;gap:8px}.bl-faq-list summary{font-size:15px}}
 @media(prefers-reduced-motion:reduce){.bl-reveal{opacity:1;transform:none;transition:none}.bl-route-done{animation:none;stroke-dashoffset:0}.bl-step,.bl2 .bl-idf-cities a{transition:none}}
 .bl2-footer{padding-bottom:110px}
+
+/* Trajet estimé : carte de style appli */
+.blade-trip-mapwrap{position:relative}
+.blade-trip-map{height:min(62vh,520px)}
+.blade-trip-mapbtns{position:absolute;top:12px;right:12px;z-index:500;display:flex;gap:8px}
+.blade-trip-mapbtns button{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:0;background:#fff;color:#2a1710;font:inherit;font-size:13px;font-weight:700;box-shadow:0 2px 10px rgb(0 0 0/.18);cursor:pointer}
+.blade-trip-vehicle{position:relative}
+.blade-trip-body{position:absolute;inset:0;display:block;filter:drop-shadow(0 2px 3px rgb(0 0 0/.3))}
+.blade-trip-body svg{display:block}
+.blade-trip-halo{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;background:rgb(74 47 34/.22);animation:blade-halo 1.8s ease-out infinite}
+.blade-trip-vehicle.is-arrived .blade-trip-halo{background:rgb(46 160 90/.3)}
+@keyframes blade-halo{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.4);opacity:0}}
+.blade-trip-dest{position:relative}
+.blade-trip-dest span{position:absolute;left:50%;top:-30px;transform:translateX(-50%);white-space:nowrap;padding:4px 10px;border-radius:999px;background:#fff;color:#2a1710;font-size:12px;font-weight:700;box-shadow:0 2px 8px rgb(0 0 0/.18)}
+.blade-trip-driver{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;margin-top:14px;padding:14px 16px;border:1px solid hsl(var(--border));border-radius:16px;background:hsl(var(--card))}
+.blade-trip-driver>div:not(.blade-trip-progress){display:flex;flex-direction:column}
+.blade-trip-driver small{color:hsl(var(--muted-foreground));font-size:12px}
+.blade-trip-driver .blade-trip-progress{grid-column:1/-1;margin:8px 0 0}
+.blade-trip-avatar{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:#4a2f22;font-size:20px}
+.blade-trip-steps{list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.blade-trip-steps li{display:flex;flex-direction:column;gap:8px;font-size:12px;color:hsl(var(--muted-foreground))}
+.blade-trip-steps li span{height:5px;border-radius:999px;background:hsl(var(--muted))}
+.blade-trip-steps li.is-done span{background:hsl(var(--primary))}
+.blade-trip-steps li.is-now{color:hsl(var(--foreground));font-weight:700}
+.blade-trip-steps li.is-now span{background:linear-gradient(90deg,hsl(var(--primary)) 0 50%,hsl(var(--muted)) 50%);background-size:200% 100%;animation:blade-step 1.4s linear infinite}
+@keyframes blade-step{from{background-position:100% 0}to{background-position:0 0}}
+.blade-trip-demo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.blade-trip-speed{display:inline-flex;gap:4px;padding:3px;border-radius:999px;background:hsl(var(--background));border:1px solid hsl(var(--border))}
+.blade-trip-speed button{min-height:36px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:inherit;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.blade-trip-speed button[aria-pressed=true]{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
+@media(max-width:767px){.blade-trip-map{height:56vh}.blade-trip-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.blade-trip-demo{flex-direction:column;align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){.blade-trip-halo,.blade-trip-steps li.is-now span{animation:none}.blade-trip-body{transition:none}}
