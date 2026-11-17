@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BadgeCheck, CalendarCheck, Calculator, Car, ChevronDown, Clapperboard, Gift, MapPin, Percent, Play, Scissors, Search } from 'lucide-react';
 import { useBladePreferences, type Language } from './preferences';
 import { Carousel } from './carousel';
+import { cleanLogoStyle, logoStyleVars, type LogoStyle } from './customization-model';
 
 const IdfMap = lazy(() => import('./idf-map'));
 const TripPreview = lazy(() => import('./trip').then(m => ({ default: m.TripPreview })));
@@ -25,14 +26,20 @@ export function useScrollReveal() {
 }
 
 /* ---------- Vitrine des prestataires + comment ça marche ---------- */
-type ShowItem = { provider_id: string; name: string; path: string; kind: 'image' | 'video' };
+type ShowItem = { provider_id: string; name: string; path: string; kind: 'image' | 'video'; logo_path?: string | null; logo_style?: LogoStyle | null };
 const db = supabase as unknown as SupabaseClient;
 
 /** Photos et vidéos publiées par les prestataires, avec leur nom ; « contenu bientôt » sinon. */
+/** Logo rond du pro (même rendu que son profil, sans charger la page de profil). */
+function ShowLogo({ url, name, logoStyle }: { url?: string; name: string; logoStyle?: LogoStyle | null }) {
+  const bg = url ? cleanLogoStyle(logoStyle).bg : null;
+  return <span className={`blade-brand-logo ${bg ? 'has-bg' : ''}`} style={url ? logoStyleVars(logoStyle) as React.CSSProperties : undefined} aria-hidden="true">{url ? <img src={url} alt="" draggable={false} /> : name.trim().slice(0, 1).toUpperCase() || 'B'}</span>;
+}
+
 function ProShowcase({ label, soon, soonText, see }: { label: string; soon: string; soonText: string; see: string }) {
   const [items, setItems] = useState<ShowItem[] | null>(null);
   useEffect(() => { db.rpc('blade_public_showcase').then(({ data }) => setItems((data as ShowItem[] | null) ?? []), () => setItems([])); }, []);
-  const urls = useMediaUrls((items ?? []).map(i => i.path));
+  const urls = useMediaUrls((items ?? []).flatMap(i => [i.path, i.logo_path]));
   const ready = (items ?? []).filter(i => urls[i.path]);
   if (items === null) return <div className="bl-show-skeleton" aria-hidden="true" />;
   const soonCard = (k: string) => <li key={k}><div className="bl-show-card is-soon"><Clapperboard size={30} aria-hidden="true" /><strong>{soon}</strong><span>{soonText}</span></div></li>;
@@ -42,7 +49,8 @@ function ProShowcase({ label, soon, soonText, see }: { label: string; soon: stri
       <Link to={`/blade/profil/${i.provider_id}`} className="bl-show-card">
         {i.kind === 'video' ? <video src={urls[i.path]} muted loop playsInline autoPlay preload="metadata" aria-hidden="true" /> : <img src={urls[i.path]} alt={`Réalisation de ${i.name}`} loading="lazy" />}
         {i.kind === 'video' && <span className="bl-show-badge"><Play size={12} aria-hidden="true" />Vidéo</span>}
-        <span className="bl-show-meta"><strong>{i.name}</strong><em>{see} <ArrowRight size={14} aria-hidden="true" /></em></span>
+        <span className="bl-show-brand"><ShowLogo url={i.logo_path ? urls[i.logo_path] : undefined} name={i.name} logoStyle={i.logo_style} /><strong>{i.name}</strong></span>
+        <span className="bl-show-meta"><em>{see} <ArrowRight size={14} aria-hidden="true" /></em></span>
       </Link>
     </li>)}
     {ready.length < 4 && Array.from({ length: 4 - ready.length }, (_, k) => soonCard(`soon-${k}`))}
