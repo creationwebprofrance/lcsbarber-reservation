@@ -34,6 +34,7 @@ export function OpenMap({ mode = 'deplacement' }: { mode?: 'domicile' | 'deplace
   // Le repère affiche le logo du prestataire (personnalisation du profil).
   const lcs = usePublicPage(null);
   const logoPath = lcs.data ? pageOf(lcs.data).logo_path : null;
+  const logoStyle = lcs.data ? pageOf(lcs.data).logo_style : null;
   const logo = useMediaUrls([logoPath])[logoPath ?? ''];
 
   useEffect(() => {
@@ -60,8 +61,8 @@ export function OpenMap({ mode = 'deplacement' }: { mode?: 'domicile' | 'deplace
   }, []);
 
   useEffect(() => {
-    markerRef.current?.setIcon(L.divIcon({ className: 'blade-logo-marker', html: logoPinHtml(logo, 'LCS Barber'), iconSize: [52, 60], iconAnchor: [26, 58] }));
-  }, [logo]);
+    markerRef.current?.setIcon(L.divIcon({ className: 'blade-logo-marker', html: logoPinHtml(logo, 'LCS Barber', logoStyle), iconSize: [52, 60], iconAnchor: [26, 58] }));
+  }, [logo, logoStyle]);
 
   // Google-Maps-style permanent label pinned to the marker: name + average rating.
   useEffect(() => {

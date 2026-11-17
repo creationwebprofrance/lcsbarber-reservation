@@ -29,7 +29,7 @@ export function ReviewsBand() {
       <div><p className="blade-pricing-eyebrow">{c.eyebrow}</p><h2 id="bl-reviews-title">{c.title}</h2></div>
       <div className="bl-reviews-score"><strong>{avg.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</strong><div><Stars value={avg} size={18} /><span>{c.avg}</span></div></div>
     </div>
-    {shown.length > 0 && <Carousel label={c.eyebrow} className="bl-reviews-carousel" autoMs={5500}>{shown.map(r => <li key={r.id}>
+    {shown.length > 0 && <Carousel label={c.eyebrow} className="bl-reviews-carousel" speed={30}>{shown.map(r => <li key={r.id}>
       <article className="bl-review-card">
         <Quote size={22} aria-hidden="true" />
         <p>{r.comment}</p>

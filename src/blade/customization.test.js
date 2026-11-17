@@ -84,3 +84,21 @@ describe('Profile widgets', () => {
     expect(sectionsOfWidgets(moved)).toEqual(['gallery', 'services']);
   });
 });
+
+import { cleanLogoStyle, logoStyleVars, logoPinHtml, isVideoPath } from './customization-model.ts';
+describe('Logo adjustments', () => {
+  test('values stay within the same bounds as the server', () => {
+    expect(cleanLogoStyle({ zoom: 9, x: -4, y: 30, fit: 'contain', bg: '#ffffff' })).toEqual({ zoom: 3, x: 0, y: 30, fit: 'contain', bg: '#ffffff' });
+    expect(cleanLogoStyle(null)).toEqual({ zoom: 1, x: 50, y: 50, fit: 'cover', bg: null });
+    expect(cleanLogoStyle({ bg: 'red' }).bg).toBe(null);
+  });
+  test('centre offset and size become CSS variables, also on the map pin', () => {
+    expect(logoStyleVars({ zoom: 1.5, x: 60, y: 40 })).toEqual({ '--logo-zoom': '1.5', '--logo-tx': '10%', '--logo-ty': '-10%', '--logo-fit': 'cover' });
+    expect(logoPinHtml('https://x/y.png', 'Lou', { zoom: 2 })).toContain('--logo-zoom:2');
+    expect(logoPinHtml(undefined, '<b>', null)).toContain('&#60;');
+  });
+  test('gallery videos are recognised by extension', () => {
+    expect(isVideoPath('a/gallery-1.MP4')).toBe(true);
+    expect(isVideoPath('a/gallery-1.webp')).toBe(false);
+  });
+});

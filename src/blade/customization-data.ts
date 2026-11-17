@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Review, Service } from './data';
-import { DEFAULT_ACCENT, ALL_SECTIONS, type FontKey, type Reward, type SectionKey, type Widget } from './customization-model';
+import { DEFAULT_ACCENT, ALL_SECTIONS, type FontKey, type Reward, type SectionKey, type Widget, type LogoStyle } from './customization-model';
 import type { BookingModes, Question, StepOrder } from '../../supabase/functions/_shared/blade-booking-rules';
 
 const db = supabase as SupabaseClient;
@@ -28,11 +28,11 @@ export type PageSettings = {
   accent_color: string; font_key: FontKey; logo_path: string | null; cover_path: string | null; bio: string | null; city: string | null; salon_address: string | null;
   instagram: string | null; tiktok: string | null; sections: SectionKey[]; gallery_paths: string[]; booking_modes: BookingModes; step_order: StepOrder;
   welcome_message: string | null; booking_rules: string | null; custom_questions: Question[];
-  widgets: Widget[] | null;
+  widgets: Widget[] | null; logo_style: LogoStyle | null;
 };
 export const DEFAULT_PAGE: PageSettings = {
   accent_color: DEFAULT_ACCENT, font_key: 'classique', logo_path: null, cover_path: null, bio: null, city: null, salon_address: null, instagram: null, tiktok: null,
-  sections: ALL_SECTIONS, gallery_paths: [], booking_modes: 'both', step_order: 'service', welcome_message: null, booking_rules: null, custom_questions: [], widgets: null,
+  sections: ALL_SECTIONS, gallery_paths: [], booking_modes: 'both', step_order: 'service', welcome_message: null, booking_rules: null, custom_questions: [], widgets: null, logo_style: null,
 };
 export type OpeningHour = { day_of_week: number; start_time: string; end_time: string; mode: string };
 export type PublicPage = { provider_id: string; name: string; is_lcs: boolean; is_premium?: boolean; page: Partial<PageSettings> | null; services: Service[]; reviews: Review[]; hours: OpeningHour[] };
@@ -44,13 +44,15 @@ export const savePage = (values: Partial<PageSettings>) => rpc<PageSettings>('bl
 
 export const MEDIA_BUCKET = 'blade-provider-media';
 const MEDIA_TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+const VIDEO_TYPES: Record<string, string> = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' };
 export async function uploadMedia(providerId: string, file: File, kind: 'logo' | 'cover' | 'gallery'): Promise<string> {
-  const ext = MEDIA_TYPES[file.type];
-  if (!ext) throw new Error('Format non accepté : JPEG, PNG ou WebP.');
-  if (file.size > 5 * 1024 * 1024) throw new Error('Photo trop lourde (5 Mo maximum).');
+  const video = kind === 'gallery' ? VIDEO_TYPES[file.type] : undefined;
+  const ext = MEDIA_TYPES[file.type] ?? video;
+  if (!ext) throw new Error(kind === 'gallery' ? 'Format non accepté : JPEG, PNG, WebP, MP4, WebM ou MOV.' : 'Format non accepté : JPEG, PNG ou WebP.');
+  if (video ? file.size > 50 * 1024 * 1024 : file.size > 5 * 1024 * 1024) throw new Error(video ? 'Vidéo trop lourde (50 Mo maximum).' : 'Photo trop lourde (5 Mo maximum).');
   const path = `${providerId}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const { error } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, { contentType: file.type, upsert: false });
-  if (error) throw new Error('Envoi de la photo impossible. Réessaie.');
+  if (error) throw new Error(video ? 'Envoi de la vidéo impossible. Réessaie.' : 'Envoi de la photo impossible. Réessaie.');
   return path;
 }
 /** Temporary links for provider photos (the bucket is private; published photos are readable by everyone). */

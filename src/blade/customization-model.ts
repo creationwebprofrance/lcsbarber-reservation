@@ -121,8 +121,27 @@ export function moveWidget<T>(list: T[], from: number, to: number): T[] {
 export const sectionsOfWidgets = (list: Widget[]) => list.map(w => w.type).filter((t): t is SectionKey => t in SECTIONS);
 
 /** Repère de carte au logo du prestataire (initiale ou ciseaux s'il n'a pas de logo). */
-export function logoPinHtml(url: string | undefined, name: string): string {
+export function logoPinHtml(url: string | undefined, name: string, style?: LogoStyle | null): string {
   const esc = (v: string) => v.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
   const letter = esc(name.trim().slice(0, 1).toUpperCase() || '✂');
-  return `<span class="blade-logo-pin${url ? '' : ' is-empty'}">${url ? `<img src="${esc(url)}" alt="" />` : letter}</span><span class="blade-logo-pin-tip"></span>`;
+  const vars = Object.entries(logoStyleVars(style)).map(([k, v]) => `${k}:${esc(v)}`).join(';');
+  return `<span class="blade-logo-pin${url ? '' : ' is-empty'}" style="${vars}">${url ? `<img src="${esc(url)}" alt="" />` : letter}</span><span class="blade-logo-pin-tip"></span>`;
+}
+
+/** Fichier de galerie vidéo (MP4, WebM, MOV). */
+export const isVideoPath = (path: string | null | undefined) => !!path && /\.(mp4|webm|mov)$/i.test(path);
+
+// ---- Réglage du logo ----
+export type LogoStyle = { zoom: number; x: number; y: number; fit: 'cover' | 'contain'; bg?: string | null };
+export const DEFAULT_LOGO_STYLE: LogoStyle = { zoom: 1, x: 50, y: 50, fit: 'cover', bg: null };
+const clamp = (v: unknown, lo: number, hi: number, d: number) => typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d;
+/** Même bornes que le serveur (blade_clean_logo_style). */
+export function cleanLogoStyle(s?: Partial<LogoStyle> | null): LogoStyle {
+  return { zoom: clamp(s?.zoom, 0.5, 3, 1), x: clamp(s?.x, 0, 100, 50), y: clamp(s?.y, 0, 100, 50), fit: s?.fit === 'contain' ? 'contain' : 'cover',
+    bg: typeof s?.bg === 'string' && /^#[0-9a-f]{6}$/i.test(s.bg) ? s.bg : null };
+}
+/** Variables CSS appliquées au logo (profil, aperçu, repère de carte). */
+export function logoStyleVars(s?: Partial<LogoStyle> | null): Record<string, string> {
+  const c = cleanLogoStyle(s);
+  return { '--logo-zoom': String(c.zoom), '--logo-tx': `${c.x - 50}%`, '--logo-ty': `${c.y - 50}%`, '--logo-fit': c.fit, ...(c.bg ? { '--logo-bg': c.bg } : {}) };
 }

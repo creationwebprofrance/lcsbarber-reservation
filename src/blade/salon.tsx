@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BladeButton, EmptyState, Section } from './common';
 import { Field, ProviderPage, Status } from './provider';
 import { uploadMedia, useMediaUrls } from './customization-data';
-import { logoPinHtml } from './customization-model';
+import { logoPinHtml, type LogoStyle } from './customization-model';
 import { VerifiedBadge } from './plan';
 import { searchPlaces, type Place } from './trip-sim';
 
@@ -23,10 +23,10 @@ export const SPECIALTIES = ['Coupe homme', 'Dégradés', 'Barbe', 'Coupe femme',
 export type Salon = {
   id: string; provider_id: string; slug: string; name: string; address: string; city: string | null; postal_code: string | null; lat: number | null; lng: number | null;
   phone: string | null; instagram: string | null; website: string | null; booking_url: string | null; booking_platform: Platform | null;
-  specialties: string[]; description: string | null; price_from: number | null; hours: string | null; cover_path: string | null; gallery_paths: string[]; logo_path?: string | null;
+  specialties: string[]; description: string | null; price_from: number | null; hours: string | null; cover_path: string | null; gallery_paths: string[]; logo_path?: string | null; logo_style?: LogoStyle | null;
   status: 'draft' | 'published' | 'hidden'; is_premium?: boolean;
 };
-type SalonCard = Pick<Salon, 'id' | 'slug' | 'name' | 'address' | 'city' | 'postal_code' | 'lat' | 'lng' | 'specialties' | 'price_from' | 'cover_path' | 'booking_platform' | 'booking_url'> & { is_premium: boolean; logo_path?: string | null };
+type SalonCard = Pick<Salon, 'id' | 'slug' | 'name' | 'address' | 'city' | 'postal_code' | 'lat' | 'lng' | 'specialties' | 'price_from' | 'cover_path' | 'booking_platform' | 'booking_url'> & { is_premium: boolean; logo_path?: string | null; logo_style?: LogoStyle | null };
 
 export async function publicSalons(): Promise<SalonCard[]> {
   const { data, error } = await db.rpc('blade_public_salons'); if (error) throw error; return (data as SalonCard[]) ?? [];
@@ -103,16 +103,16 @@ export function SalonsNearby({ place }: { place?: string }) {
 }
 
 /* ---------------- Petite carte de localisation ---------------- */
-const PIN = (logo: string | undefined, name: string) => L.divIcon({ className: 'blade-logo-marker', html: logoPinHtml(logo, name), iconSize: [52, 60], iconAnchor: [26, 58] });
-function SalonMap({ lat, lng, logo, name }: { lat: number; lng: number; logo?: string; name: string }) {
+const PIN = (logo: string | undefined, name: string, style?: LogoStyle | null) => L.divIcon({ className: 'blade-logo-marker', html: logoPinHtml(logo, name, style), iconSize: [52, 60], iconAnchor: [26, 58] });
+function SalonMap({ lat, lng, logo, name, logoStyle }: { lat: number; lng: number; logo?: string; name: string; logoStyle?: LogoStyle | null }) {
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!box.current) return;
     const map = L.map(box.current, { zoomControl: false, scrollWheelZoom: false, dragging: !L.Browser.mobile, attributionControl: true }).setView([lat, lng], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
-    L.marker([lat, lng], { icon: PIN(logo, name), keyboard: false }).addTo(map);
+    L.marker([lat, lng], { icon: PIN(logo, name, logoStyle), keyboard: false }).addTo(map);
     return () => { map.remove(); };
-  }, [lat, lng, logo, name]);
+  }, [lat, lng, logo, name, logoStyle]);
   return <div ref={box} className="blade-salon-map" role="img" aria-label="Plan d’accès au salon" />;
 }
 
@@ -121,14 +121,14 @@ function SalonsMap({ salons, logos }: { salons: SalonCard[]; logos: Record<strin
   const box = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const pts = salons.filter(s => s.lat != null && s.lng != null);
-  const key = pts.map(s => `${s.id}:${s.logo_path ? logos[s.logo_path] ?? '' : ''}`).join('|');
+  const key = pts.map(s => `${s.id}:${s.logo_path ? logos[s.logo_path] ?? '' : ''}:${JSON.stringify(s.logo_style ?? {})}`).join('|');
   useEffect(() => {
     if (!box.current || !pts.length) return;
     const map = L.map(box.current, { zoomControl: true, scrollWheelZoom: false, attributionControl: true });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
     const bounds = L.latLngBounds([]);
     for (const s of pts) {
-      const m = L.marker([s.lat!, s.lng!], { icon: PIN(s.logo_path ? logos[s.logo_path] : undefined, s.name), title: s.name }).addTo(map);
+      const m = L.marker([s.lat!, s.lng!], { icon: PIN(s.logo_path ? logos[s.logo_path] : undefined, s.name, s.logo_style), title: s.name }).addTo(map);
       m.bindTooltip(s.name, { direction: 'top', offset: [0, -56], className: 'blade-logo-marker-label' });
       m.on('click', () => navigate(`/blade/salon/${s.slug}`));
       bounds.extend([s.lat!, s.lng!]);
@@ -186,7 +186,7 @@ export function SalonPage() {
           {salon.hours && <Section title="Horaires"><p className="blade-salon-text"><Clock size={16} aria-hidden="true" /> {salon.hours}</p></Section>}
           {salon.gallery_paths.length > 0 && <Section title="Photos"><div className="blade-salon-gallery">{salon.gallery_paths.map(p => media[p] && <img key={p} src={media[p]} alt="" loading="lazy" />)}</div></Section>}
         </div>
-        <div>{salon.lat != null && salon.lng != null && <SalonMap lat={salon.lat} lng={salon.lng} logo={salon.logo_path ? media[salon.logo_path] : undefined} name={salon.name} />}</div>
+        <div>{salon.lat != null && salon.lng != null && <SalonMap lat={salon.lat} lng={salon.lng} logo={salon.logo_path ? media[salon.logo_path] : undefined} name={salon.name} logoStyle={salon.logo_style} />}</div>
       </div>
     </>}
   </main></div>;

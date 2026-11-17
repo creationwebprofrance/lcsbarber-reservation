@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BladeButton, EmptyState, Section, Tabs, Plus, ArrowRight } from './common';
 import { Field, ProviderPage, Status } from './provider';
-import { FONTS, FONT_KEYS, PALETTE, moveItem, parseOptions, sectionsOfWidgets, shortId, widgetsOf, type FontKey } from './customization-model';
+import { FONTS, FONT_KEYS, PALETTE, isVideoPath, moveItem, parseOptions, sectionsOfWidgets, shortId, widgetsOf, type FontKey } from './customization-model';
 import { pageOf, savePage, uploadMedia, useMediaUrls, usePublicPage, type PageSettings } from './customization-data';
 import { BrandScope, BrandLogo, ProviderProfileView, useBrandFont } from './brand';
 import { WidgetBoard } from './widget-board';
+import { LogoTuner } from './logo-tuner';
 import { stepsFor, type BookingModes, type Question, type StepOrder } from '../../supabase/functions/_shared/blade-booking-rules';
 
 export function ProCustomize() { return <ProviderPage title="Personnalisation">{data => <CustomizeBody providerId={data.provider_id}/>}</ProviderPage>; }
@@ -54,7 +55,7 @@ function CustomizeBody({ providerId }: { providerId: string }) {
     try {
       const path = await uploadMedia(providerId, file, kind);
       setDraft(d => !d ? d : kind === 'gallery' ? { ...d, gallery_paths: [...d.gallery_paths, path].slice(0, 12) } : { ...d, [`${kind}_path`]: path });
-      setMessage('Photo ajoutée. Pense à enregistrer.');
+      setMessage(file.type.startsWith('video/') ? 'Vidéo ajoutée. Pense à enregistrer.' : 'Photo ajoutée. Pense à enregistrer.');
     } catch (e) { setError((e as Error).message); } finally { setBusy(''); }
   }
   async function save() {
@@ -89,7 +90,7 @@ function CustomizeBody({ providerId }: { providerId: string }) {
         </Section>
         <Section title="Aperçu">
           <BrandScope accent={draft.accent_color} font={draft.font_key}><div className="blade-preview-box">
-            <div className="blade-brand-identity blade-preview-identity"><BrandLogo url={draft.logo_path ? urls[draft.logo_path] : undefined} name={name}/><div><h2>{name}</h2>{draft.city && <p>{draft.city}</p>}</div></div>
+            <div className="blade-brand-identity blade-preview-identity"><BrandLogo url={draft.logo_path ? urls[draft.logo_path] : undefined} name={name} logoStyle={draft.logo_style}/><div><h2>{name}</h2>{draft.city && <p>{draft.city}</p>}</div></div>
             <p>{draft.bio || 'Ta présentation apparaîtra ici.'}</p>
             <div className="blade-inline"><BladeButton variant="default">Réserver</BladeButton><BladeButton>Voir les prestations</BladeButton></div>
           </div></BrandScope>
@@ -100,7 +101,8 @@ function CustomizeBody({ providerId }: { providerId: string }) {
           <MediaPicker label="Logo" url={draft.logo_path ? urls[draft.logo_path] : undefined} busy={busy === 'logo'} onPick={f => upload(f, 'logo')} onRemove={() => set({ logo_path: null })}/>
           <MediaPicker label="Photo de couverture" url={draft.cover_path ? urls[draft.cover_path] : undefined} busy={busy === 'cover'} onPick={f => upload(f, 'cover')} onRemove={() => set({ cover_path: null })}/>
         </div>
-        <p className="blade-note">JPEG, PNG ou WebP, 5 Mo maximum.</p>
+        {draft.logo_path && urls[draft.logo_path] && <LogoTuner url={urls[draft.logo_path]} name={name} value={draft.logo_style} onChange={logo_style => set({ logo_style })}/>}
+        <p className="blade-note">Photos : JPEG, PNG ou WebP, 5 Mo maximum. Vidéos (galerie) : MP4, WebM ou MOV, 50 Mo maximum.</p>
       </Section>
       <Section title="Présentation">
         <div className="blade-fields">
@@ -120,9 +122,9 @@ function CustomizeBody({ providerId }: { providerId: string }) {
         </div>
       </Section>
       <Section title={`Galerie (${draft.gallery_paths.length}/12)`} action={<BladeButton disabled={draft.gallery_paths.length >= 12 || busy === 'gallery'} onClick={() => galleryRef.current?.click()}><Plus size={16}/>{busy === 'gallery' ? 'Envoi…' : 'Ajouter'}</BladeButton>}>
-        <input ref={galleryRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => { const f = e.target.files?.[0]; if (f) void upload(f, 'gallery'); e.target.value = ''; }}/>
-        {draft.gallery_paths.length ? <div className="blade-gallery-grid">{draft.gallery_paths.map((p, i) => <figure key={p}>{urls[p] ? <img src={urls[p]} alt={`Photo ${i + 1}`}/> : <div className="blade-media-empty">…</div>}<BladeButton onClick={() => set({ gallery_paths: draft.gallery_paths.filter(x => x !== p) })}>Retirer</BladeButton></figure>)}</div>
-          : <EmptyState icon="image" title="Aucune photo" description="Ajoute tes réalisations (uniquement avec l’accord de tes clients)." compact/>}
+        <input ref={galleryRef} type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" hidden onChange={e => { const f = e.target.files?.[0]; if (f) void upload(f, 'gallery'); e.target.value = ''; }}/>
+        {draft.gallery_paths.length ? <div className="blade-gallery-grid">{draft.gallery_paths.map((p, i) => <figure key={p}>{urls[p] ? isVideoPath(p) ? <video src={urls[p]} muted loop playsInline autoPlay aria-label={`Vidéo ${i + 1}`}/> : <img src={urls[p]} alt={`Photo ${i + 1}`}/> : <div className="blade-media-empty">…</div>}<BladeButton onClick={() => set({ gallery_paths: draft.gallery_paths.filter(x => x !== p) })}>Retirer</BladeButton></figure>)}</div>
+          : <EmptyState icon="image" title="Aucune photo" description="Ajoute tes réalisations en photo ou en vidéo (uniquement avec l’accord de tes clients)." compact/>}
       </Section>
     </> : <>
       <Section title="Lieux proposés">

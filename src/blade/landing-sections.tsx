@@ -1,10 +1,14 @@
 // Sections de la page d'accueil BLADE : étapes, trajet estimé, Île-de-France, barbers, FAQ, appel final.
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { useMediaUrls } from './customization-data';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Baby, BadgeCheck, CalendarCheck, Calculator, Car, ChevronDown, Droplets, Gift, Infinity as InfinityIcon, MapPin, Palette, Percent, Scissors, Search, Sparkles, Waves, Wind } from 'lucide-react';
+import { ArrowRight, BadgeCheck, CalendarCheck, Calculator, Car, ChevronDown, Clapperboard, Gift, MapPin, Percent, Play, Scissors, Search } from 'lucide-react';
 import { useBladePreferences, type Language } from './preferences';
 import { Carousel } from './carousel';
 
+const IdfMap = lazy(() => import('./idf-map'));
 const TripPreview = lazy(() => import('./trip').then(m => ({ default: m.TripPreview })));
 
 const L = <T,>(language: Language, m: Record<Language, T>) => m[language] ?? m.fr;
@@ -20,39 +24,42 @@ export function useScrollReveal() {
   });
 }
 
-/* ---------- Prestations + comment ça marche ---------- */
-type Presta = { icon: typeof Scissors; tone: string; t: Record<Language, [string, string]> };
-const PRESTAS: Presta[] = [
-  { icon: Scissors, tone: 'a', t: { fr: ['Dégradé & coupe homme', 'Taper, fade, contours nets'], en: ['Fades & men’s cuts', 'Taper, fade, sharp line-ups'], es: ['Degradado y corte hombre', 'Taper, fade, contornos'] } },
-  { icon: Sparkles, tone: 'b', t: { fr: ['Taille de barbe', 'Traçage, rasage, soin'], en: ['Beard trim', 'Shaping, shave, care'], es: ['Arreglo de barba', 'Perfilado, afeitado, cuidado'] } },
-  { icon: Wind, tone: 'c', t: { fr: ['Coupe & brushing femme', 'Coupe, mise en forme, coiffage'], en: ['Women’s cut & blow-dry', 'Cut, shaping, styling'], es: ['Corte y peinado mujer', 'Corte, forma, peinado'] } },
-  { icon: Waves, tone: 'd', t: { fr: ['Tresses & nattes', 'Box braids, cornrows, nattes collées'], en: ['Braids', 'Box braids, cornrows'], es: ['Trenzas', 'Box braids, cornrows'] } },
-  { icon: InfinityIcon, tone: 'a', t: { fr: ['Locks', 'Création, resserrage, entretien'], en: ['Locs', 'Starter locs, retwist, care'], es: ['Locks', 'Creación, mantenimiento'] } },
-  { icon: Palette, tone: 'b', t: { fr: ['Coloration & mèches', 'Couleur, balayage, décoloration'], en: ['Colour & highlights', 'Colour, balayage, bleach'], es: ['Color y mechas', 'Color, balayage'] } },
-  { icon: Droplets, tone: 'c', t: { fr: ['Soins du cheveu', 'Hydratation, soin profond'], en: ['Hair care', 'Hydration, deep treatment'], es: ['Cuidado capilar', 'Hidratación, tratamiento'] } },
-  { icon: Baby, tone: 'd', t: { fr: ['Coupe enfant', 'Patience et douceur à domicile'], en: ['Kids’ cuts', 'Gentle, at home'], es: ['Corte niños', 'Con paciencia, a domicilio'] } },
-];
+/* ---------- Vitrine des prestataires + comment ça marche ---------- */
+type ShowItem = { provider_id: string; name: string; path: string; kind: 'image' | 'video' };
+const db = supabase as unknown as SupabaseClient;
+
+/** Photos et vidéos publiées par les prestataires, avec leur nom ; « contenu bientôt » sinon. */
+function ProShowcase({ label, soon, soonText, see }: { label: string; soon: string; soonText: string; see: string }) {
+  const [items, setItems] = useState<ShowItem[] | null>(null);
+  useEffect(() => { db.rpc('blade_public_showcase').then(({ data }) => setItems((data as ShowItem[] | null) ?? []), () => setItems([])); }, []);
+  const urls = useMediaUrls((items ?? []).map(i => i.path));
+  const ready = (items ?? []).filter(i => urls[i.path]);
+  if (items === null) return <div className="bl-show-skeleton" aria-hidden="true" />;
+  const soonCard = (k: string) => <li key={k}><div className="bl-show-card is-soon"><Clapperboard size={30} aria-hidden="true" /><strong>{soon}</strong><span>{soonText}</span></div></li>;
+  if (!ready.length) return <div className="bl-show-empty"><Clapperboard size={34} aria-hidden="true" /><strong>{soon}</strong><span>{soonText}</span></div>;
+  return <Carousel label={label} className="bl-show">
+    {ready.map(i => <li key={i.path}>
+      <Link to={`/blade/profil/${i.provider_id}`} className="bl-show-card">
+        {i.kind === 'video' ? <video src={urls[i.path]} muted loop playsInline autoPlay preload="metadata" aria-hidden="true" /> : <img src={urls[i.path]} alt={`Réalisation de ${i.name}`} loading="lazy" />}
+        {i.kind === 'video' && <span className="bl-show-badge"><Play size={12} aria-hidden="true" />Vidéo</span>}
+        <span className="bl-show-meta"><strong>{i.name}</strong><em>{see} <ArrowRight size={14} aria-hidden="true" /></em></span>
+      </Link>
+    </li>)}
+    {ready.length < 4 && Array.from({ length: 4 - ready.length }, (_, k) => soonCard(`soon-${k}`))}
+  </Carousel>;
+}
 
 export function HowItWorks() {
   const { language } = useBladePreferences();
   const c = L(language, {
-    fr: { eyebrow: 'Nos prestations', title: 'Toute la coiffure, chez toi ou près de toi', find: 'Trouver un pro', stepsTitle: 'Ta coupe en trois étapes', steps: [['Cherche', 'Ta ville, à domicile ou près de toi.'], ['Choisis', 'Profils, avis et prix affichés.'], ['Ton pro arrive', 'Suis son trajet jusqu’à ta porte.']] },
-    en: { eyebrow: 'Services', title: 'Every hair service, at home or nearby', find: 'Find a pro', stepsTitle: 'Your haircut in three steps', steps: [['Search', 'Your city, at home or nearby.'], ['Choose', 'Profiles, reviews and prices shown.'], ['Your pro arrives', 'Follow their trip to your door.']] },
-    es: { eyebrow: 'Servicios', title: 'Toda la peluquería, en casa o cerca', find: 'Encontrar un profesional', stepsTitle: 'Tu corte en tres pasos', steps: [['Busca', 'Tu ciudad, a domicilio o cerca.'], ['Elige', 'Perfiles, opiniones y precios.'], ['Tu profesional llega', 'Sigue su trayecto hasta tu puerta.']] },
+    fr: { eyebrow: 'Le travail de nos pros', title: 'Toute la coiffure, chez toi ou près de toi', soon: 'Le contenu arrive bientôt !', soonText: 'Les photos et vidéos de nos pros de la coiffure arrivent très vite.', see: 'Voir le profil', stepsTitle: 'Ta coupe en trois étapes', steps: [['Cherche', 'Ta ville, à domicile ou près de toi.'], ['Choisis', 'Profils, avis et prix affichés.'], ['Ton pro arrive', 'Suis son trajet jusqu’à ta porte.']] },
+    en: { eyebrow: 'Our pros’ work', title: 'Every hair service, at home or nearby', soon: 'Content coming soon!', soonText: 'Photos and videos from our hair pros are on their way.', see: 'See profile', stepsTitle: 'Your haircut in three steps', steps: [['Search', 'Your city, at home or nearby.'], ['Choose', 'Profiles, reviews and prices shown.'], ['Your pro arrives', 'Follow their trip to your door.']] },
+    es: { eyebrow: 'El trabajo de nuestros pros', title: 'Toda la peluquería, en casa o cerca', soon: '¡El contenido llega pronto!', soonText: 'Las fotos y vídeos de nuestros profesionales llegan muy pronto.', see: 'Ver perfil', stepsTitle: 'Tu corte en tres pasos', steps: [['Busca', 'Tu ciudad, a domicilio o cerca.'], ['Elige', 'Perfiles, opiniones y precios.'], ['Tu profesional llega', 'Sigue su trayecto hasta tu puerta.']] },
   });
   const icons = [Search, Scissors, Car];
   return <section id="blade-gallery" className="bl-section bl-how" aria-labelledby="bl-how-title">
     <div className="bl-head bl-reveal"><p className="bl-eyebrow">{c.eyebrow}</p><h2 id="bl-how-title">{c.title}</h2></div>
-    <Carousel label={c.eyebrow} className="bl-prestas bl-reveal">
-      {PRESTAS.map(p => { const [name, sub] = p.t[language] ?? p.t.fr; const Icon = p.icon; return <li key={name}>
-        <Link to="/blade/client" className={`bl-presta bl-presta-${p.tone}`}>
-          <Icon className="bl-presta-bg" size={150} strokeWidth={1.1} aria-hidden="true" />
-          <span className="bl-presta-icon" aria-hidden="true"><Icon size={22} /></span>
-          <strong>{name}</strong><span>{sub}</span>
-          <em>{c.find} <ArrowRight size={15} aria-hidden="true" /></em>
-        </Link>
-      </li>; })}
-    </Carousel>
+    <ProShowcase label={c.eyebrow} soon={c.soon} soonText={c.soonText} see={c.see} />
     <div className="bl-steps-block bl-reveal">
       <h3>{c.stepsTitle}</h3>
       <ol className="bl-steps">
@@ -100,8 +107,6 @@ export function IdfBand() {
     en: { eyebrow: 'Île-de-France', title: 'Available across Île-de-France', text: 'BLADE is launching in Île-de-France: new hair professionals join every week.', cta: 'Explore near me', pts: [['8', 'departments covered'], ['At home', 'or in a salon'], ['Every week', 'new pros join']] },
     es: { eyebrow: 'Île-de-France', title: 'Disponible en toda Île-de-France', text: 'BLADE se lanza en Île-de-France: cada semana se unen nuevos profesionales.', cta: 'Explorar cerca de mí', pts: [['8', 'departamentos'], ['A domicilio', 'o en salón'], ['Cada semana', 'nuevos profesionales']] },
   });
-  // Points lumineux autour de Paris (décoratifs, sans noms de villes).
-  const dots: [number, number, number][] = [[200, 150, 0], [160, 120, .4], [245, 118, .9], [230, 190, 1.3], [150, 185, .6], [110, 140, 1.8], [290, 160, 1.1], [205, 75, 2.1], [195, 228, 1.6], [300, 95, 2.4], [95, 95, 2.8], [280, 225, .2]];
   return <section className="bl-section bl-idf bl-reveal" aria-labelledby="bl-idf-title">
     <div className="bl-idf-text">
       <p className="bl-eyebrow"><MapPin size={14} aria-hidden="true" /> {c.eyebrow}</p>
@@ -111,15 +116,7 @@ export function IdfBand() {
       <Link to="/blade/client" className="bl3-btn bl3-btn-solid">{c.cta} <ArrowRight size={18} aria-hidden="true" /></Link>
     </div>
     <div className="bl-idf-map" aria-hidden="true">
-      <svg viewBox="0 0 400 300">
-        <path className="bl-idf-region" d="M120 38 L196 22 L280 34 L346 70 L372 140 L350 214 L292 266 L206 282 L126 262 L60 214 L34 142 L58 80 Z" />
-        {[44, 84, 124].map(r => <circle key={r} cx="200" cy="150" r={r} className="bl-idf-ring" />)}
-        <path className="bl-idf-river" d="M40 120 C 90 110, 120 170, 165 160 S 230 120, 270 150 S 330 200, 370 190" />
-        {dots.map(([x, y, d], i) => <g key={i} transform={`translate(${x} ${y})`}>
-          <circle r="11" className="bl-idf-pulse" style={{ animationDelay: `${d}s` }} />
-          <circle r={i === 0 ? 7 : 4.5} className={i === 0 ? 'bl-idf-core' : 'bl-idf-dot'} />
-        </g>)}
-      </svg>
+      <Suspense fallback={<div className="bl-idf-leaflet" />}><IdfMap /></Suspense>
     </div>
   </section>;
 }
