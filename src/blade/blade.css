@@ -779,3 +779,12 @@ html[data-blade-theme=dark] .bl-phone-map{background:#2a1d16;color:#f3ece4}
 .blade-salon-cover-edit img,.blade-salon-cover-edit>span{width:140px;height:96px;border-radius:12px;object-fit:cover;display:flex;align-items:center;justify-content:center;background:hsl(var(--card));color:hsl(var(--primary))}
 .blade-salon-upload{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
 @media(max-width:767px){.blade-salon-hero,.blade-salon-grid2{grid-template-columns:1fr}.blade-salon-actions .blade-button{flex:1 1 calc(50% - 10px)}}
+
+/* Salons : réservation directe et lien court */
+.blade-salon-card-link{display:flex;flex-direction:column;color:inherit}
+.blade-salon-card-actions{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 16px;margin-top:auto}
+.blade-salon-card-actions .blade-button{flex:1 1 auto;justify-content:center;font-size:13px}
+.blade-salon-shortlink{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.blade-salon-shortlink code{flex:1;min-width:0;padding:12px 14px;border-radius:10px;background:hsl(var(--card));border:1px solid hsl(var(--border));font-size:13px;overflow-wrap:anywhere}
+.blade-salon-redirect{min-height:60vh;display:flex;align-items:center;justify-content:center}
+.blade-salon-redirect p{display:flex;gap:10px;align-items:center;font-size:17px}

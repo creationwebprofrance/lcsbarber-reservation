@@ -5,7 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ArrowRight, CalendarCheck, Camera, Clock, ExternalLink, Eye, Globe, Instagram, MapPin, Navigation, Phone, Store } from 'lucide-react';
+import { ArrowRight, CalendarCheck, Camera, Clock, Copy, ExternalLink, Eye, Globe, Instagram, MapPin, Navigation, Phone, Store } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { BladeButton, EmptyState, Section } from './common';
 import { Field, ProviderPage, Status } from './provider';
@@ -25,7 +25,7 @@ export type Salon = {
   specialties: string[]; description: string | null; price_from: number | null; hours: string | null; cover_path: string | null; gallery_paths: string[];
   status: 'draft' | 'published' | 'hidden'; is_premium?: boolean;
 };
-type SalonCard = Pick<Salon, 'id' | 'slug' | 'name' | 'address' | 'city' | 'postal_code' | 'lat' | 'lng' | 'specialties' | 'price_from' | 'cover_path' | 'booking_platform'> & { is_premium: boolean };
+type SalonCard = Pick<Salon, 'id' | 'slug' | 'name' | 'address' | 'city' | 'postal_code' | 'lat' | 'lng' | 'specialties' | 'price_from' | 'cover_path' | 'booking_platform' | 'booking_url'> & { is_premium: boolean };
 
 export async function publicSalons(): Promise<SalonCard[]> {
   const { data, error } = await db.rpc('blade_public_salons'); if (error) throw error; return (data as SalonCard[]) ?? [];
@@ -41,16 +41,47 @@ const euros = (n: number | null) => (n == null ? '' : `${Number(n).toLocaleStrin
 const directions = (s: Pick<Salon, 'lat' | 'lng' | 'address'>) => s.lat != null && s.lng != null ? `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}` : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(s.address)}`;
 
 /* ---------------- Carte de salon (liste) ---------------- */
+/** Ouvre directement l'outil de réservation du salon (compté comme clic « Réserver »). */
+export function bookSalon(salon: { id: string; booking_url: string | null }) {
+  if (!salon.booking_url) return;
+  trackSalon(salon.id, 'booking');
+  window.open(salon.booking_url, '_blank', 'noopener');
+}
+
 export function SalonCardView({ salon, cover }: { salon: SalonCard; cover?: string }) {
-  return <Link to={`/blade/salon/${salon.slug}`} className="blade-salon-card">
-    <span className="blade-salon-card-img">{cover ? <img src={cover} alt="" loading="lazy" /> : <Store size={30} aria-hidden="true" />}</span>
-    <span className="blade-salon-card-body">
-      <strong>{salon.name}{salon.is_premium && <VerifiedBadge />}</strong>
-      <small><MapPin size={14} aria-hidden="true" />{salon.city || salon.address}</small>
-      {salon.specialties.length > 0 && <span className="blade-salon-tags">{salon.specialties.slice(0, 3).map(t => <em key={t}>{t}</em>)}</span>}
-      <span className="blade-salon-card-foot">{salon.price_from != null ? <>À partir de <b>{euros(salon.price_from)}</b></> : 'Voir le salon'}<ArrowRight size={16} aria-hidden="true" /></span>
-    </span>
-  </Link>;
+  return <article className="blade-salon-card">
+    <Link to={`/blade/salon/${salon.slug}`} className="blade-salon-card-link">
+      <span className="blade-salon-card-img">{cover ? <img src={cover} alt="" loading="lazy" /> : <Store size={30} aria-hidden="true" />}</span>
+      <span className="blade-salon-card-body">
+        <strong>{salon.name}{salon.is_premium && <VerifiedBadge />}</strong>
+        <small><MapPin size={14} aria-hidden="true" />{salon.city || salon.address}</small>
+        {salon.specialties.length > 0 && <span className="blade-salon-tags">{salon.specialties.slice(0, 3).map(t => <em key={t}>{t}</em>)}</span>}
+        {salon.price_from != null && <span className="blade-salon-card-foot">À partir de <b>{euros(salon.price_from)}</b></span>}
+      </span>
+    </Link>
+    <div className="blade-salon-card-actions">
+      {salon.booking_url && <BladeButton variant="default" onClick={() => bookSalon(salon)}><CalendarCheck size={16} aria-hidden="true" />Réserver{salon.booking_platform && salon.booking_platform !== 'autre' ? ` sur ${PLATFORMS[salon.booking_platform]}` : ''}<ExternalLink size={13} aria-hidden="true" /></BladeButton>}
+      <BladeButton asChild><Link to={`/blade/salon/${salon.slug}`}>Voir le salon <ArrowRight size={15} aria-hidden="true" /></Link></BladeButton>
+    </div>
+  </article>;
+}
+
+/* ---------------- Lien direct : /blade/r/:slug → outil de réservation du salon ---------------- */
+export function SalonRedirect() {
+  const { slug = '' } = useParams();
+  const [state, setState] = useState<'go' | 'missing'>('go');
+  const [salon, setSalon] = useState<Salon | null>(null);
+  useEffect(() => {
+    salonBySlug(slug).then(s => {
+      if (!s?.booking_url) { setSalon(s); setState('missing'); return; }
+      setSalon(s);
+      db.rpc('blade_salon_click', { p_salon: s.id, p_kind: 'booking' }).then(() => window.location.replace(s.booking_url!), () => window.location.replace(s.booking_url!));
+    }).catch(() => setState('missing'));
+  }, [slug]);
+  return <div className="blade-app"><main className="blade-main blade-salon-redirect">
+    {state === 'go' ? <p role="status"><Store size={22} aria-hidden="true" />{salon ? `Redirection vers la réservation de ${salon.name}…` : 'Redirection…'}</p>
+      : <EmptyState icon="pin" title="Lien indisponible" description="Ce salon n’a pas (ou plus) de lien de réservation sur BLADE." action={<BladeButton asChild><Link to={salon ? `/blade/salon/${salon.slug}` : '/blade/client'}>{salon ? 'Voir le salon' : 'Trouver un professionnel'}</Link></BladeButton>} />}
+  </main></div>;
 }
 
 /** Liste des salons pour la recherche client (filtrée par ville / code postal / adresse si fournis). */
@@ -181,6 +212,7 @@ function SalonEditor({ providerId }: { providerId: string }) {
     try {
       if (form.name.trim().length < 2) throw new Error('Indique le nom du salon.');
       if (form.address.trim().length < 5) throw new Error('Indique l’adresse du salon.');
+      if (publish && !form.booking_url.trim()) throw new Error('Ajoute le lien de réservation de ton salon pour le publier : tes clients y seront redirigés directement.');
       const price = form.price_from.trim() ? Number(form.price_from.replace(',', '.')) : null;
       if (price != null && !(price >= 0 && price <= 1000)) throw new Error('Prix « à partir de » invalide.');
       const insta = form.instagram.trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/.*$/, '') || null;
@@ -193,7 +225,7 @@ function SalonEditor({ providerId }: { providerId: string }) {
       };
       const res = salon ? await db.from('blade_salons').update(values).eq('id', salon.id).select('*').single()
         : await db.from('blade_salons').insert({ ...values, provider_id: providerId }).select('*').single();
-      if (res.error) throw new Error(/check|violates/i.test(res.error.message) ? 'Une information n’est pas au bon format (Instagram, liens en https, code postal…).' : res.error.message);
+      if (res.error) throw new Error(/published_needs_link/.test(res.error.message) ? 'Un salon en ligne doit avoir un lien de réservation.' : /check|violates/i.test(res.error.message) ? 'Une information n’est pas au bon format (Instagram, liens en https, code postal…).' : res.error.message);
       setSalon(res.data as Salon); set('status', (res.data as Salon).status);
       setMessage(values.status === 'published' ? 'Ton salon est en ligne sur BLADE.' : 'Enregistré. Ton salon n’est pas encore visible.');
     } catch (e) { setError(e instanceof Error ? e.message : 'Enregistrement impossible.'); }
@@ -211,6 +243,13 @@ function SalonEditor({ providerId }: { providerId: string }) {
     <Section title="Pourquoi référencer ton salon ?">
       <p className="blade-note">Tu as déjà Planity, ton site ou tes réservations par Instagram ? Garde-les. Ta fiche BLADE rend ton salon visible auprès des clients près de chez toi, et le bouton « Réserver » les envoie vers ton outil habituel. C’est gratuit.</p>
     </Section>
+    {salon?.status === 'published' && salon.booking_url && <Section title="Ton lien direct BLADE">
+      <p className="blade-note">Partage ce lien (bio Instagram, QR code en vitrine, carte NFC…) : il envoie tes clients directement vers ta réservation, et chaque clic est compté ci-dessous.</p>
+      <div className="blade-salon-shortlink">
+        <code>{`${window.location.origin}/blade/r/${salon.slug}`}</code>
+        <BladeButton onClick={async () => { const l = `${window.location.origin}/blade/r/${salon.slug}`; try { await navigator.clipboard.writeText(l); setMessage('Lien copié.'); } catch { setMessage(l); } }}><Copy size={16} aria-hidden="true" />Copier</BladeButton>
+      </div>
+    </Section>}
     {salon && <Section title="Ce que BLADE t’apporte (30 derniers jours)">
       <ul className="blade-salon-stats">
         <li><Eye size={18} aria-hidden="true" /><strong>{total('view')}</strong><span>vues de ta fiche</span></li>
@@ -231,7 +270,7 @@ function SalonEditor({ providerId }: { providerId: string }) {
           </div>
           <Field label="Téléphone" type="tel" value={form.phone} onChange={v => set('phone', v)} />
           <Field label="Instagram (sans @)" value={form.instagram} onChange={v => set('instagram', v)} />
-          <Field label="Lien de réservation (Planity, site…)" value={form.booking_url} onChange={v => set('booking_url', v)} />
+          <Field label="Lien de réservation de ton salon (obligatoire pour publier)" value={form.booking_url} onChange={v => set('booking_url', v)} required={form.status === 'published'} />
           <label className="blade-field"><span>Outil de réservation</span><select value={form.booking_platform} onChange={e => set('booking_platform', e.target.value as Platform)}>{Object.entries(PLATFORMS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
           <Field label="Site web" value={form.website} onChange={v => set('website', v)} />
           <Field label="Prix « à partir de » (€)" type="number" value={form.price_from} onChange={v => set('price_from', v)} />
