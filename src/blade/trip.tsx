@@ -71,9 +71,9 @@ function simTrip(sim: Sim): PublicTrip {
   return { status: 'en_route', started_at: new Date().toISOString(), duration_s: sim.duration_s, distance_m: sim.distance_m, delay_min: 0, arrived_at: null,
     route: sim.route, dest: sim.dest, provider_name: 'Ton coiffeur', appointment_date: '', appointment_time: '', server_now: new Date().toISOString() };
 }
-function liveFromSim(sim: Sim, t0: number, speed: number, now: number): Live {
+function liveFromSim(sim: Sim, t0: number, speed: number, now: number, pauseS = PAUSE_S): Live {
   const total = sim.cum[sim.cum.length - 1] || 1;
-  const cycle = sim.duration_s + PAUSE_S * speed;
+  const cycle = sim.duration_s + pauseS * speed;
   const elapsed = (sim.startAt + ((now - t0) / 1000) * speed) % cycle;
   const arrived = elapsed >= sim.duration_s;
   const s = Math.min(elapsed, sim.duration_s);
@@ -164,6 +164,73 @@ function TripMap({ route, dest, getLive }: { route: LngLat[]; dest: LngLat; getL
     <div className="blade-trip-mapbtns">
       {follow ? <button type="button" onClick={showAll}><Maximize2 size={16} aria-hidden="true" />Tout le trajet</button>
         : <button type="button" onClick={() => setFollow(true)}><Crosshair size={16} aria-hidden="true" />Suivre</button>}
+    </div>
+  </div>;
+}
+
+/* ---------------- Aperçu de la page d'accueil (téléphone) ---------------- */
+// Vraie carte, vrai itinéraire parisien, en accéléré et en boucle ; non interactif.
+const PREVIEW_SPEED = 30;
+export function TripPreview({ live: liveLabel = 'Position estimée', eta: etaLabel = 'Arrivée vers' }: { live?: string; eta?: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const t0 = useRef(Date.now());
+  const [live, setLive] = useState<Live>(() => liveFromSim(DEFAULT_SIM, t0.current, PREVIEW_SPEED, Date.now(), 3));
+  const [clock, setClock] = useState(() => hm(Date.now()));
+
+  useEffect(() => {
+    const el = box.current; if (!el) return;
+    const latlngs = DEFAULT_SIM.route.map(([lng, lat]) => [lat, lng] as L.LatLngTuple);
+    const dest = DEFAULT_SIM.dest;
+    const map = L.map(el, { zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false });
+    map.attributionControl.setPrefix(false);
+    baseLayer().addTo(map);
+    L.polyline(latlngs, { color: '#ffffff', weight: 12, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+    const behind = L.polyline([], { color: '#b8aca3', weight: 7, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+    const ahead = L.polyline(latlngs, { color: '#4a2f22', weight: 7, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+    L.marker([dest[1], dest[0]], { icon: L.divIcon({ className: 'blade-trip-dest', html: PIN_SVG, iconSize: [36, 46], iconAnchor: [18, 44] }), keyboard: false, interactive: false }).addTo(map);
+    const car = L.marker(latlngs[0], { icon: L.divIcon({ className: 'blade-trip-vehicle', html: `<span class="blade-trip-halo"></span><span class="blade-trip-body">${CAR_SVG}</span>`, iconSize: [40, 40], iconAnchor: [20, 20] }), keyboard: false, interactive: false, zIndexOffset: 1000 }).addTo(map);
+    const fit = () => { map.invalidateSize(); map.fitBounds(L.latLngBounds(latlngs), { paddingTopLeft: [24, 56], paddingBottomRight: [24, 24] }); };
+    fit();
+    const ro = new ResizeObserver(fit); ro.observe(el);
+
+    let visible = true;
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }); io.observe(el);
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let frame = 0; let lastUi = 0; let last = 0;
+    const tick = (t: number) => {
+      frame = requestAnimationFrame(tick);
+      if (!visible || (reduce && t - last < 1000)) return; last = t;
+      const now = Date.now();
+      const l = liveFromSim(DEFAULT_SIM, t0.current, PREVIEW_SPEED, now, 3);
+      const here: L.LatLngTuple = [l.point[1], l.point[0]];
+      car.setLatLng(here);
+      const body = car.getElement()?.querySelector('.blade-trip-body') as HTMLElement | null;
+      if (body) body.style.transform = `rotate(${l.heading}deg)`;
+      behind.setLatLngs([...latlngs.slice(0, l.index + 1), here]);
+      ahead.setLatLngs([here, ...latlngs.slice(l.index + 1)]);
+      car.getElement()?.classList.toggle('is-arrived', l.status === 'arrived');
+      if (t - lastUi > 400) { lastUi = t; setLive(l); setClock(hm(now)); }
+    };
+    frame = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(frame); io.disconnect(); ro.disconnect(); map.remove(); };
+  }, []);
+
+  const arrived = live.status === 'arrived';
+  return <div className="bl-phone-screen">
+    <div className="bl-phone-status"><span>{clock}</span><span className="bl-phone-icons" aria-hidden="true"><i /><i /><i /><i /><b /></span></div>
+    <div className="bl-phone-map">
+      <div ref={box} className="bl-phone-leaflet" />
+      <span className="bl-phone-tag">{liveLabel}</span>
+    </div>
+    <div className="bl-phone-sheet">
+      <span className="bl-phone-grab" />
+      <div className="bl-phone-who"><span className="bl-phone-avatar"><Navigation size={16} aria-hidden="true" /></span>
+        <div><small>{arrived ? 'Ton coiffeur est arrivé' : 'Ton coiffeur est en route'}</small>
+          <strong>{arrived ? 'À ta porte' : `${etaLabel} ${hm(live.eta)}`}</strong></div>
+        <span className="bl-phone-min">{arrived ? <CheckCircle2 size={18} aria-hidden="true" /> : <>{live.minutes}<small>min</small></>}</span>
+      </div>
+      <div className="bl-phone-progress"><span style={{ width: `${Math.round(live.fraction * 100)}%` }} /></div>
+      <div className="bl-phone-meta"><span><MapPin size={13} aria-hidden="true" />{km(live.remainingM)}</span><span><Clock size={13} aria-hidden="true" />Trafic pris en compte</span></div>
     </div>
   </div>;
 }
