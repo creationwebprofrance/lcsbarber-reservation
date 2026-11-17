@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from './data';
-import { ArrowRight, Pause, Play, Home, MapPin, Check } from 'lucide-react';
+import { useReviews, useSession } from './data';
+import { ArrowRight, Pause, Play, Home, MapPin, Check, Star, BadgeCheck, Car, Sparkles } from 'lucide-react';
 import { HowItWorks, TripShowcase, IdfBand, ProBand, Faq, FinalCta, useScrollReveal } from './landing-sections';
 import { BladeIntro } from './intro';
 import { ReviewsBand } from './reviews-band';
@@ -32,11 +32,39 @@ function HeroVideo() {
   </div>;
 }
 
+const HERO = {
+  fr: { eyebrow: 'Nouveau en Île-de-France', who: 'Barbers · coiffeuses · lockticiens', avg: 'note moyenne', verified: 'Pros vérifiés', live: 'Trajet suivi en direct', look: 'Look du jour', arrive: 'Ton pro arrive', inMin: 'dans 12 min' },
+  en: { eyebrow: 'New in Île-de-France', who: 'Barbers · hairstylists · locticians', avg: 'average rating', verified: 'Verified pros', live: 'Live trip tracking', look: 'Look of the day', arrive: 'Your pro arrives', inMin: 'in 12 min' },
+  es: { eyebrow: 'Nuevo en Île-de-France', who: 'Barberos · peluqueras · locticians', avg: 'nota media', verified: 'Profesionales verificados', live: 'Trayecto en directo', look: 'Look del día', arrive: 'Tu profesional llega', inMin: 'en 12 min' },
+} as const;
+
+function HeroStars({ value }: { value: number }) {
+  return <span className="bl2-stars" aria-hidden="true">{[1, 2, 3, 4, 5].map(i => <Star key={i} size={14} className={i <= Math.round(value) ? 'on' : ''} />)}</span>;
+}
+
+/** Visuel du hero : vidéo encadrée, carte en arrière-plan et petites cartes flottantes. */
+function HeroVisual({ avg }: { avg: number | null }) {
+  const { language } = useBladePreferences();
+  const c = HERO[language as keyof typeof HERO] ?? HERO.fr;
+  return <div className="bl2-visual">
+    <span className="bl2-visual-back" aria-hidden="true" />
+    <HeroVideo />
+    <span className="bl2-float bl2-float-live" aria-hidden="true"><i />{c.look}</span>
+    {avg !== null && <span className="bl2-float bl2-float-rate" aria-hidden="true"><strong>{avg.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</strong><HeroStars value={avg} /></span>}
+    <span className="bl2-float bl2-float-trip" aria-hidden="true"><span className="bl2-float-ico"><Car size={18} /></span><span><small>{c.arrive}</small><strong>{c.inMin}</strong></span></span>
+  </div>;
+}
+
 export function Landing() {
   const {t}=useBladePreferences();const {session,isPro:isAdmin}=useSession();useHashScroll();useScrollReveal();
   const navigate = useNavigate();
   const [mode, setMode] = useState<'chez' | 'pres'>('chez');
   const [city, setCity] = useState('');
+  const { language } = useBladePreferences();
+  const hero = HERO[language as keyof typeof HERO] ?? HERO.fr;
+  const { data: reviews } = useReviews();
+  const rated = (reviews ?? []).filter(r => r.rating > 0);
+  const avg = rated.length ? rated.reduce((s, r) => s + r.rating, 0) / rated.length : null;
   const go = (e?: React.FormEvent) => { e?.preventDefault(); const p = new URLSearchParams({ mode: mode === 'chez' ? 'Chez vous' : 'Près de vous' }); if (city.trim()) p.set('q', city.trim()); navigate(`/blade/client?${p}`); };
   return <div className="bl-landing bl2 blade-app">
     <BladeIntro/>
@@ -45,7 +73,8 @@ export function Landing() {
     <main id="bl-main" className="bl2-main">
       <section className="bl2-hero">
         <div className="bl2-hero-text">
-          <h1>{t('slogan1')}<br />{t('slogan2')}</h1>
+          <p className="bl2-eyebrow"><Sparkles size={15} aria-hidden="true" />{hero.eyebrow}<span>{hero.who}</span></p>
+          <h1>{t('slogan1')}<br /><span className="bl2-accent">{t('slogan2')}</span></h1>
           <p className="bl2-lead">{t('lead')}</p>
           <form className="bl2-search" onSubmit={go}>
             <div className="bl2-modes" role="radiogroup" aria-label="Lieu de prestation">
@@ -58,8 +87,13 @@ export function Landing() {
             </div>
             <p className="bl2-note">{t('public')}</p>
           </form>
+          <ul className="bl2-trust">
+            {avg !== null && <li><strong>{avg.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</strong><HeroStars value={avg} /><span>{hero.avg}</span></li>}
+            <li><BadgeCheck size={17} aria-hidden="true" />{hero.verified}</li>
+            <li><Car size={17} aria-hidden="true" />{hero.live}</li>
+          </ul>
         </div>
-        <HeroVideo />
+        <HeroVisual avg={avg} />
       </section>
       <HowItWorks/>
       <TripShowcase/>

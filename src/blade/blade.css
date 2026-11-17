@@ -1002,3 +1002,39 @@ html[data-blade-theme=dark] .bl-idf-map,html[data-blade-theme=dark] .bl-idf-leaf
 .blade-logo-tuner-row button[aria-pressed=true]{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:hsl(var(--primary))}
 .blade-logo-tuner-row input[type=color]{width:34px;height:30px;padding:0;border:1px solid hsl(var(--border));border-radius:8px;background:none}
 @media(max-width:520px){.blade-logo-tuner{grid-template-columns:1fr;justify-items:center}}
+
+/* ---------- Hero retravaillé ---------- */
+.bl2 .bl2-hero{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(24px,4vw,64px);padding:clamp(28px,5vw,76px) clamp(24px,5vw,80px);isolation:isolate;
+  background:radial-gradient(60% 80% at 82% 40%,rgb(214 150 92/.38),transparent 62%),radial-gradient(50% 70% at 8% 100%,rgb(20 10 6/.55),transparent 70%),var(--blade-hero-fill)}
+.bl2 .bl2-hero::after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.5;background-image:radial-gradient(rgb(255 255 255/.07) 1px,transparent 1px);background-size:22px 22px;mask-image:linear-gradient(90deg,transparent,#000 40%,#000 70%,transparent)}
+.bl2-eyebrow{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 18px;padding:7px 14px 7px 12px;border-radius:999px;background:rgb(255 255 255/.12);border:1px solid rgb(255 255 255/.22);backdrop-filter:blur(8px);font-size:13px;font-weight:800;letter-spacing:.02em;color:#fff}
+.bl2-eyebrow svg{color:#f2c98f}
+.bl2-eyebrow span{font-weight:600;opacity:.8;padding-left:8px;border-left:1px solid rgb(255 255 255/.3)}
+.bl2 .bl2-hero h1 .bl2-accent{background:linear-gradient(100deg,#fff 0%,#f6dcb8 45%,#d6a067 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}
+.bl2 .bl2-lead{margin-top:14px;margin-bottom:26px;opacity:.92}
+.bl2-trust{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px 22px;color:#fff;font-size:14px;font-weight:600}
+.bl2-trust li{display:inline-flex;align-items:center;gap:7px}
+.bl2-trust li strong{font-family:'Outfit',sans-serif;font-size:18px}
+.bl2-trust li span{opacity:.75;font-weight:500}
+.bl2-trust svg{color:#f2c98f}
+.bl2-stars{display:inline-flex;gap:1px}.bl2-stars svg{color:rgb(255 255 255/.3)}.bl2-stars svg.on{color:#F4B400;fill:#F4B400}
+
+.bl2-visual{position:relative;justify-self:center;width:min(100%,430px);padding:18px 26px 34px}
+.bl2-visual-back{position:absolute;inset:4px 0 18px 46px;border-radius:30px;background:linear-gradient(160deg,rgb(255 255 255/.18),rgb(255 255 255/.04));border:1px solid rgb(255 255 255/.2);transform:rotate(6deg);z-index:0}
+.bl2 .bl2-hero .bl2-visual .bl-video{position:relative;z-index:1;width:100%;border:0;border-radius:28px;box-shadow:0 40px 80px -24px rgb(10 5 2/.75),0 0 0 6px rgb(255 255 255/.12);transform:rotate(-2deg);transition:transform .5s}
+.bl2-visual:hover .bl-video{transform:rotate(0) scale(1.01)}
+.bl2-float{position:absolute;z-index:2;display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:16px;background:rgb(255 255 255/.94);color:#2a1710;box-shadow:0 14px 34px -10px rgb(10 5 2/.5);font-size:13px;font-weight:800;animation:bl2-float 5s ease-in-out infinite}
+.bl2-float-live{top:30px;left:0}
+.bl2-float-live i{width:8px;height:8px;border-radius:50%;background:#e5484d;box-shadow:0 0 0 4px rgb(229 72 77/.2);animation:bl2-blink 1.4s ease-in-out infinite}
+.bl2-float-rate{top:42%;right:-6px;flex-direction:column;align-items:flex-start;gap:2px;animation-delay:-1.6s}
+.bl2-float-rate strong{font-family:'Outfit',sans-serif;font-size:22px;line-height:1}
+.bl2-float-rate .bl2-stars svg{color:#e2d8cf}
+.bl2-float-trip{bottom:6px;left:-4px;padding:10px 14px 10px 10px;animation-delay:-3.2s}
+.bl2-float-trip>span:last-child{display:flex;flex-direction:column;line-height:1.2}
+.bl2-float-trip small{font-size:11px;font-weight:600;color:#7a6a5f}
+.bl2-float-ico{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:11px;background:#4a2f22;color:#fff}
+@keyframes bl2-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes bl2-blink{50%{opacity:.35}}
+@media(prefers-reduced-motion:reduce){.bl2-float,.bl2-float-live i{animation:none}}
+@media(max-width:1023px){.bl2 .bl2-hero{grid-template-columns:1fr}.bl2-visual{width:min(100%,400px)}}
+@media(max-width:767px){.bl2-eyebrow span{display:none}.bl2-visual{width:min(100%,330px);padding:14px 18px 30px}.bl2-float-rate{display:none}.bl2-float{font-size:12px}.bl2-trust{gap:8px 16px;font-size:13px}}
