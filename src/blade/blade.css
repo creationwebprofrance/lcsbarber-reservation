@@ -699,7 +699,7 @@ html[data-blade-theme=dark] .bl-phone-map{background:#2a1d16;color:#f3ece4}
 .blade-trip-mapbtns{position:absolute;top:12px;right:12px;z-index:500;display:flex;gap:8px}
 .blade-trip-mapbtns button{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:0;background:#fff;color:#2a1710;font:inherit;font-size:13px;font-weight:700;box-shadow:0 2px 10px rgb(0 0 0/.18);cursor:pointer}
 .blade-trip-vehicle{position:relative}
-.blade-trip-body{position:absolute;inset:0;display:block;filter:drop-shadow(0 2px 3px rgb(0 0 0/.3))}
+.blade-trip-body{position:absolute;inset:0;display:block;filter:drop-shadow(0 3px 4px rgb(0 0 0/.35))}
 .blade-trip-body svg{display:block}
 .blade-trip-halo{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;background:rgb(74 47 34/.22);animation:blade-halo 1.8s ease-out infinite}
 .blade-trip-vehicle.is-arrived .blade-trip-halo{background:rgb(46 160 90/.3)}

@@ -86,7 +86,7 @@ function liveFromSim(sim: Sim, t0: number, speed: number, now: number, pauseS = 
 }
 
 /* ---------------- Carte animée ---------------- */
-const CAR_SVG = '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><ellipse cx="20" cy="21" rx="11" ry="16" fill="rgba(0,0,0,.18)"/><rect x="10" y="4" width="20" height="32" rx="8" fill="#4a2f22" stroke="#fff" stroke-width="2.5"/><rect x="13" y="10" width="14" height="7" rx="2.5" fill="#f2d6bb"/><rect x="13" y="25" width="14" height="5" rx="2" fill="#c9a68a"/><circle cx="14" cy="6.5" r="1.6" fill="#ffe9a8"/><circle cx="26" cy="6.5" r="1.6" fill="#ffe9a8"/></svg>';
+const CAR_SVG = '<svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><path d="M22 4 37 38 22 30.5 7 38Z" fill="#fff" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><path d="M22 4 37 38 22 30.5Z" fill="#3a2419"/><path d="M22 4 22 30.5 7 38Z" fill="#8a5a3c"/></svg>';
 const PIN_SVG = '<svg viewBox="0 0 36 46" width="36" height="46" aria-hidden="true"><path d="M18 45s15-15.6 15-27A15 15 0 0 0 3 18c0 11.4 15 27 15 27z" fill="#4a2f22" stroke="#fff" stroke-width="2.5"/><path d="M11 20.5 18 14l7 6.5V27h-4.5v-4.5h-5V27H11z" fill="#fff"/></svg>';
 
 // Fond de carte style « navigation » (Mapbox, clé publique déjà utilisée par le site), OpenStreetMap en secours.
@@ -125,7 +125,7 @@ function TripMap({ route, dest, getLive }: { route: LngLat[]; dest: LngLat; getL
     const behind = L.polyline([], { color: '#b8aca3', weight: 6, lineCap: 'round', lineJoin: 'round' }).addTo(map);
     const ahead = L.polyline(latlngs, { color: '#4a2f22', weight: 6, lineCap: 'round', lineJoin: 'round' }).addTo(map);
     L.marker([dest[1], dest[0]], { icon: L.divIcon({ className: 'blade-trip-dest', html: `${PIN_SVG}<span>Ton adresse</span>`, iconSize: [36, 46], iconAnchor: [18, 44] }), keyboard: false }).addTo(map);
-    const car = L.marker(latlngs[0], { icon: L.divIcon({ className: 'blade-trip-vehicle', html: `<span class="blade-trip-halo"></span><span class="blade-trip-body">${CAR_SVG}</span>`, iconSize: [40, 40], iconAnchor: [20, 20] }), keyboard: false, zIndexOffset: 1000 }).addTo(map);
+    const car = L.marker(latlngs[0], { icon: L.divIcon({ className: 'blade-trip-vehicle', html: `<span class="blade-trip-halo"></span><span class="blade-trip-body">${CAR_SVG}</span>`, iconSize: [44, 44], iconAnchor: [22, 22] }), keyboard: false, zIndexOffset: 1000 }).addTo(map);
     map.fitBounds(L.latLngBounds(latlngs).extend([dest[1], dest[0]]), { padding: [48, 48] });
     map.on('dragstart', () => setFollow(false));
     parts.current = { map, ahead, behind, car };
@@ -188,7 +188,7 @@ export function TripPreview({ live: liveLabel = 'Position estimée', eta: etaLab
     const behind = L.polyline([], { color: '#b8aca3', weight: 7, lineCap: 'round', lineJoin: 'round' }).addTo(map);
     const ahead = L.polyline(latlngs, { color: '#4a2f22', weight: 7, lineCap: 'round', lineJoin: 'round' }).addTo(map);
     L.marker([dest[1], dest[0]], { icon: L.divIcon({ className: 'blade-trip-dest', html: PIN_SVG, iconSize: [36, 46], iconAnchor: [18, 44] }), keyboard: false, interactive: false }).addTo(map);
-    const car = L.marker(latlngs[0], { icon: L.divIcon({ className: 'blade-trip-vehicle', html: `<span class="blade-trip-halo"></span><span class="blade-trip-body">${CAR_SVG}</span>`, iconSize: [40, 40], iconAnchor: [20, 20] }), keyboard: false, interactive: false, zIndexOffset: 1000 }).addTo(map);
+    const car = L.marker(latlngs[0], { icon: L.divIcon({ className: 'blade-trip-vehicle', html: `<span class="blade-trip-halo"></span><span class="blade-trip-body">${CAR_SVG}</span>`, iconSize: [44, 44], iconAnchor: [22, 22] }), keyboard: false, interactive: false, zIndexOffset: 1000 }).addTo(map);
     const fit = () => { map.invalidateSize(); map.fitBounds(L.latLngBounds(latlngs), { paddingTopLeft: [24, 56], paddingBottomRight: [24, 24] }); };
     fit();
     const ro = new ResizeObserver(fit); ro.observe(el);
