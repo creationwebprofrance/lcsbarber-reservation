@@ -460,6 +460,10 @@ html[data-blade-theme=dark] .bl3-logo-light{display:none!important}html[data-bla
 /* Mention « Hairstyle » sous le logo BLADE */
 .blade-lockup{display:inline-flex;flex-direction:column;align-items:center;gap:3px;line-height:1}
 .blade-lockup img{display:block}
+.blade-tagline{display:block;font-family:Arial,Helvetica,sans-serif;font-size:7px;font-weight:600;text-transform:uppercase;letter-spacing:.32em;padding-left:.32em;color:hsl(var(--muted-foreground));white-space:nowrap;margin-top:1px}
+.bl-logo .blade-tagline{font-size:8px}
+.blade-logo .blade-tagline,.bl-logo .blade-tagline{color:hsl(17 15% 38%)}
+html[data-blade-theme=dark] .blade-tagline{color:hsl(30 15% 72%)}
 .blade-hairstyle{display:block;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.55em;padding-left:.55em;color:hsl(var(--primary));white-space:nowrap}
 .blade-logo .blade-lockup,.bl-logo .blade-lockup{width:100%}
 .blade-logo .blade-hairstyle{font-size:8px}

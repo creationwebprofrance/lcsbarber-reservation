@@ -14,7 +14,7 @@ function Logo() {
     <span className="blade-lockup">
       <img className="bl3-logo-light" src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" />
       <img className="bl3-logo-dark" src="/blade/logo-white.png" alt="" aria-hidden="true" width="1920" height="402" />
-      <span className="blade-hairstyle" aria-hidden="true">Hairstyle</span>
+      <span className="blade-hairstyle" aria-hidden="true">Hairstyle</span><span className="blade-tagline" aria-hidden="true">For men &amp; women</span>
     </span>
   </Link>;
 }
