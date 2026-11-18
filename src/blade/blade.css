@@ -1077,3 +1077,11 @@ html[data-blade-theme=dark] .bl-idf-map,html[data-blade-theme=dark] .bl-idf-leaf
 /* Fond en grain léger (texture papier) derrière tout BLADE ; les cartes et blocs gardent leur fond. */
 .blade-app:not(.blade-assistant){--blade-grain-a:rgba(43,29,23,.07);--blade-grain-b:rgba(122,78,45,.06);background-image:radial-gradient(var(--blade-grain-a) .6px,transparent .9px),radial-gradient(var(--blade-grain-b) .6px,transparent .9px);background-size:3px 3px,7px 7px;background-position:0 0,1px 2px}
 html[data-blade-theme=dark] .blade-app:not(.blade-assistant){--blade-grain-a:rgba(255,240,225,.05);--blade-grain-b:rgba(214,170,130,.05)}
+/* Bouton à flèche glissante (accueil). */
+.bl-shift{position:relative;display:inline-block;width:18px;height:18px;overflow:hidden;flex:none}
+.bl-shift svg{position:absolute;top:0;left:0;transition:transform .38s cubic-bezier(.7,0,.2,1)}
+.bl2 .bl-shift-btn .bl-shift .bl-shift-a{transform:translateX(0)}
+.bl2 .bl-shift-btn .bl-shift .bl-shift-b{transform:translateX(-150%)}
+.bl2 .bl-shift-btn:hover .bl-shift .bl-shift-a,.bl2 .bl-shift-btn:focus-visible .bl-shift .bl-shift-a{transform:translateX(150%)}
+.bl2 .bl-shift-btn:hover .bl-shift .bl-shift-b,.bl2 .bl-shift-btn:focus-visible .bl-shift .bl-shift-b{transform:translateX(0)}
+@media(prefers-reduced-motion:reduce){.bl-shift svg{transition:none}}

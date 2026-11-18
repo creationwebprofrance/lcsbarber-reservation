@@ -15,6 +15,11 @@ const TripPreview = lazy(() => import('./trip').then(m => ({ default: m.TripPrev
 const L = <T,>(language: Language, m: Record<Language, T>) => m[language] ?? m.fr;
 
 /** Fait apparaître en fondu les éléments .bl-reveal quand ils entrent à l'écran. */
+/** Flèche qui sort à droite et revient par la gauche au survol du bouton. */
+function ShiftArrow() {
+  return <span className="bl-shift" aria-hidden="true"><ArrowRight size={18} className="bl-shift-a" /><ArrowRight size={18} className="bl-shift-b" /></span>;
+}
+
 export function useScrollReveal() {
   useEffect(() => {
     const els = [...document.querySelectorAll<HTMLElement>('.bl-reveal:not(.is-in)')];
@@ -94,7 +99,7 @@ export function TripShowcase() {
       <h2 id="bl-trip-title">{c.title}</h2>
       <p>{c.text}</p>
       <ul>{c.points.map(p => <li key={p}><BadgeCheck size={18} aria-hidden="true" />{p}</li>)}</ul>
-      <Link to="/blade/trajet/demo" className="bl3-btn bl3-btn-solid">{c.cta} <ArrowRight size={18} aria-hidden="true" /></Link>
+      <Link to="/blade/trajet/demo" className="bl-shift-btn bl3-btn bl3-btn-solid">{c.cta} <ShiftArrow /></Link>
     </div>
     <div className="bl-trip-visual bl-reveal" aria-hidden="true">
       <div className="bl-phone">
@@ -121,7 +126,7 @@ export function IdfBand() {
       <h2 id="bl-idf-title">{c.title}</h2>
       <p>{c.text}</p>
       <ul className="bl-idf-pts">{c.pts.map(([a, b]) => <li key={a}><strong>{a}</strong><span>{b}</span></li>)}</ul>
-      <Link to="/blade/client" className="bl3-btn bl3-btn-solid">{c.cta} <ArrowRight size={18} aria-hidden="true" /></Link>
+      <Link to="/blade/client" className="bl-shift-btn bl3-btn bl3-btn-solid">{c.cta} <ShiftArrow /></Link>
     </div>
     <div className="bl-idf-map" aria-hidden="true">
       <Suspense fallback={<div className="bl-idf-leaflet" />}><IdfMap /></Suspense>
@@ -196,6 +201,6 @@ export function FinalCta() {
     <CalendarCheck size={34} aria-hidden="true" />
     <h2 id="bl-final-title">{c.title}</h2>
     <p>{c.text}</p>
-    <Link to="/blade/client" className="bl3-btn bl3-btn-light">{c.cta} <ArrowRight size={18} aria-hidden="true" /></Link>
+    <Link to="/blade/client" className="bl-shift-btn bl3-btn bl3-btn-light">{c.cta} <ShiftArrow /></Link>
   </section>;
 }
