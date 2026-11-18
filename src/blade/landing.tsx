@@ -33,9 +33,9 @@ function HeroVideo() {
 }
 
 const HERO = {
-  fr: { eyebrow: 'Nouveau en Île-de-France', who: 'Barbers · coiffeuses · lockticiens', avg: 'note moyenne', verified: 'Pros vérifiés', live: 'Trajet suivi en direct', look: 'Look du jour', arrive: 'Ton pro arrive', inMin: 'dans 12 min' },
-  en: { eyebrow: 'New in Île-de-France', who: 'Barbers · hairstylists · locticians', avg: 'average rating', verified: 'Verified pros', live: 'Live trip tracking', look: 'Look of the day', arrive: 'Your pro arrives', inMin: 'in 12 min' },
-  es: { eyebrow: 'Nuevo en Île-de-France', who: 'Barberos · peluqueras · locticians', avg: 'nota media', verified: 'Profesionales verificados', live: 'Trayecto en directo', look: 'Look del día', arrive: 'Tu profesional llega', inMin: 'en 12 min' },
+  fr: { eyebrow: 'Nouveau en Île-de-France', who: 'Barbers · coiffeuses · lockticiens · wigs', avg: 'note moyenne', verified: 'Pros vérifiés', live: 'Trajet suivi en direct', look: 'Look du jour', arrive: 'Ton pro arrive', inMin: 'dans 12 min' },
+  en: { eyebrow: 'New in Île-de-France', who: 'Barbers · hairstylists · locticians · wigs', avg: 'average rating', verified: 'Verified pros', live: 'Live trip tracking', look: 'Look of the day', arrive: 'Your pro arrives', inMin: 'in 12 min' },
+  es: { eyebrow: 'Nuevo en Île-de-France', who: 'Barberos · peluqueras · locticians · pelucas', avg: 'nota media', verified: 'Profesionales verificados', live: 'Trayecto en directo', look: 'Look del día', arrive: 'Tu profesional llega', inMin: 'en 12 min' },
 } as const;
 
 function HeroStars({ value }: { value: number }) {
