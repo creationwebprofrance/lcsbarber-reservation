@@ -227,9 +227,9 @@ export async function updateOwnProvider(displayName: string, revolut: string, st
   await rpc('blade_update_own_provider', { p_display_name: displayName, p_revolut_url: revolut.trim() || null, p_stripe_link_url: stripe.trim() || null });
   refreshAccount();
 }
-export type AdminProvider = { id: string; display_name: string | null; email: string | null; status: 'pending' | 'active' | 'suspended'; created_at: string; validated_at: string | null; last_active_at: string; opt_payment_links: boolean; opt_auto_emails: boolean; opt_searchable: boolean; has_revolut: boolean; has_stripe_link: boolean; is_self: boolean; clients: number; bookings: number };
-export type AdminClient = { id: string; name: string; email: string; phone: string | null; created_at: string; provider_id: string | null; provider_name: string | null };
-export type AdminOverview = { providers: AdminProvider[]; clients: AdminClient[]; unattributed_clients: number; unattributed_bookings: number };
+export type AdminProvider = { id: string; display_name: string | null; email: string | null; status: 'pending' | 'active' | 'suspended'; created_at: string; validated_at: string | null; last_active_at: string; opt_payment_links: boolean; opt_auto_emails: boolean; opt_searchable: boolean; has_revolut: boolean; has_stripe_link: boolean; is_self: boolean; clients: number; bookings: number; honored: number };
+export type AdminClient = { id: string; name: string; email: string; phone: string | null; created_at: string; provider_id: string | null; provider_name: string | null; honored: number };
+export type AdminOverview = { providers: AdminProvider[]; clients: AdminClient[]; unattributed_clients: number; unattributed_bookings: number; honored_total: number; honored_clients: number };
 export const useAdminOverview = (enabled: boolean, refresh = 0) => useRead(async () => enabled ? rpc<AdminOverview>('blade_admin_overview') : null, [enabled, refresh]);
 export async function adminSetProvider(p: Pick<AdminProvider, 'id' | 'status' | 'opt_payment_links' | 'opt_auto_emails' | 'opt_searchable'>, statusChanged: boolean) {
   await rpc('blade_admin_set_provider', { p_provider: p.id, p_status: p.status, p_payment_links: p.opt_payment_links, p_auto_emails: p.opt_auto_emails, p_searchable: p.opt_searchable });
