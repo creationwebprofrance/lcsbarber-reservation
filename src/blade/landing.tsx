@@ -44,12 +44,9 @@ function HeroStars({ value }: { value: number }) {
 
 /** Visuel du hero : vidéo encadrée, carte en arrière-plan et petites cartes flottantes. */
 function HeroVisual() {
-  const { language } = useBladePreferences();
-  const c = HERO[language as keyof typeof HERO] ?? HERO.fr;
   return <div className="bl2-visual">
     <span className="bl2-visual-back" aria-hidden="true" />
     <HeroVideo />
-    <span className="bl2-float bl2-float-trip" aria-hidden="true"><span className="bl2-float-ico"><Car size={18} /></span><span><small>{c.arrive}</small><strong>{c.inMin}</strong></span></span>
   </div>;
 }
 
