@@ -471,6 +471,7 @@ html[data-blade-theme=dark] .blade-tagline{color:hsl(30 15% 72%)}
 @media(max-width:560px){.bl3-logo .blade-hairstyle{font-size:8px;letter-spacing:.5em;padding-left:.5em}}
 .blade-intro-tagline{position:absolute;left:0;right:0;bottom:-52px;text-align:center;font-family:Arial,Helvetica,sans-serif;font-weight:700;text-transform:uppercase;font-size:clamp(11px,2.4vw,16px);letter-spacing:.7em;padding-left:.7em;color:hsl(24 30% 70%);opacity:0;transform:translateY(6px);animation:blade-intro-tag .6s ease-out 1s forwards}
 @keyframes blade-intro-tag{to{opacity:1;transform:none}}
+.blade-intro-sub{position:absolute;left:0;right:0;bottom:-80px;text-align:center;font-family:Arial,Helvetica,sans-serif;font-weight:600;text-transform:uppercase;font-size:clamp(9px,1.7vw,12px);letter-spacing:.45em;padding-left:.45em;color:hsl(30 20% 82%);white-space:nowrap;opacity:0;transform:translateY(6px);animation:blade-intro-tag .55s ease-out 1.15s forwards}
 .blade-logo .blade-hairstyle,.bl-logo .blade-hairstyle{color:hsl(17 27% 23%)}
 
 /* Pages villes Île-de-France */
