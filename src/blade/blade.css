@@ -1087,3 +1087,6 @@ html[data-blade-theme=dark] .blade-app:not(.blade-assistant){--blade-grain-a:rgb
 .bl2 .bl-shift-btn:hover .bl-shift .bl-shift-a,.bl2 .bl-shift-btn:focus-visible .bl-shift .bl-shift-a{transform:translateX(150%)}
 .bl2 .bl-shift-btn:hover .bl-shift .bl-shift-b,.bl2 .bl-shift-btn:focus-visible .bl-shift .bl-shift-b{transform:translateX(0)}
 @media(prefers-reduced-motion:reduce){.bl-shift svg{transition:none}}
+/* Section Île-de-France sans grand encadré : directement sur le fond de la page. */
+.bl2 .bl-idf{background:none;border:0;border-radius:0;box-shadow:none;overflow:visible}
+.blade-app .bl-idf-text h2{margin-top:0}

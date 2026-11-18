@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useMediaUrls } from './customization-data';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BadgeCheck, CalendarCheck, Calculator, Car, ChevronDown, Clapperboard, Gift, MapPin, Percent, Play } from 'lucide-react';
+import { ArrowRight, BadgeCheck, CalendarCheck, Calculator, Car, ChevronDown, Clapperboard, Gift, Percent, Play } from 'lucide-react';
 import { useBladePreferences, type Language } from './preferences';
 import { Carousel } from './carousel';
 import { cleanLogoStyle, logoStyleVars, type LogoStyle } from './customization-model';
@@ -112,7 +112,6 @@ export function IdfBand() {
   });
   return <section className="bl-section bl-idf bl-reveal" aria-labelledby="bl-idf-title">
     <div className="bl-idf-text">
-      <p className="bl-eyebrow"><MapPin size={14} aria-hidden="true" /> {c.eyebrow}</p>
       <h2 id="bl-idf-title">{c.title}</h2>
       <Link to="/blade/client" className="bl-shift-btn bl3-btn bl3-btn-solid">{c.cta} <ShiftArrow /></Link>
     </div>
