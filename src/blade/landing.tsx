@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useReviews, useSession } from './data';
 import { ArrowRight, Pause, Play, Home, MapPin, Check, Star, BadgeCheck, Car } from 'lucide-react';
-import { HowItWorks, TripShowcase, IdfBand, ProBand, Faq, FinalCta, useScrollReveal } from './landing-sections';
+import { HowItWorks, TripShowcase, IdfBand, ProBand, Faq, useScrollReveal } from './landing-sections';
 import { BladeIntro } from './intro';
 import { ReviewsBand } from './reviews-band';
 import { BladeButton } from './common';
@@ -94,7 +94,6 @@ export function Landing() {
       <IdfBand/>
       <ProBand/>
       <Faq/>
-      <FinalCta/>
     </main>
     <SiteFooter/>
   </div>;
