@@ -452,7 +452,9 @@ html[data-blade-theme=dark] .bl3-logo-light{display:none!important}html[data-bla
 @media(min-width:1180px){.bl3-panel{display:none}}
 @media(max-width:1180px){.bl2 .bl3-link{padding:0 13px}.bl2 .bl3-btn{padding:0 14px}}
 @media(max-width:1179px){.bl3-links,.bl3-actions{display:none}.bl3-burger{display:inline-flex}.bl3-bar{grid-template-columns:auto 1fr;gap:12px}}
-@media(max-width:560px){.bl3-right>.blade-preferences{display:none}.bl3-panel-prefs{display:block}.bl3-logo img{height:26px}}
+@media(max-width:560px){.bl3-logo img{height:26px}.bl3-right{gap:6px}.bl3-right>.blade-preferences{gap:6px}}
+.bl3-right>.blade-preferences{flex-wrap:nowrap}
+@media(max-width:359px){.bl3-bar{gap:8px}.bl3-logo img{height:22px}.bl3-right{gap:4px}.bl3-right>.blade-preferences{gap:4px}.bl3-right>.blade-preferences select{font-size:12px;max-width:74px}.bl3-right>.blade-preferences label{padding-left:8px;padding-right:6px}.bl3-right>.blade-preferences label>svg{display:none}.bl3-right .blade-theme-toggle,.bl3-burger{width:40px;height:40px}}
 @media(prefers-reduced-motion:reduce){.bl3-header,.bl3-bar,.bl3-panel,.bl2 .bl3-btn svg{transition:none;animation:none}}
 #blade-gallery,#tarifs,#bl-map{scroll-margin-top:96px}
 .bl-landing.bl2{overflow-x:clip}
