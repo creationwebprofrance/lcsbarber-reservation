@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useReviews, useSession } from './data';
-import { ArrowRight, Pause, Play, Home, MapPin, Check, Star, BadgeCheck, Car, Sparkles } from 'lucide-react';
+import { ArrowRight, Pause, Play, Home, MapPin, Check, Star, BadgeCheck, Car } from 'lucide-react';
 import { HowItWorks, TripShowcase, IdfBand, ProBand, Faq, FinalCta, useScrollReveal } from './landing-sections';
 import { BladeIntro } from './intro';
 import { ReviewsBand } from './reviews-band';
@@ -43,14 +43,12 @@ function HeroStars({ value }: { value: number }) {
 }
 
 /** Visuel du hero : vidéo encadrée, carte en arrière-plan et petites cartes flottantes. */
-function HeroVisual({ avg }: { avg: number | null }) {
+function HeroVisual() {
   const { language } = useBladePreferences();
   const c = HERO[language as keyof typeof HERO] ?? HERO.fr;
   return <div className="bl2-visual">
     <span className="bl2-visual-back" aria-hidden="true" />
     <HeroVideo />
-    <span className="bl2-float bl2-float-live" aria-hidden="true"><i />{c.look}</span>
-    {avg !== null && <span className="bl2-float bl2-float-rate" aria-hidden="true"><strong>{avg.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</strong><HeroStars value={avg} /></span>}
     <span className="bl2-float bl2-float-trip" aria-hidden="true"><span className="bl2-float-ico"><Car size={18} /></span><span><small>{c.arrive}</small><strong>{c.inMin}</strong></span></span>
   </div>;
 }
@@ -73,7 +71,6 @@ export function Landing() {
     <main id="bl-main" className="bl2-main">
       <section className="bl2-hero">
         <div className="bl2-hero-text">
-          <p className="bl2-eyebrow"><Sparkles size={15} aria-hidden="true" />{hero.eyebrow}<span>{hero.who}</span></p>
           <h1>{t('slogan1')}<br /><span className="bl2-accent">{t('slogan2')}</span></h1>
           <p className="bl2-lead">{t('lead')}</p>
           <form className="bl2-search" onSubmit={go}>
@@ -85,7 +82,6 @@ export function Landing() {
               <label className="bl2-input"><MapPin size={22} aria-hidden="true" /><span className="sr-only">{t('city')}</span><input value={city} onChange={e => setCity(e.target.value)} placeholder={t('city')} /></label>
               <BladeButton type="submit" variant="default" className="bl2-submit">{t('find')} <ArrowRight size={20} aria-hidden="true" /></BladeButton>
             </div>
-            <p className="bl2-note">{t('public')}</p>
           </form>
           <ul className="bl2-trust">
             {avg !== null && <li><strong>{avg.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</strong><HeroStars value={avg} /><span>{hero.avg}</span></li>}
@@ -93,7 +89,7 @@ export function Landing() {
             <li><Car size={17} aria-hidden="true" />{hero.live}</li>
           </ul>
         </div>
-        <HeroVisual avg={avg} />
+        <HeroVisual />
       </section>
       <HowItWorks/>
       <TripShowcase/>
