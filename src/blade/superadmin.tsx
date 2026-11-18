@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BladeButton, EmptyState, Icon, PageHeading, Section, Tabs, ArrowRight } from './common';
-import { adminSetProvider, fmtDate, useAdminOverview, useSession, type AdminProvider } from './data';
+import { adminSetProvider, fmtDate, useAdminOverview, useLcsTotals, useSession, type AdminProvider } from './data';
 import { isInactive, providerStatusLabel } from './provider-admin-model';
 
 const OPTIONS: { key: 'opt_payment_links' | 'opt_auto_emails' | 'opt_searchable'; label: string }[] = [
@@ -76,6 +76,7 @@ export function Superadmin() {
   const { ready, isSuperadmin } = useSession();
   const [refresh, setRefresh] = useState(0); const [tab, setTab] = useState('Prestataires'); const [query, setQuery] = useState('');
   const { data, loading, error } = useAdminOverview(ready && isSuperadmin, refresh);
+  const { data: lcs } = useLcsTotals(ready && isSuperadmin, refresh);
   const clients = useMemo(() => {
     const q = query.trim().toLowerCase();
     return (data?.clients ?? []).filter(c => !q || `${c.name} ${c.email} ${c.provider_name ?? ''}`.toLowerCase().includes(q));
@@ -86,8 +87,8 @@ export function Superadmin() {
   return <>
     <PageHeading pro title="Superadmin" description="Tous les prestataires et tous les clients de BLADE"/>
     {data && <div className="blade-kpis">
-      <Kpi icon="scissors" value={data.honored_total} label="Prestations honorées" hint="Terminées, ou confirmées et passées" />
-      <Kpi icon="users" value={data.honored_clients} label="Clients servis" hint="Au moins une prestation honorée" />
+      <Kpi icon="scissors" value={lcs?.bookings ?? data.honored_total} label="Prestations" hint={lcs ? `${data.honored_total} honorées · ${lcs.pending} en attente` : 'Terminées, ou confirmées et passées'} />
+      <Kpi icon="users" value={lcs?.clients ?? data.honored_clients} label="Clients" hint={lcs ? `Comme LCS Barber · ${lcs.revenue.toLocaleString('fr-FR')} € de CA` : 'Au moins une prestation honorée'} />
       <Kpi icon="user" value={data.providers.filter(p => p.status === 'active').length} label="Prestataires actifs" hint={`${data.providers.length} au total`} />
       <Kpi icon="bell" value={pending} label="Demandes à valider" hint="Accès prestataire" />
     </div>}

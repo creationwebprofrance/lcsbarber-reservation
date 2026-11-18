@@ -231,6 +231,9 @@ export type AdminProvider = { id: string; display_name: string | null; email: st
 export type AdminClient = { id: string; name: string; email: string; phone: string | null; created_at: string; provider_id: string | null; provider_name: string | null; honored: number };
 export type AdminOverview = { providers: AdminProvider[]; clients: AdminClient[]; unattributed_clients: number; unattributed_bookings: number; honored_total: number; honored_clients: number };
 export const useAdminOverview = (enabled: boolean, refresh = 0) => useRead(async () => enabled ? rpc<AdminOverview>('blade_admin_overview') : null, [enabled, refresh]);
+/** Totaux calculés comme l'ancien admin LCS Barber (onglet Clients). */
+export type LcsTotals = { clients: number; bookings: number; revenue: number; pending: number };
+export const useLcsTotals = (enabled: boolean, refresh = 0) => useRead(async () => enabled ? rpc<LcsTotals>('blade_lcs_totals') : null, [enabled, refresh]);
 export async function adminSetProvider(p: Pick<AdminProvider, 'id' | 'status' | 'opt_payment_links' | 'opt_auto_emails' | 'opt_searchable'>, statusChanged: boolean) {
   await rpc('blade_admin_set_provider', { p_provider: p.id, p_status: p.status, p_payment_links: p.opt_payment_links, p_auto_emails: p.opt_auto_emails, p_searchable: p.opt_searchable });
   if (statusChanged) await notifyBlade({ event: 'provider_status', provider_id: p.id });
