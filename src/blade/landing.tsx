@@ -89,9 +89,9 @@ export function Landing() {
         <HeroVisual />
       </section>
       <HowItWorks/>
+      <IdfBand/>
       <TripShowcase/>
       <ReviewsBand/>
-      <IdfBand/>
       <ProBand/>
       <Faq/>
     </main>
