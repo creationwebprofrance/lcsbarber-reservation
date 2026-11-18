@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useMediaUrls } from './customization-data';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BadgeCheck, CalendarCheck, Calculator, Car, ChevronDown, Clapperboard, Gift, MapPin, Percent, Play, Scissors, Search } from 'lucide-react';
+import { ArrowRight, BadgeCheck, CalendarCheck, Calculator, Car, ChevronDown, Clapperboard, Gift, MapPin, Percent, Play } from 'lucide-react';
 import { useBladePreferences, type Language } from './preferences';
 import { Carousel } from './carousel';
 import { cleanLogoStyle, logoStyleVars, type LogoStyle } from './customization-model';
@@ -69,19 +69,9 @@ export function HowItWorks() {
     en: { eyebrow: 'Our pros’ work', title: 'Every hair service, at home or nearby', soon: 'Content coming soon!', soonText: 'Photos and videos from our hair pros are on their way.', see: 'See profile', stepsTitle: 'Your haircut in three steps', steps: [['Search', 'Your city, at home or nearby.'], ['Choose', 'Profiles, reviews and prices shown.'], ['Your pro arrives', 'Follow their trip to your door.']] },
     es: { eyebrow: 'El trabajo de nuestros pros', title: 'Toda la peluquería, en casa o cerca', soon: '¡El contenido llega pronto!', soonText: 'Las fotos y vídeos de nuestros profesionales llegan muy pronto.', see: 'Ver perfil', stepsTitle: 'Tu corte en tres pasos', steps: [['Busca', 'Tu ciudad, a domicilio o cerca.'], ['Elige', 'Perfiles, opiniones y precios.'], ['Tu profesional llega', 'Sigue su trayecto hasta tu puerta.']] },
   });
-  const icons = [Search, Scissors, Car];
   return <section id="blade-gallery" className="bl-section bl-how" aria-labelledby="bl-how-title">
     <div className="bl-head bl-reveal"><p className="bl-eyebrow">{c.eyebrow}</p><h2 id="bl-how-title">{c.title}</h2></div>
     <ProShowcase label={c.eyebrow} soon={c.soon} soonText={c.soonText} see={c.see} />
-    <div className="bl-steps-block bl-reveal">
-      <h3>{c.stepsTitle}</h3>
-      <ol className="bl-steps">
-        {c.steps.map(([title, text], i) => { const Icon = icons[i]; return <li key={title} className="bl-step">
-          <span className="bl-step-icon" aria-hidden="true"><Icon size={20} /></span>
-          <div><strong><span className="bl-step-num">{i + 1}.</span> {title}</strong><p>{text}</p></div>
-        </li>; })}
-      </ol>
-    </div>
   </section>;
 }
 
