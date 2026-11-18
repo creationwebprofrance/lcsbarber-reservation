@@ -124,8 +124,6 @@ export function IdfBand() {
     <div className="bl-idf-text">
       <p className="bl-eyebrow"><MapPin size={14} aria-hidden="true" /> {c.eyebrow}</p>
       <h2 id="bl-idf-title">{c.title}</h2>
-      <p>{c.text}</p>
-      <ul className="bl-idf-pts">{c.pts.map(([a, b]) => <li key={a}><strong>{a}</strong><span>{b}</span></li>)}</ul>
       <Link to="/blade/client" className="bl-shift-btn bl3-btn bl3-btn-solid">{c.cta} <ShiftArrow /></Link>
     </div>
     <div className="bl-idf-map" aria-hidden="true">
