@@ -179,7 +179,7 @@ export const useAvailability = (mode: 'domicile' | 'deplacement') => useRead(asy
 }, [mode]);
 
 export type PricingRules = { travel_free_minutes: number; travel_interval_minutes: number; travel_fee_per_interval: number; early_hour_threshold: number; early_hour_fee: number; late_hour_threshold: number; late_hour_fee: number; same_day_fee: number; sunday_fee: number };
-const defaultPricing: PricingRules = { travel_free_minutes: 20, travel_interval_minutes: 20, travel_fee_per_interval: 10, early_hour_threshold: 10, early_hour_fee: 5, late_hour_threshold: 20, late_hour_fee: 5, same_day_fee: 5, sunday_fee: 10 };
+export const defaultPricing: PricingRules = { travel_free_minutes: 20, travel_interval_minutes: 20, travel_fee_per_interval: 10, early_hour_threshold: 10, early_hour_fee: 5, late_hour_threshold: 20, late_hour_fee: 5, same_day_fee: 5, sunday_fee: 10 };
 export const usePricingRules = () => useRead(async () => {
   const rows = unwrap<{ setting_key: string; setting_value: number }[]>(await supabase.from('pricing_settings').select('setting_key,setting_value'));
   const rules: Record<string, number> = { ...defaultPricing };

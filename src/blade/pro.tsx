@@ -3,7 +3,8 @@ import { ProfessionalRequests } from './requests';
 import { LiveServices, LiveReviews, LiveAvailability, LiveProCard, LiveMyBookings, LiveAdminBookings, LiveClients, LiveDayAgenda, RatingSummary } from './live';
 import { Link } from 'react-router-dom';
 import { PageHeading, Section, MetricCard, EmptyState, BladeButton, Icon, PeriodFilter, ResponsiveList, Calendar, Tabs, LocalMap, LocalField, LocalForm, KeyValues, DisabledAction, SearchField, Modal, StatePreview, ArrowRight, Plus, Check } from './common';
-import { useServices, usePricingRules, fmtPrice } from './data';
+import { useServices, usePricingRules, fmtPrice, defaultPricing, type Service, type PricingRules } from './data';
+import { ProviderPage } from './provider';
 import { ProProfileForm, NotificationSettingsForm } from './profile-form';
 import { calculatePricing, getTimeSupplementText } from '@/lib/pricing';
 
@@ -89,6 +90,19 @@ export function Catalogue() {
 export function Simulation() {
   const { data: services } = useServices();
   const { data: rules } = usePricingRules();
+  return <SimulationBody services={services} rules={rules} />;
+}
+
+/** Onglet Simulation de chaque prestataire : ses prestations et ses propres règles tarifaires. */
+export function ProviderSimulation() {
+  return <ProviderPage title="Simulation">{data => {
+    const rules = { ...defaultPricing } as Record<string, number>;
+    for (const r of data.pricing) if (r.setting_key in rules) rules[r.setting_key] = Number(r.setting_value);
+    return <SimulationBody services={data.services.filter(s => s.is_active)} rules={rules as unknown as PricingRules} withHeading={false} />;
+  }}</ProviderPage>;
+}
+
+function SimulationBody({ services, rules, withHeading = true }: { services: Service[] | null | undefined; rules: PricingRules | null | undefined; withHeading?: boolean }) {
   const [serviceId, setServiceId] = useState('');
   const [mode, setMode] = useState('Chez le professionnel');
   const [date, setDate] = useState('');
@@ -114,7 +128,7 @@ export function Simulation() {
   const timeMotif = time && hourlySettings ? getTimeSupplementText(time, hourlySettings) : null;
   const reset = () => { setServiceId(''); setMode('Chez le professionnel'); setDate(''); setTime(''); setAddress(''); setMinutes(''); };
   return <>
-    <PageHeading pro title="Simulation" description="Estimez le prix d’un rendez-vous selon vos règles tarifaires." action={<BladeButton onClick={reset}>Remettre à zéro</BladeButton>} />
+    {withHeading ? <PageHeading pro title="Simulation" description="Estimez le prix d’un rendez-vous selon vos règles tarifaires." action={<BladeButton onClick={reset}>Remettre à zéro</BladeButton>} /> : <div className="blade-toolbar"><p className="blade-note">Estimez le prix d’un rendez-vous selon vos règles tarifaires.</p><BladeButton onClick={reset}>Remettre à zéro</BladeButton></div>}
     <div className="blade-two-columns">
       <Section title="Le rendez-vous">
         <div className="blade-fields">

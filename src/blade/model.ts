@@ -9,6 +9,7 @@ export type ProNavItem = { path?: string; label: string; icon: string; children?
 export const proNav: ProNavItem[] = [
   { path: '/blade/pro', label: 'Dashboard', icon: 'chart' },
   { path: '/blade/pro/prix', label: 'Prix', icon: 'coins' },
+  { path: '/blade/pro/simulation', label: 'Simulation', icon: 'calculator' },
   { path: '/blade/pro/clients', label: 'Clients', icon: 'users' },
   { path: '/blade/pro/emails', label: 'Emails', icon: 'message' },
   { path: '/blade/pro/prestations', label: 'Prestations', icon: 'scissors' },
