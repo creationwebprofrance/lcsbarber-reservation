@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Menu, X, ArrowRight, UserRound } from 'lucide-react';
+import { Menu, X, ArrowRight, UserRound, LogOut } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useSession } from './data';
 import { PreferenceControls, useBladePreferences, type Language } from './preferences';
 
 const extra: Record<Language, { pricing: string; menu: string; close: string; nav: string }> = {
@@ -23,6 +25,7 @@ function Logo() {
 export function SiteNav() {
   const { t, language } = useBladePreferences();
   const x = extra[language] ?? extra.fr;
+  const { session } = useSession();
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -42,7 +45,8 @@ export function SiteNav() {
     <Link to="/blade#blade-gallery" className="bl3-link">{t('how')}</Link>
     <NavLink to="/blade/tarifs" className="bl3-link">{x.pricing}</NavLink>
   </>;
-  const actions = <>
+  // Connecté (client ou pro) : un seul bouton, se déconnecter.
+  const actions = session ? <button type="button" className="bl3-btn bl3-btn-solid" onClick={() => { void supabase.auth.signOut(); }}><LogOut size={17} aria-hidden="true" />{t('logout')}</button> : <>
     <Link to="/blade/connexion?espace=client" className="bl3-btn bl3-btn-ghost"><UserRound size={17} aria-hidden="true" />{t('personal')}</Link>
     <Link to="/blade/connexion?espace=pro" className="bl3-btn bl3-btn-solid">{t('professional')}<ArrowRight size={17} aria-hidden="true" /></Link>
   </>;

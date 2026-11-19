@@ -108,9 +108,15 @@ export function DemoLogin() {
   const { session, isPro, ready } = useSession();
   const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false); const [msg, setMsg] = useState('');
-  useEffect(() => { if (ready && session) navigate(isPro ? '/blade/pro' : pro ? '/blade/devenir-pro' : '/blade/client', { replace: true }); }, [ready, session, isPro, pro, navigate]);
+  // Un compte = un espace : un compte prestataire ne se connecte pas côté client, et un compte client pas côté pro.
+  useEffect(() => {
+    if (!ready || !session) return;
+    if (pro && !isPro && !signup) { void supabase.auth.signOut(); setMsg('Ce compte est un compte client : il ne peut pas se connecter à l’espace professionnel. Utilise la connexion client.'); return; }
+    if (!pro && isPro) { void supabase.auth.signOut(); setMsg('Ce compte est un compte professionnel : il ne peut pas se connecter à l’espace client. Utilise la connexion professionnelle.'); return; }
+    navigate(isPro ? '/blade/pro' : pro ? '/blade/devenir-pro' : '/blade/client', { replace: true });
+  }, [ready, session, isPro, pro, signup, navigate]);
   const title = signup ? (pro ? 'Créer un compte professionnel' : 'Créer un compte') : (pro ? 'Connexion professionnelle' : 'Connexion client');
-  const google = async () => { setBusy(true); setMsg(''); const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}${pro ? '/blade/devenir-pro' : target}` } }); if (error) { setMsg(error.message); setBusy(false); } };
+  const google = async () => { setBusy(true); setMsg(''); const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/blade/connexion?espace=${pro ? 'pro' : 'client'}${signup ? '&mode=inscription' : ''}` } }); if (error) { setMsg(error.message); setBusy(false); } };
   const submit = async (e: React.FormEvent) => { e.preventDefault(); setBusy(true); setMsg('');
     const { data, error } = signup ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}${target}` } }) : await supabase.auth.signInWithPassword({ email, password });
     setBusy(false); if (error) setMsg(error.message); else if (signup && !data.session) setMsg('Vérifiez vos e-mails pour confirmer votre compte.'); };
