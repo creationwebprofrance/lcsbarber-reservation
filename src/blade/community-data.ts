@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-export const COMMUNITY_ACTIVE = false; // Enable only after schema, private storage and server activation are verified.
+export const COMMUNITY_ACTIVE = true; // Réalisations : fonction blade-community + espace privé blade-works.
+export const MESSAGES_ACTIVE = false; // Messagerie privée entre pros : pas encore ouverte côté serveur.
 const db=supabase as SupabaseClient;
 export type PublicWork={id:string;provider_id:string;service_id:string;title:string;description:string|null;category:string;kind:'image'|'video';name:string;city:string;zone:string;home:boolean;near:boolean;photo_url:string|null;price:number;service_name:string;duration_minutes:number;booking_path:string|null;likes:number;liked:boolean;media_url:string;thumbnail_url:string|null;status:'draft'|'processing'|'published'|'hidden'|'error';published_at:string|null};
 export type PublicProvider={provider_id:string;name:string;city:string;zone:string;home:boolean;near:boolean;photo_url:string|null;booking_path:string|null;services:{id:string;name:string;price:number;duration_minutes:number}[]};
