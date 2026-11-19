@@ -5,6 +5,10 @@ import { Link } from 'react-router-dom';
 import { PageHeading, Section, MetricCard, EmptyState, BladeButton, Icon, PeriodFilter, ResponsiveList, Calendar, Tabs, LocalMap, LocalField, LocalForm, KeyValues, DisabledAction, SearchField, Modal, StatePreview, ArrowRight, Plus, Check } from './common';
 import { useServices, usePricingRules, fmtPrice, defaultPricing, type Service, type PricingRules } from './data';
 import { ProviderPage } from './provider';
+import { searchPlaces, routeBetween } from './trip-sim';
+import type { LngLat } from './trip-model';
+import { supabase } from '@/integrations/supabase/client';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { ProProfileForm, NotificationSettingsForm } from './profile-form';
 import { calculatePricing, getTimeSupplementText } from '@/lib/pricing';
 
@@ -98,17 +102,45 @@ export function ProviderSimulation() {
   return <ProviderPage title="Simulation">{data => {
     const rules = { ...defaultPricing } as Record<string, number>;
     for (const r of data.pricing) if (r.setting_key in rules) rules[r.setting_key] = Number(r.setting_value);
-    return <SimulationBody services={data.services.filter(s => s.is_active)} rules={rules as unknown as PricingRules} withHeading={false} />;
+    return <SimulationBody services={data.services.filter(s => s.is_active)} rules={rules as unknown as PricingRules} providerId={data.provider_id} withHeading={false} />;
   }}</ProviderPage>;
 }
 
-function SimulationBody({ services, rules, withHeading = true }: { services: Service[] | null | undefined; rules: PricingRules | null | undefined; withHeading?: boolean }) {
+function SimulationBody({ services, rules, providerId, withHeading = true }: { services: Service[] | null | undefined; rules: PricingRules | null | undefined; providerId?: string; withHeading?: boolean }) {
   const [serviceId, setServiceId] = useState('');
   const [mode, setMode] = useState('Chez le professionnel');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [address, setAddress] = useState('');
   const [minutes, setMinutes] = useState('');
+  const [origin, setOrigin] = useState('');
+  const [base, setBase] = useState<{ address: string; center: LngLat } | null>(null);
+  const [routing, setRouting] = useState(false);
+  const [routeInfo, setRouteInfo] = useState('');
+  useEffect(() => {
+    if (!providerId) return; let alive = true;
+    (supabase as unknown as SupabaseClient).from('blade_salons').select('address,city,postal_code,lat,lng').eq('provider_id', providerId).maybeSingle().then(({ data }) => {
+      if (!alive || !data) return;
+      const label = [data.address, data.postal_code, data.city].filter(Boolean).join(' ');
+      setOrigin(o => o || label);
+      if (data.lat != null && data.lng != null) setBase({ address: label, center: [Number(data.lng), Number(data.lat)] });
+    });
+    return () => { alive = false; };
+  }, [providerId]);
+  const computeTravel = async () => {
+    setRouting(true); setRouteInfo('');
+    try {
+      const from = base && origin.trim() === base.address ? base.center : (await searchPlaces(origin))[0]?.center;
+      const to = (await searchPlaces(address))[0]?.center;
+      if (!from) throw new Error('Adresse de départ introuvable.');
+      if (!to) throw new Error('Adresse du client introuvable.');
+      const r = await routeBetween(from, to);
+      const min = Math.max(1, Math.ceil(r.duration_s / 60));
+      setMinutes(String(min));
+      setRouteInfo(`${min} min · ${(r.distance_m / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} km${r.traffic ? ' avec le trafic actuel' : ''}`);
+    } catch (e) { setRouteInfo(e instanceof Error && e.message.includes('introuvable') ? e.message : 'Calcul du trajet indisponible : renseignez la durée vous-même.'); }
+    finally { setRouting(false); }
+  };
   const [modal, setModal] = useState(false);
   const service = services?.find(s => s.id === serviceId) ?? null;
   const travelMinutes = Number(minutes);
@@ -126,7 +158,7 @@ function SimulationBody({ services, rules, withHeading = true }: { services: Ser
     ? calculatePricing(service.price, time, travelFees, hourlySettings, new Date(`${date}T12:00:00`))
     : null;
   const timeMotif = time && hourlySettings ? getTimeSupplementText(time, hourlySettings) : null;
-  const reset = () => { setServiceId(''); setMode('Chez le professionnel'); setDate(''); setTime(''); setAddress(''); setMinutes(''); };
+  const reset = () => { setServiceId(''); setMode('Chez le professionnel'); setDate(''); setTime(''); setAddress(''); setMinutes(''); setRouteInfo(''); };
   return <>
     {withHeading ? <PageHeading pro title="Simulation" description="Estimez le prix d’un rendez-vous selon vos règles tarifaires." action={<BladeButton onClick={reset}>Remettre à zéro</BladeButton>} /> : <div className="blade-toolbar"><p className="blade-note">Estimez le prix d’un rendez-vous selon vos règles tarifaires.</p><BladeButton onClick={reset}>Remettre à zéro</BladeButton></div>}
     <div className="blade-two-columns">
@@ -137,8 +169,10 @@ function SimulationBody({ services, rules, withHeading = true }: { services: Ser
           <div className="blade-field"><label htmlFor="blade-sim-date">Date du rendez-vous</label><input id="blade-sim-date" type="date" value={date} onChange={e => setDate(e.target.value)} /></div>
           <div className="blade-field"><label htmlFor="blade-sim-time">Heure du rendez-vous</label><input id="blade-sim-time" type="time" value={time} onChange={e => setTime(e.target.value)} /></div>
           {mode === 'Chez le client' && <>
-            <div className="blade-field blade-field-full"><label htmlFor="blade-sim-address">Adresse du client</label><input id="blade-sim-address" value={address} onChange={e => setAddress(e.target.value)} /></div>
-            <div className="blade-field blade-field-full"><label htmlFor="blade-sim-minutes">Temps de trajet aller (minutes)</label><input id="blade-sim-minutes" type="number" min="0" value={minutes} onChange={e => setMinutes(e.target.value)} /><small>Aucun calcul d’itinéraire connecté : renseignez la durée vous-même.</small></div>
+            <div className="blade-field blade-field-full"><label htmlFor="blade-sim-origin">Adresse de départ</label><input id="blade-sim-origin" value={origin} onChange={e => setOrigin(e.target.value)} placeholder="Ton adresse ou celle de ton salon" /></div>
+            <div className="blade-field blade-field-full"><label htmlFor="blade-sim-address">Adresse du client</label><input id="blade-sim-address" value={address} onChange={e => setAddress(e.target.value)} placeholder="Ex : 10 rue de Paris, 95000 Cergy" /></div>
+            <div className="blade-field blade-field-full"><BladeButton type="button" onClick={computeTravel} disabled={routing || !origin.trim() || !address.trim()}>{routing ? 'Calcul…' : 'Calculer le trajet'}</BladeButton>{routeInfo && <small role="status">{routeInfo}</small>}</div>
+            <div className="blade-field blade-field-full"><label htmlFor="blade-sim-minutes">Temps de trajet aller (minutes)</label><input id="blade-sim-minutes" type="number" min="0" value={minutes} onChange={e => setMinutes(e.target.value)} /><small>Rempli par le calcul du trajet, modifiable à la main.</small></div>
           </>}
         </div>
       </Section>
