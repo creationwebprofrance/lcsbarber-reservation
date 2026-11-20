@@ -22,10 +22,20 @@ function HeroVideo() {
     const v = ref.current; if (!v) return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) { v.pause(); setPlaying(false); return; }
-    v.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
-    const pause=()=>{v.pause();setPlaying(false);};document.addEventListener('blade-reader-open',pause);return()=>document.removeEventListener('blade-reader-open',pause);
+    // En mode économie d'énergie (iPhone), la lecture automatique est refusée : on relance toutes les vidéos
+    // muettes de la page au premier contact de l'utilisateur (toucher, clic, touche) et au retour sur l'onglet.
+    const kick = () => {
+      document.querySelectorAll<HTMLVideoElement>('.bl2 video').forEach(el => { if (el.paused && el.dataset.userPaused !== '1') void el.play().catch(() => {}); });
+    };
+    const events = ['touchstart', 'touchend', 'pointerdown', 'click', 'keydown'] as const;
+    const onGesture = (e: Event) => { if (e.target instanceof Element && e.target.closest('.bl-video-toggle')) return; kick(); if (!v.paused) events.forEach(e => document.removeEventListener(e, onGesture, true)); };
+    const onVisible = () => { if (document.visibilityState === 'visible') kick(); };
+    v.play().then(() => setPlaying(true)).catch(() => { setPlaying(false); events.forEach(e => document.addEventListener(e, onGesture, { capture: true, passive: true })); });
+    document.addEventListener('visibilitychange', onVisible);
+    const pause=()=>{v.dataset.userPaused='1';v.pause();setPlaying(false);};document.addEventListener('blade-reader-open',pause);
+    return()=>{document.removeEventListener('blade-reader-open',pause);document.removeEventListener('visibilitychange',onVisible);events.forEach(e=>document.removeEventListener(e,onGesture,true));};
   }, []);
-  const toggle = () => { const v = ref.current; if (!v) return; if (v.paused) v.play().then(() => setPlaying(true)).catch(() => {}); else { v.pause(); setPlaying(false); } };
+  const toggle = () => { const v = ref.current; if (!v) return; if (v.paused) { delete v.dataset.userPaused; v.play().then(() => setPlaying(true)).catch(() => {}); } else { v.dataset.userPaused = '1'; v.pause(); setPlaying(false); } };
   return <div className="bl-video">
     <video ref={ref} src="/blade/hero.mp4" poster="/blade/hero-poster.jpg" muted loop playsInline preload="metadata" aria-label="Vidéo de présentation : coiffures réalisées" onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} />
     <BladeButton type="button" className="bl-video-toggle" onClick={toggle} aria-label={playing ? t('pause') : t('play')}>{playing ? <Pause size={16} /> : <Play size={16} />}</BladeButton>

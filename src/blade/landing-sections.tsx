@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useMediaUrls } from './customization-data';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BadgeCheck, CalendarCheck, Calculator, Car, ChevronDown, Clapperboard, Gift, Percent, Play } from 'lucide-react';
+import { ArrowRight, BadgeCheck, CalendarCheck, Calculator, Car, ChevronDown, Clapperboard, Gift, Play } from 'lucide-react';
 import { useBladePreferences, type Language } from './preferences';
 import { Carousel } from './carousel';
 import { cleanLogoStyle, logoStyleVars, type LogoStyle } from './customization-model';
@@ -129,12 +129,12 @@ export function ProBand() {
     en: { eyebrow: 'For hair professionals', title: 'Barber, hairstylist, loctician? Join BLADE', text: 'Get bookings near you and keep 100% of your earnings.', points: [['No commission', 'Deposits go to your own link.'], ['Loyalty included', 'NFC-ready loyalty card from the Pro plan.'], ['Estimated trip', 'Clients follow you to their door (Premium).']], cta: 'See plans', calc: 'Estimate my income' },
     es: { eyebrow: 'Para profesionales del cabello', title: '¿Barbero, peluquero, loctician? Únete a BLADE', text: 'Recibe reservas cerca de ti y quédate con el 100 % de tus servicios.', points: [['Sin comisión', 'Los anticipos llegan a tu propio enlace.'], ['Fidelidad incluida', 'Tarjeta de fidelidad compatible NFC desde Pro.'], ['Trayecto estimado', 'Tus clientes te siguen hasta su puerta (Premium).']], cta: 'Ver planes', calc: 'Calcular mis ingresos' },
   });
-  const icons = [Percent, Gift, Car];
+  const icons = [Gift, Car];
   return <section className="bl-section bl-pro bl-reveal" aria-labelledby="bl-pro-title">
-    <div className="bl-pro-intro"><p className="bl-eyebrow">{c.eyebrow}</p><h2 id="bl-pro-title">{c.title}</h2><p>{c.text}</p>
+    <div className="bl-pro-intro"><h2 id="bl-pro-title">{c.title}</h2><p>{c.text}</p>
       <div className="bl-pro-actions"><Link to="/blade/tarifs" className="bl3-btn bl3-btn-light">{c.cta} <ArrowRight size={18} aria-hidden="true" /></Link><Link to="/blade/outils/calculateur-barber" className="bl3-btn bl3-btn-line"><Calculator size={18} aria-hidden="true" />{c.calc}</Link></div>
     </div>
-    <ul className="bl-pro-points">{c.points.map(([t, d], i) => { const Icon = icons[i]; return <li key={t}><Icon size={22} aria-hidden="true" /><div><strong>{t}</strong><span>{d}</span></div></li>; })}</ul>
+    <ul className="bl-pro-points">{c.points.slice(1).map(([t, d], i) => { const Icon = icons[i]; return <li key={t}><Icon size={22} aria-hidden="true" /><div><strong>{t}</strong><span>{d}</span></div></li>; })}</ul>
   </section>;
 }
 
