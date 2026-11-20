@@ -1090,3 +1090,20 @@ html[data-blade-theme=dark] .blade-app:not(.blade-assistant){--blade-grain-a:rgb
 /* Section Île-de-France sans grand encadré : directement sur le fond de la page. */
 .bl2 .bl-idf{background:none;border:0;border-radius:0;box-shadow:none;overflow:visible}
 .blade-app .bl-idf-text h2{margin-top:0}
+/* Boutique pro — en développement */
+.blade-dev-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:#f6e3c8;color:#6b3f1d;font-weight:700;font-size:13px;white-space:nowrap}
+.blade-dev-badge::before{content:"";width:8px;height:8px;border-radius:50%;background:#d98a2b}
+.blade-dev-notice{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;margin:0 0 20px;border:1px dashed #d9a066;border-radius:16px;background:rgb(246 227 200/.35)}
+.blade-dev-notice p{margin:4px 0 0}
+.blade-dev-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.blade-dev-list li{display:flex;gap:12px;align-items:flex-start}
+.blade-dev-list li div{display:grid;gap:2px}
+.blade-dev-list span{opacity:.8}
+.blade-dev-preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;opacity:.6;filter:grayscale(.3);pointer-events:none}
+.blade-dev-preview article{border:1px solid rgb(0 0 0/.08);border-radius:14px;padding:12px}
+.blade-dev-preview h3{font-size:15px;margin:10px 0 4px}
+.blade-dev-preview p{margin:0;font-size:14px}
+.blade-dev-thumb{display:grid;place-items:center;aspect-ratio:1;border-radius:10px;background:rgb(74 47 34/.08)}
+html[data-blade-theme=dark] .blade-dev-badge{background:#4a3220;color:#f6d7ad}
+html[data-blade-theme=dark] .blade-dev-notice{background:rgb(74 47 34/.35);border-color:#8a5a3c}
+html[data-blade-theme=dark] .blade-dev-preview article{border-color:rgb(255 255 255/.12)}
