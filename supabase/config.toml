@@ -69,3 +69,6 @@ verify_jwt = false
 
 [functions.blade-community]
 verify_jwt = false
+
+[functions.blade-relance]
+verify_jwt = false

@@ -1119,3 +1119,16 @@ html[data-blade-theme=dark] .blade-dev-preview article{border-color:rgb(255 255 
 html[data-blade-theme=dark] .bl2 .bl2-hero h1 .bl2-accent{background:linear-gradient(100deg,#fff 0%,#f6dcb8 45%,#d6a067 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 html[data-blade-theme=dark] .bl2 .bl2-trust svg{color:#f2c98f}
 @media(max-width:767px){.bl2 .bl2-hero{padding:20px 4px}}
+/* Relances clients par email */
+.blade-relance-all{margin:6px 0 10px}
+.blade-relance-list{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-height:520px;overflow:auto}
+.blade-relance-list label{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:center;padding:10px 12px;border:1px solid hsl(var(--border));border-radius:12px;cursor:pointer}
+.blade-relance-list label>span:first-of-type{display:grid;min-width:0}
+.blade-relance-list small{opacity:.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.blade-relance-meta{grid-column:2;font-size:13px;opacity:.8;display:flex;flex-wrap:wrap;gap:4px 8px}
+.blade-relance-meta em{font-style:normal;padding:1px 8px;border-radius:999px;background:hsl(var(--muted))}
+.blade-relance-list li.is-blocked label{opacity:.55;cursor:not-allowed}
+.blade-relance-templates{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.blade-relance-preview{display:grid;gap:8px;margin:14px 0;padding:16px;border-radius:14px;border:1px dashed hsl(var(--border));background:hsl(var(--muted)/.4)}
+.blade-relance-preview p{margin:0;white-space:pre-line}
+.blade-relance-cta{justify-self:start;padding:8px 14px;border-radius:10px;background:#0a0a0a;color:#fff;font-weight:600;font-size:14px}
