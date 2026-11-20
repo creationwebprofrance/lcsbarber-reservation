@@ -1107,3 +1107,15 @@ html[data-blade-theme=dark] .blade-app:not(.blade-assistant){--blade-grain-a:rgb
 html[data-blade-theme=dark] .blade-dev-badge{background:#4a3220;color:#f6d7ad}
 html[data-blade-theme=dark] .blade-dev-notice{background:rgb(74 47 34/.35);border-color:#8a5a3c}
 html[data-blade-theme=dark] .blade-dev-preview article{border-color:rgb(255 255 255/.12)}
+/* Hero sans grand cadre marron : le contenu repose directement sur le fond grain de la page. */
+.bl2 .bl2-hero{background:none;border-radius:0;box-shadow:none;overflow:visible;color:hsl(var(--foreground));padding-left:clamp(4px,2vw,24px);padding-right:clamp(4px,2vw,24px)}
+.bl2 .bl2-hero::before,.bl2 .bl2-hero::after{display:none}
+.bl2 .bl2-hero h1{color:hsl(var(--foreground));text-shadow:none}
+.bl2 .bl2-hero h1 .bl2-accent{background:linear-gradient(100deg,#6b3f1d 0%,#a8682f 55%,#d6a067 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bl2 .bl2-lead{color:hsl(var(--foreground));opacity:.85}
+.bl2 .bl2-search{box-shadow:0 18px 50px -24px rgb(43 29 23/.35);border:1px solid hsl(var(--border))}
+.bl2 .bl2-trust{color:hsl(var(--foreground))}
+.bl2 .bl2-trust svg{color:#b8792f}
+html[data-blade-theme=dark] .bl2 .bl2-hero h1 .bl2-accent{background:linear-gradient(100deg,#fff 0%,#f6dcb8 45%,#d6a067 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+html[data-blade-theme=dark] .bl2 .bl2-trust svg{color:#f2c98f}
+@media(max-width:767px){.bl2 .bl2-hero{padding:20px 4px}}
