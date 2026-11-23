@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { allowRequest } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +17,14 @@ serve(async (req) => {
   }
 
   try {
+    // Limite par adresse IP (la carte des statistiques géocode plusieurs villes d'un coup).
+    if (!(await allowRequest(req, "geocode", 300, 3600))) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const body = await req.json();
     const parsed = geocodeSchema.safeParse(body);
 
@@ -34,7 +43,8 @@ serve(async (req) => {
     }
 
     const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(city)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&country=fr&types=place&limit=1`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(city)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&country=fr&types=place&limit=1`,
+      { signal: AbortSignal.timeout(10000) }
     );
 
     const data = await response.json();

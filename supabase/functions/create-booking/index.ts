@@ -25,6 +25,25 @@ const bookingSchema = z.object({
   status: z.enum(['pending', 'confirmed']).optional().default('confirmed'),
 });
 
+// Prix « le client se déplace » : doit rester identique à DOMICILE_SERVICES dans src/components/BookingTool.tsx.
+const DOMICILE_ADDRESS = "Imp. des Hirondelles Prolongée, 95380 Puiseux-en-France";
+const DOMICILE_PRICES: Record<string, number> = { "Contours": 10, "Coupe classique": 15, "Coupe + barbe": 20 };
+
+// Mêmes valeurs par défaut que src/hooks/usePricingSettings.tsx.
+const DEFAULT_HOURLY = { early_hour_threshold: 10, early_hour_fee: 5, late_hour_threshold: 20, late_hour_fee: 5 };
+
+// Même règle que calculatePricing (src/lib/pricing.ts) pour le supplément horaire.
+const hourlySupplement = (time: string, s: typeof DEFAULT_HOURLY) => {
+  const hour = parseInt(time.split(':')[0], 10);
+  let supplement = 0;
+  if (hour < s.early_hour_threshold) supplement += (s.early_hour_threshold - hour) * s.early_hour_fee;
+  if (hour >= s.late_hour_threshold) supplement += (hour - (s.late_hour_threshold - 1)) * s.late_hour_fee;
+  return supplement;
+};
+
+// Même règle que calculateDeposit (src/lib/deposit.ts).
+const calculateDeposit = (total: number) => (!total || total <= 0 ? 0 : total < 20 ? 10 : Math.round((total / 2) * 100) / 100);
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -42,6 +61,43 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
+    // Prix minimal recalculé côté serveur : prix de la prestation en base (ou tarif « client se déplace »)
+    // + supplément horaire + frais de déplacement annoncés. Le navigateur ne peut pas payer moins.
+    const { data: service } = await supabase
+      .from('services')
+      .select('name, price, is_active, provider_id')
+      .eq('id', validatedData.service_id)
+      .maybeSingle();
+    if (!service || !service.is_active) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Cette prestation n'est plus disponible. Recharge la page.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const settingsQuery = supabase.from('pricing_settings').select('setting_key, setting_value');
+    const { data: settingRows } = service.provider_id
+      ? await settingsQuery.eq('provider_id', service.provider_id)
+      : await settingsQuery;
+    const hourly = { ...DEFAULT_HOURLY };
+    for (const row of settingRows ?? []) {
+      if (row.setting_key in hourly) (hourly as Record<string, number>)[row.setting_key] = Number(row.setting_value);
+    }
+    const isDomicile = validatedData.client_address.trim() === DOMICILE_ADDRESS && service.name in DOMICILE_PRICES;
+    const basePrice = isDomicile ? DOMICILE_PRICES[service.name] : Number(service.price);
+    const minimumPrice = basePrice + hourlySupplement(validatedData.appointment_time, hourly) + (validatedData.travel_fee ?? 0);
+    // Mode observation par défaut : rejouée sur l'historique, cette règle aurait refusé 77 réservations sur 189
+    // (prix modifiés depuis, corrections admin). On journalise d'abord ; PRICE_FLOOR_ENFORCE=true pour bloquer.
+    const priceTooLow = validatedData.total_price + 0.01 < minimumPrice;
+    if (priceTooLow) {
+      console.warn('create-booking: price below minimum', { service_id: validatedData.service_id, sent: validatedData.total_price, minimumPrice, isDomicile });
+    }
+    if (priceTooLow && Deno.env.get('PRICE_FLOOR_ENFORCE') === 'true') {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Le prix a changé. Recharge la page pour voir le tarif à jour.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Rate limiting: Check for recent bookings from this email (hourly + daily)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -123,9 +179,21 @@ serve(async (req) => {
           if (res.ok) {
             const session = await res.json();
             const expectedCents = deposit_amount ? Math.round(deposit_amount * 100) : null;
+            // Session récente (< 6 h) et pas déjà utilisée par une réservation plus ancienne
+            // (un même paiement couvre les rendez-vous d'une même commande, créés dans la foulée).
+            const recentSession = typeof session.created === 'number' && Date.now() / 1000 - session.created < 6 * 3600;
+            const { count: reuseCount } = await supabase
+              .from('bookings')
+              .select('id', { count: 'exact', head: true })
+              .ilike('notes', `%${stripeSessionId}%`)
+              .lt('created_at', new Date(Date.now() - 30 * 60 * 1000).toISOString());
             verifiedDepositPaid =
               session.payment_status === 'paid' &&
-              (expectedCents === null || session.amount_total === expectedCents);
+              expectedCents !== null &&
+              session.amount_total === expectedCents &&
+              (deposit_amount ?? 0) >= calculateDeposit(validatedData.total_price) &&
+              recentSession &&
+              (reuseCount ?? 0) === 0;
           }
         } catch (e) {
           console.error('Stripe verification error:', e);

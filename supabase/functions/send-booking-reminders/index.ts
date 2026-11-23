@@ -8,8 +8,21 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
+
+// Appelée uniquement par la tâche planifiée pg_cron, qui envoie l'en-tête x-cron-secret
+// (lu dans Supabase Vault). Sans secret configuré, la fonction refuse tout appel.
+const CRON_SECRET = Deno.env.get("REMINDERS_CRON_SECRET") ?? "";
+
+const safeEqual = (a: string, b: string) => {
+  if (!a || !b || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+};
+
+const esc = (v: unknown) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 
 interface Booking {
   id: string;
@@ -19,6 +32,8 @@ interface Booking {
   appointment_date: string;
   appointment_time: string;
   total_price: number;
+  reminder_day_sent_at: string | null;
+  reminder_2h_sent_at: string | null;
   services: {
     name: string;
   };
@@ -27,6 +42,14 @@ interface Booking {
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (!CRON_SECRET) {
+    console.error("REMINDERS_CRON_SECRET missing: reminders disabled");
+    return new Response(JSON.stringify({ error: "Service indisponible" }), { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders } });
+  }
+  if (req.method !== "POST" || !safeEqual(req.headers.get("x-cron-secret") ?? "", CRON_SECRET)) {
+    return new Response(JSON.stringify({ error: "Non autorisé" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } });
   }
 
   try {
@@ -51,6 +74,8 @@ serve(async (req: Request): Promise<Response> => {
         appointment_date,
         appointment_time,
         total_price,
+        reminder_day_sent_at,
+        reminder_2h_sent_at,
         services (name)
       `)
       .eq('status', 'pending')
@@ -91,9 +116,9 @@ serve(async (req: Request): Promise<Response> => {
       const twoHoursBefore = new Date(appointmentDateTime.getTime() - 2 * 60 * 60 * 1000);
       const isTime2HoursReminder = Math.abs(now.getTime() - twoHoursBefore.getTime()) < 30 * 60 * 1000; // Dans les 30 min
 
-      if (isTimeTomorrowReminder) {
+      if (isTimeTomorrowReminder && !booking.reminder_day_sent_at) {
         remindersToSend.push({ booking, type: 'tomorrow' });
-      } else if (isTime2HoursReminder) {
+      } else if (isTime2HoursReminder && !booking.reminder_2h_sent_at) {
         remindersToSend.push({ booking, type: '2hours' });
       }
     });
@@ -104,6 +129,18 @@ serve(async (req: Request): Promise<Response> => {
     const results = await Promise.all(
       remindersToSend.map(async ({ booking, type }) => {
         try {
+          // Réserve l'envoi de façon atomique : un rappel donné part une seule fois par réservation.
+          const column = type === 'tomorrow' ? 'reminder_day_sent_at' : 'reminder_2h_sent_at';
+          const { data: claimed, error: claimError } = await supabase
+            .from('bookings')
+            .update({ [column]: new Date().toISOString() })
+            .eq('id', booking.id)
+            .is(column, null)
+            .select('id');
+          if (claimError || !claimed?.length) {
+            return { success: false, bookingId: booking.id, type, error: claimError ? 'claim failed' : 'already sent' };
+          }
+
           const appointmentDateTime = new Date(`${booking.appointment_date}T${booking.appointment_time}`);
           const formattedDate = appointmentDateTime.toLocaleDateString('fr-FR', {
             weekday: 'long',
@@ -137,12 +174,12 @@ serve(async (req: Request): Promise<Response> => {
                 <p><strong>${type === 'tomorrow' ? 'Demain' : 'Dans 2 heures'}</strong>, vous avez un rendez-vous :</p>
                 
                 <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <p><strong>Client :</strong> ${booking.client_name}</p>
-                  <p><strong>Email :</strong> ${booking.client_email}</p>
+                  <p><strong>Client :</strong> ${esc(booking.client_name)}</p>
+                  <p><strong>Email :</strong> ${esc(booking.client_email)}</p>
                   <p><strong>Date :</strong> ${formattedDate}</p>
-                  <p><strong>Heure :</strong> ${formattedTime}</p>
-                  <p><strong>Service :</strong> ${booking.services.name}</p>
-                  <p><strong>Prix :</strong> ${booking.total_price}€</p>
+                  <p><strong>Heure :</strong> ${esc(formattedTime)}</p>
+                  <p><strong>Service :</strong> ${esc(booking.services.name)}</p>
+                  <p><strong>Prix :</strong> ${esc(booking.total_price)}€</p>
                 </div>
               </div>
             `,
@@ -157,14 +194,14 @@ serve(async (req: Request): Promise<Response> => {
               html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                   <h2 style="color: #333;">${subject}</h2>
-                  <p>${message}</p>
+                  <p>${esc(message).replace(/\n/g, "<br>")}</p>
                   
                   <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                     <h3 style="margin-top: 0;">Détails du rendez-vous</h3>
                     <p><strong>Date :</strong> ${formattedDate}</p>
-                    <p><strong>Heure :</strong> ${formattedTime}</p>
-                    <p><strong>Service :</strong> ${booking.services.name}</p>
-                    <p><strong>Prix :</strong> ${booking.total_price}€</p>
+                    <p><strong>Heure :</strong> ${esc(formattedTime)}</p>
+                    <p><strong>Service :</strong> ${esc(booking.services.name)}</p>
+                    <p><strong>Prix :</strong> ${esc(booking.total_price)}€</p>
                   </div>
 
                   <p>À très bientôt !</p>

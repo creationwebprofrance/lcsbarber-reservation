@@ -1,3 +1,4 @@
+import { allowRequest } from "../_shared/rate-limit.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -31,6 +32,14 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // Limites par adresse IP : 20 messages / 10 min et 150 / jour (protège les crédits IA).
+    if (!(await allowRequest(req, "chat-10m", 20, 600)) || !(await allowRequest(req, "chat-day", 150, 86400))) {
+      return new Response(JSON.stringify({ error: "Trop de messages d'un coup, attends quelques minutes puis réessaie." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "Configuration IA manquante." }), {
@@ -66,6 +75,7 @@ Deno.serve(async (req) => {
         model: "google/gemini-3.7-flash",
         messages: [{ role: "system", content: SYSTEM_PROMPT }, ...trimmed],
       }),
+      signal: AbortSignal.timeout(20000),
     });
 
     if (!res.ok) {

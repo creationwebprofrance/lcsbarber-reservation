@@ -1,0 +1,27 @@
+-- Restaure à l'identique les 12 politiques d'origine (copiées depuis pg_policies le 2026-11-23).
+BEGIN;
+DROP POLICY IF EXISTS "Admins can delete bookings" ON public.bookings;
+CREATE POLICY "Admins can delete bookings" ON public.bookings AS PERMISSIVE FOR DELETE TO authenticated USING (is_admin());
+DROP POLICY IF EXISTS "Admins can update bookings" ON public.bookings;
+CREATE POLICY "Admins can update bookings" ON public.bookings AS PERMISSIVE FOR UPDATE TO public USING (is_admin());
+DROP POLICY IF EXISTS "Admins can view all bookings" ON public.bookings;
+CREATE POLICY "Admins can view all bookings" ON public.bookings AS PERMISSIVE FOR SELECT TO public USING (is_admin());
+DROP POLICY IF EXISTS "Admins can manage client merges" ON public.client_merges;
+CREATE POLICY "Admins can manage client merges" ON public.client_merges AS PERMISSIVE FOR ALL TO public USING (is_admin());
+DROP POLICY IF EXISTS "Admins can view client merges" ON public.client_merges;
+CREATE POLICY "Admins can view client merges" ON public.client_merges AS PERMISSIVE FOR SELECT TO public USING (is_admin());
+DROP POLICY IF EXISTS "Admins can manage clients" ON public.clients;
+CREATE POLICY "Admins can manage clients" ON public.clients AS PERMISSIVE FOR ALL TO public USING (is_admin());
+DROP POLICY IF EXISTS "Admins can manage email templates" ON public.email_templates;
+CREATE POLICY "Admins can manage email templates" ON public.email_templates AS PERMISSIVE FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
+DROP POLICY IF EXISTS "Admins can view email templates" ON public.email_templates;
+CREATE POLICY "Admins can view email templates" ON public.email_templates AS PERMISSIVE FOR SELECT TO authenticated USING (is_admin());
+DROP POLICY IF EXISTS "Admins can manage prestations" ON public.prestations;
+CREATE POLICY "Admins can manage prestations" ON public.prestations AS PERMISSIVE FOR ALL TO public USING (is_admin());
+DROP POLICY IF EXISTS "Admins can view prestations" ON public.prestations;
+CREATE POLICY "Admins can view prestations" ON public.prestations AS PERMISSIVE FOR SELECT TO public USING (is_admin());
+DROP POLICY IF EXISTS "Admins can manage pricing settings" ON public.pricing_settings;
+CREATE POLICY "Admins can manage pricing settings" ON public.pricing_settings AS PERMISSIVE FOR ALL TO public USING (is_admin());
+DROP POLICY IF EXISTS "Admins can manage services" ON public.services;
+CREATE POLICY "Admins can manage services" ON public.services AS PERMISSIVE FOR ALL TO public USING (is_admin());
+COMMIT;
