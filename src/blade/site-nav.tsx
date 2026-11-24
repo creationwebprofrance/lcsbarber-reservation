@@ -42,7 +42,6 @@ export function SiteNav() {
   }, [open]);
   const links = <>
     <NavLink to="/blade/client" className="bl3-link">{t('explore')}</NavLink>
-    <Link to="/blade#blade-gallery" className="bl3-link">{t('how')}</Link>
     <NavLink to="/blade/tarifs" className="bl3-link">{x.pricing}</NavLink>
   </>;
   // Connecté (client ou pro) : un seul bouton, se déconnecter.
