@@ -3,7 +3,8 @@
 // Postgres annule alors toute la transaction (faux compte, politiques, écritures).
 // Les résultats remontent dans le message de l'exception.
 import { readFileSync } from 'node:fs';
-const repo = process.argv[2].replace(/\\/g, '/');
+// Usage : node scripts/test-rls-isolation.mjs   (depuis la racine du dépôt)
+const repo = (process.argv[2] ?? process.cwd()).replace(/\\/g, '/');
 const { runSql } = await import(`file:///${repo}/scripts/supabase-api.mjs`);
 
 const policies = readFileSync(`${repo}/supabase/staged/p0/02_rls_provider_isolation.sql`, 'utf8')
