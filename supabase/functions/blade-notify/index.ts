@@ -47,7 +47,7 @@ Deno.serve(async req => {
       const a = await sendEmail(admins, `BLADE — Nouveau prestataire à valider : ${name}`,
         layout('Nouveau prestataire à valider', `<p><strong>${esc(name)}</strong> (${esc(p.email)}) vient de créer un compte prestataire.</p><p>Ouvre ton espace superadmin pour valider son compte et choisir ses options.</p>`, { label: 'Ouvrir le superadmin', url: `${BLADE_SITE}/pro/superadmin` }), `blade-reg-admin-${p.id}`);
       const b = await sendEmail([p.email ?? user.email ?? ''], 'BLADE — Inscription reçue',
-        layout('Inscription reçue', `<p>Bonjour ${esc(name)},</p><p>Ton compte prestataire est en attente de validation par LCS Barber. Tu recevras un email dès qu'il sera activé.</p>`), `blade-reg-provider-${p.id}`);
+        layout('Inscription reçue', `<p>Bonjour ${esc(name)},</p><p>Ton compte prestataire est en attente de validation par l’équipe BLADE. Tu recevras un email dès qu'il sera activé.</p>`), `blade-reg-provider-${p.id}`);
       return res({ email_sent: a || b });
     }
 
@@ -59,8 +59,8 @@ Deno.serve(async req => {
       const active = p.status === 'active';
       const sent = await sendEmail([p.email], active ? 'BLADE — Ton compte prestataire est actif' : 'BLADE — Ton compte prestataire est suspendu',
         layout(active ? 'Ton compte est actif' : 'Ton compte est suspendu', active
-          ? `<p>Bonjour ${esc(p.display_name)},</p><p>LCS Barber a validé ton compte. Tu peux gérer ton profil, tes prestations, tes prix et tes rendez-vous depuis ton espace professionnel.</p>`
-          : `<p>Bonjour ${esc(p.display_name)},</p><p>Ton compte prestataire BLADE a été suspendu par LCS Barber. Ton profil n'apparaît plus dans la recherche. Contacte LCS Barber pour en savoir plus.</p>`,
+          ? `<p>Bonjour ${esc(p.display_name)},</p><p>L’équipe BLADE a validé ton compte. Tu peux gérer ton profil, tes prestations, tes prix et tes rendez-vous depuis ton espace professionnel.</p>`
+          : `<p>Bonjour ${esc(p.display_name)},</p><p>Ton compte prestataire a été suspendu par l’équipe BLADE. Ton profil n'apparaît plus dans la recherche. Contacte l’équipe BLADE pour en savoir plus.</p>`,
           active ? { label: 'Ouvrir mon espace', url: `${BLADE_SITE}/pro` } : undefined));
       return res({ email_sent: sent });
     }
@@ -99,9 +99,9 @@ Deno.serve(async req => {
       if (!prog?.active) return res({ email_sent: false, reason: 'program_inactive' });
       const proName = p.display_name ?? 'Ton professionnel';
       const earn = prog.kind === 'visits' ? `${prog.points_per_visit} point${prog.points_per_visit > 1 ? 's' : ''} par visite` : `${Number(prog.points_per_euro)} point${Number(prog.points_per_euro) > 1 ? 's' : ''} par euro dépensé`;
-      const rewards = (prog.rewards as { label: string; points: number }[] ?? []).map(r => [r.label, `${r.points} points`] as [string, string]);
+      const rewards = (prog.rewards as { label: string; points: number }[] ?? []).map(r => [r.label, `${r.points} point${r.points > 1 ? 's' : ''}`] as [string, string]);
       const sent = await sendEmail([c.client_email], `BLADE — ${proName} t'offre une carte de fidélité`,
-        layout(`Ta carte de fidélité ${proName}`, `<p>Bonjour ${esc(c.client_name)},</p><p>${esc(proName)} t'offre sa carte « ${esc(prog.name)} » : tu gagnes ${esc(earn)}.</p><p>Solde actuel : <strong>${c.points} points</strong>.</p>${rewards.length ? `<p style="margin-bottom:0">Récompenses :</p>${detailRows(rewards)}` : ''}<p>Montre le QR code de ta carte à chaque passage pour cumuler tes points. Pour la retrouver dans ton espace BLADE, connecte-toi avec cette adresse email.</p>`,
+        layout(`Ta carte de fidélité ${proName}`, `<p>Bonjour ${esc(c.client_name)},</p><p>${esc(proName)} t'offre sa carte « ${esc(prog.name)} » : tu gagnes ${esc(earn)}.</p><p>Solde actuel : <strong>${c.points} point${c.points > 1 ? 's' : ''}</strong>.</p>${rewards.length ? `<p style="margin-bottom:0">Récompenses :</p>${detailRows(rewards)}` : ''}<p>Montre le QR code de ta carte à chaque passage pour cumuler tes points. Pour la retrouver dans ton espace BLADE, connecte-toi avec cette adresse email.</p>`,
           { label: 'Voir ma carte', url: `${BLADE_SITE}/fidelite/${c.code}` }), undefined, p.email ?? undefined);
       if (sent) await db.from('blade_loyalty_cards').update({ sent_at: new Date().toISOString() }).eq('id', c.id);
       return res({ email_sent: sent });
