@@ -14,6 +14,35 @@ import { PlanGate } from './plan';
 
 const when = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 const errText = (e: unknown) => e instanceof Error ? e.message : 'Action impossible. Réessaie.';
+// iPhone / iPad (y compris iPad en mode « ordinateur ») : Safari n'a pas de Web NFC.
+const isIos = () => typeof navigator !== 'undefined' && (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
+/** Garder la carte sur l'écran d'accueil : remplace une carte physique, sans appli ni NFC. */
+function KeepOnPhone() {
+  const ios = isIos();
+  return <details className="blade-loyalty-details"><summary>Garder ma carte sur mon téléphone</summary>
+    <p className="blade-note">Ajoute cette page à ton écran d’accueil : ta carte s’ouvre en un geste, comme une appli, et tu n’as plus qu’à montrer le QR code à chaque passage.</p>
+    {ios ? <ol className="blade-note"><li>Dans Safari, touche le bouton <strong>Partager</strong> (le carré avec une flèche vers le haut).</li><li>Choisis <strong>Sur l’écran d’accueil</strong>, puis <strong>Ajouter</strong>.</li></ol>
+      : <ol className="blade-note"><li>Ouvre le menu du navigateur (⋮ en haut à droite).</li><li>Choisis <strong>Ajouter à l’écran d’accueil</strong>.</li></ol>}
+  </details>;
+}
+
+/** Écrire une carte NFC sans Web NFC (iPhone, Safari, Firefox) : appli gratuite NFC Tools. */
+function NfcWithoutChrome({ link }: { link: string }) {
+  const ios = isIos();
+  const [copied, setCopied] = useState(false);
+  const copy = async () => { try { await navigator.clipboard.writeText(link); setCopied(true); } catch { window.prompt('Copie ce lien :', link); } };
+  return <details className="blade-loyalty-details"><summary><Nfc size={16} aria-hidden="true"/> Préparer une carte NFC {ios ? 'avec un iPhone' : 'sans Chrome Android'}</summary>
+    <ol className="blade-note">
+      <li><BladeButton onClick={copy}>{copied ? 'Lien copié' : 'Copier le lien de la carte'}</BladeButton></li>
+      <li>Installe l’appli gratuite <strong>NFC Tools</strong> ({ios ? 'App Store' : 'Play Store'}).</li>
+      <li>Dans NFC Tools : <strong>Écrire</strong> → <strong>Ajouter un enregistrement</strong> → <strong>URL / URI</strong>, colle le lien, puis <strong>Écrire</strong>.</li>
+      <li>Approche la carte NFC {ios ? 'du haut de ton iPhone' : 'du dos du téléphone'}.</li>
+    </ol>
+    <p className="blade-note">Ensuite, il suffit d’approcher la carte d’un iPhone (XS ou plus récent) ou d’un Android avec le NFC activé : la carte du client s’ouvre, sans appli.</p>
+  </details>;
+}
+
 
 /** The card as the client sees it (client space and public link). */
 export function LoyaltyCardView({ card, showQr = true }: { card: LoyaltyCard; showQr?: boolean }) {
@@ -46,12 +75,16 @@ export function ClientLoyalty() {
 
 export function PublicLoyaltyCard() {
   const { code } = useParams();
+  const { isPro } = useSession();
+  const clean = codeFromScan(code ?? '');
   const state = useAsync(() => publicCard(codeFromScan(code ?? '') ?? ''), [code]);
   return <div className="blade-app"><main className="blade-main">
     <BladeButton asChild><Link to="/blade">BLADE</Link></BladeButton>
     <PageHeading title="Ma carte de fidélité"/>
     {state.loading ? <p role="status">Chargement…</p> : !state.data ? <EmptyState icon="gift" title="Carte introuvable" description="Ce lien n’est plus valide ou le professionnel n’est plus actif."/>
       : <div className="blade-loyalty-grid"><LoyaltyCardView card={state.data}/></div>}
+    {state.data && isPro && clean && <p className="blade-note">Tu es le professionnel ? <BladeButton asChild variant="default"><Link to={`/blade/pro/fidelite?carte=${clean}`}>Ajouter des points à cette carte</Link></BladeButton></p>}
+    {state.data && <KeepOnPhone/>}
     {state.data && <p className="blade-note">Pour retrouver cette carte dans ton espace BLADE, connecte-toi avec l’adresse email à laquelle tu l’as reçue. <Link className="blade-text-link" to="/blade/connexion?espace=client">Se connecter</Link></p>}
   </main></div>;
 }
@@ -180,7 +213,7 @@ function CardActions({ card, onChange }: { card: LoyaltyCard; onChange: (c: Loya
       <BladeButton onClick={copy}>Copier le lien de la carte</BladeButton>
       {nfcSupported() && <BladeButton disabled={busy} onClick={async () => { setBusy(true); setError(''); setMessage('Approche la carte NFC du dos du téléphone…'); try { await writeNfcUrl(cardLink(card.code)); setMessage('Carte NFC prête : le client n’a qu’à approcher son téléphone pour voir ses points.'); } catch (e) { setMessage(''); setError(nfcErrorText(e)); } finally { setBusy(false); } }}><Nfc size={16}/>Écrire sur une carte NFC</BladeButton>}
     </div>
-    {!nfcSupported() && <p className="blade-note">Carte NFC : ouvre cette page dans Chrome sur Android pour l’écrire en un geste, ou copie le lien et encode-le avec une appli comme NFC Tools.</p>}
+    {!nfcSupported() && <NfcWithoutChrome link={cardLink(card.code)}/>}
     <Status error={error} message={message}/>
     {card.events.length > 0 && <><h3>Historique</h3><ul className="blade-loyalty-history">{card.events.map((e, i) => <li key={i}><span>{e.label ?? e.kind}<small>{when(e.created_at)}</small></span><strong>{e.delta > 0 ? `+${e.delta}` : e.delta}</strong></li>)}</ul></>}
   </div>;
@@ -199,7 +232,7 @@ function ScanPanel({ onCode }: { onCode: (code: string) => void }) {
     finally { ctrl.abort(); setNfc(null); }
   };
   return <>
-    <p className="blade-note">{supported ? 'Scanne le QR code de la carte du client.' : 'Scanne le QR code avec l’appareil photo de ton téléphone : la carte s’ouvre directement ici.'}</p>
+    <p className="blade-note">{supported ? 'Scanne le QR code de la carte du client.' : 'Vise le QR code du client avec l’appareil photo de ton téléphone, ou approche sa carte NFC du haut de ton iPhone : la carte s’ouvre directement, puis touche « Ajouter des points ».'}</p>
     <div className="blade-inline">
       {supported && <BladeButton variant="default" onClick={() => setScan(true)}>Scanner un QR code</BladeButton>}
       {nfcSupported() && (nfc ? <BladeButton onClick={() => nfc.abort()}><Nfc size={16}/>Approche la carte… (annuler)</BladeButton> : <BladeButton variant={supported ? 'outline' : 'default'} onClick={() => void readNfc()}><Nfc size={16}/>Lire une carte NFC</BladeButton>)}
