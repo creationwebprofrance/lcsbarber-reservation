@@ -18,7 +18,7 @@ const copy: Record<Language, PricingCopy> = {
     note: 'Prix TTC. Paiement annuel : 2 mois offerts.',
     plans: [
       { id: 'free', name: 'Découverte', price: '0 €', period: '/mois', tagline: 'Pour te lancer sur BLADE.', cta: 'Commencer gratuitement',
-        features: ['Profil visible dans la recherche', 'Jusqu’à 20 réservations par mois', 'Agenda et créneaux', 'Paiement sur place', 'Aucune commission : tes acomptes arrivent sur ton lien Stripe ou Revolut'] },
+        features: ['Profil visible dans la recherche', 'Jusqu’à 20 réservations par mois', 'Agenda et créneaux', 'Aucune commission : tes acomptes arrivent sur ton lien Stripe ou Revolut'] },
       { id: 'pro', name: 'Pro', price: '14,90 €', period: '/mois', tagline: 'Pour les barbers qui travaillent à plein temps.', cta: 'Essayer 30 jours gratuits', badge: 'Le plus choisi',
         features: ['Réservations illimitées', 'Carte de fidélité incluse (cartes NFC compatibles)', 'Acomptes en ligne contre les rendez-vous non honorés', 'Rappels automatiques aux clients', 'Galerie de réalisations et messagerie', 'Statistiques de base'] },
       { id: 'premium', name: 'Premium', price: '29,90 €', period: '/mois', tagline: 'Pour être vu en premier en Île-de-France.', cta: 'Passer Premium',
@@ -32,7 +32,7 @@ const copy: Record<Language, PricingCopy> = {
     note: 'Prices include VAT. Yearly billing: 2 months free.',
     plans: [
       { id: 'free', name: 'Starter', price: '€0', period: '/month', tagline: 'To get started on BLADE.', cta: 'Start for free',
-        features: ['Profile visible in search', 'Up to 20 bookings per month', 'Calendar and time slots', 'Pay on site', 'No fee: deposits go straight to your own Stripe or Revolut link'] },
+        features: ['Profile visible in search', 'Up to 20 bookings per month', 'Calendar and time slots', 'No fee: deposits go straight to your own Stripe or Revolut link'] },
       { id: 'pro', name: 'Pro', price: '€14.90', period: '/month', tagline: 'For full-time barbers.', cta: 'Try 30 days free', badge: 'Most popular',
         features: ['Unlimited bookings', 'Loyalty card included (NFC cards supported)', 'Online deposits against no-shows', 'Automatic client reminders', 'Work gallery and messaging', 'Basic statistics'] },
       { id: 'premium', name: 'Premium', price: '€29.90', period: '/month', tagline: 'To be seen first in Île-de-France.', cta: 'Go Premium',
