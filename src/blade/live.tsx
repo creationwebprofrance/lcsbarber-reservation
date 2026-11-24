@@ -7,7 +7,7 @@ import { EmptyState, Icon, BladeButton, Tabs } from './common';
 import { RequestSlot } from './requests';
 import { canRequestSlot } from './request-model';
 import { useServices, useReviews, useAvailability, useBookings, useClients, useSession, fmtDate, fmtPrice, statusLabel, isoDate, getDepositLinks, type Booking, type DepositLinks } from './data';
-import { needsDeposit } from './provider-admin-model';
+import { needsDeposit, REVOLUT_LINK, STRIPE_LINK } from './provider-admin-model';
 
 function Loading() { return <p className="blade-note" role="status"><LoaderCircle className="blade-spinner" size={16} /> Chargement…</p>; }
 function Failed({ error }: { error: string }) { return <p className="blade-note blade-error" role="alert">Impossible de charger les données : {error}</p>; }
@@ -61,10 +61,13 @@ export function DepositButton({ bookingId }: { bookingId: string }) {
   const [links, setLinks] = useState<DepositLinks | undefined>(undefined); const [busy, setBusy] = useState(false);
   async function open() { setBusy(true); try { setLinks(await getDepositLinks(bookingId)); } catch { setLinks(null); } finally { setBusy(false); } }
   if (links === undefined) return <BladeButton variant="default" disabled={busy} onClick={open}><Icon name="card" />{busy ? 'Chargement…' : 'Payer l’acompte'}</BladeButton>;
-  if (!links?.available || (!links.revolut_url && !links.stripe_link_url)) return <p className="blade-note">Paiement en ligne indisponible pour ce professionnel. Contacte-le directement.</p>;
+  // N'affiche que des liens Revolut ou Stripe valides : un lien enregistré autrement (javascript:, site de phishing) est ignoré.
+  const revolut = links?.revolut_url && REVOLUT_LINK.test(links.revolut_url.trim()) ? links.revolut_url.trim() : null;
+  const stripe = links?.stripe_link_url && STRIPE_LINK.test(links.stripe_link_url.trim()) ? links.stripe_link_url.trim() : null;
+  if (!links?.available || (!revolut && !stripe)) return <p className="blade-note">Paiement en ligne indisponible pour ce professionnel. Contacte-le directement.</p>;
   return <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-    {links.revolut_url && <BladeButton variant="default" asChild><a href={links.revolut_url} target="_blank" rel="noopener noreferrer">Payer avec Revolut</a></BladeButton>}
-    {links.stripe_link_url && <BladeButton variant="default" asChild><a href={links.stripe_link_url} target="_blank" rel="noopener noreferrer">Payer par carte (Stripe)</a></BladeButton>}
+    {revolut && <BladeButton variant="default" asChild><a href={revolut} target="_blank" rel="noopener noreferrer">Payer avec Revolut</a></BladeButton>}
+    {stripe && <BladeButton variant="default" asChild><a href={stripe} target="_blank" rel="noopener noreferrer">Payer par carte (Stripe)</a></BladeButton>}
     <p className="blade-note">Ton rendez-vous sera confirmé dès que {links.provider_name ?? 'le professionnel'} aura reçu l’acompte.</p>
   </div>;
 }
