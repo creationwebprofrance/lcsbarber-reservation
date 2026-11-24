@@ -1,6 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { z } from "https://esm.sh/zod@3.22.4";
+import { allowRequest } from "../_shared/rate-limit.ts";
+
+// Origines autorisées pour les URL de retour Stripe (le reste retombe sur le site officiel).
+const ALLOWED_ORIGINS = [
+  /^https://(www.)?(lcsbarber|blade-hairstyle).com$/,
+  /^https:\/\/[a-z0-9-]+\.lovable\.app$/,
+  /^http:\/\/localhost(:\d+)?$/,
+];
+const DEFAULT_ORIGIN = "https://blade-hairstyle.com";
+const safeOrigin = (o: string | null | undefined) => (o && ALLOWED_ORIGINS.some((r) => r.test(o)) ? o : DEFAULT_ORIGIN);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +18,8 @@ const corsHeaders = {
 };
 
 const schema = z.object({
-  amount: z.number().positive().max(2000),
+  // Acompte LCS : la moitié de la prestation, 10 € minimum (voir src/lib/deposit.ts).
+  amount: z.number().min(10).max(500),
   email: z.string().email().max(255).optional().nullable(),
   description: z.string().max(200).optional().nullable(),
   origin: z.string().url().max(300).optional().nullable(),
@@ -28,7 +39,17 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-    const { amount, email, description, origin, embedded } = parsed.data;
+    // Le libellé n'est plus fourni par le navigateur : il est fixe côté serveur.
+    const { email, origin, embedded } = parsed.data;
+    const amount = Math.round(parsed.data.amount * 100) / 100;
+
+    // Limite : 10 sessions de paiement par heure et par adresse IP.
+    if (!(await allowRequest(req, "deposit", 10, 3600))) {
+      return new Response(JSON.stringify({ error: "Trop de tentatives. Réessaie dans un moment." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const key = Deno.env.get("STRIPE_SECRET_KEY");
     if (!key) {
@@ -39,7 +60,7 @@ serve(async (req) => {
     }
 
     const stripe = new Stripe(key, { apiVersion: "2023-10-16" });
-    const base = origin ?? req.headers.get("origin") ?? "https://blade-hairstyle.com";
+    const base = safeOrigin(origin ?? req.headers.get("origin"));
 
     const common = {
       mode: "payment" as const,
@@ -53,12 +74,13 @@ serve(async (req) => {
             unit_amount: Math.round(amount * 100),
             product_data: {
               name: "Acompte rendez-vous LCS Barber",
-              description: description ?? "Acompte pour confirmer ton rendez-vous",
+              description: `Acompte de ${amount.toFixed(2).replace(".", ",")} € pour confirmer ton rendez-vous`,
             },
           },
           quantity: 1,
         },
       ],
+      metadata: { source: "lcs-deposit" },
     };
 
     // Checkout intégré (Payment Element dans la page) — Apple Pay / Google Pay / CB / Link
