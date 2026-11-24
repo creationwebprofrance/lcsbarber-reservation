@@ -1,7 +1,16 @@
-import { useRef, useState, useMemo, Suspense, useCallback } from "react";
+import { useRef, useState, useMemo, Suspense, useCallback, Component, type ReactNode } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import * as THREE from "three";
+
+/** Si un élément 3D échoue (texture distante indisponible, WebGL absent), on l'ignore
+ *  au lieu de laisser l'erreur démonter toute la page. */
+class Skip3DOnError extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(error: unknown) { console.warn("Scène 3D ignorée :", error); }
+  render() { return this.state.failed ? null : this.props.children; }
+}
 
 function useBarberTexture() {
   return useMemo(() => {
@@ -160,6 +169,7 @@ function Pole() {
 export default function BarberPole3D() {
   return (
     <div className="w-full h-[240px] sm:h-[400px] md:h-[450px] cursor-grab active:cursor-grabbing touch-none">
+      <Skip3DOnError>
       <Canvas
         camera={{ position: [0, 0, 5], fov: 40 }}
         gl={{ antialias: true, alpha: true }}
@@ -172,9 +182,16 @@ export default function BarberPole3D() {
         <pointLight position={[0, -3, 2]} intensity={0.3} color="#F4F1EA" />
         <Suspense fallback={null}>
           <Pole />
-          <Environment preset="studio" />
         </Suspense>
+        {/* L'éclairage « studio » est téléchargé depuis un CDN externe : s'il échoue,
+            la scène garde ses lumières locales au lieu de planter. */}
+        <Skip3DOnError>
+          <Suspense fallback={null}>
+            <Environment preset="studio" />
+          </Suspense>
+        </Skip3DOnError>
       </Canvas>
+      </Skip3DOnError>
     </div>
   );
 }
