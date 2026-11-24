@@ -2,13 +2,19 @@
   RewriteEngine On
   RewriteBase /
 
-  # Conserver les vrais fichiers et dossiers (images, CSS, JavaScript, etc.).
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d
+  # Le dossier public/blade (images, vidéo, manifeste) porte le même nom que la
+  # page /blade. Sans ces deux lignes, Apache ajoute un « / » puis refuse de
+  # lister le dossier : un rafraîchissement sur /blade renvoyait une erreur 403.
+  DirectorySlash Off
+  Options -Indexes
+
+  # Servir tels quels uniquement les vrais fichiers (images, CSS, JavaScript…).
+  RewriteCond %{REQUEST_FILENAME} -f
   RewriteRule ^ - [L]
 
-  # Laisser React Router gérer toutes les pages de l'application.
+  # Toutes les autres adresses, dossiers compris, sont des pages React Router.
   RewriteRule ^ index.html [L]
 </IfModule>
 
+ErrorDocument 403 /index.html
 ErrorDocument 404 /index.html
