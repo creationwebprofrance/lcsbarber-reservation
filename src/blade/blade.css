@@ -985,7 +985,7 @@ html[data-blade-theme=dark] .bl-phone-icons b{border-color:#f3ece4;background-im
 
 /* Vraie carte Île-de-France */
 .bl-idf-map{padding:0;overflow:hidden;background:#e9e2d8}
-.bl-idf-leaflet{width:100%;aspect-ratio:4/3.2;min-height:280px;background:#efe9e2}
+.bl-idf-leaflet{width:100%;aspect-ratio:4/3.2;min-height:280px;background:#efe9e2;position:relative;z-index:0;isolation:isolate}
 html[data-blade-theme=dark] .bl-idf-map,html[data-blade-theme=dark] .bl-idf-leaflet{background:#1c120d}
 .bl-idf-leaflet .leaflet-control-attribution{font-size:9px;background:rgb(255 255 255/.7)}
 .bl-idf-live{background:none;border:0}
