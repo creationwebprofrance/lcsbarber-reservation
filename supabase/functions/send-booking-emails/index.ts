@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+import { allowRequest } from "../_shared/rate-limit.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -81,11 +82,15 @@ const handler = async (req: Request): Promise<Response> => {
     // Anti-relais ouvert : l'email ne peut être envoyé que pour une réservation
     // réellement créée côté serveur pour cette adresse dans les dernières 30 minutes.
     const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-    const { count: realBookingCount, error: lookupError } = await supabase
+    const { data: recent, error: lookupError } = await supabase
       .from("bookings")
-      .select("id", { count: "exact", head: true })
+      .select("id,total_price,travel_fee,services(price)")
       .eq("client_email", raw.clientEmail)
-      .gte("created_at", thirtyMinAgo);
+      .gte("created_at", thirtyMinAgo)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const realBooking = recent?.[0] ?? null;
+    const realBookingCount = realBooking ? 1 : 0;
 
     if (lookupError) {
       console.error("Booking lookup error:", lookupError.message);
@@ -102,6 +107,19 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    // Anti-spam : 3 envois par réservation et par jour, 10 par heure et par adresse IP.
+    const perIp = await allowRequest(req, "booking-emails", 10, 3600);
+    const { data: perBooking } = await supabase.rpc("blade_community_limit", { p_actor: `booking-emails:${realBooking!.id}`, p_scope: "booking-emails", p_limit: 3, p_seconds: 86400 });
+    if (!perIp || perBooking === false) {
+      return new Response(JSON.stringify({ error: "Trop d'envois, réessaie plus tard" }), { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
+    // Les montants viennent de la réservation enregistrée, jamais du navigateur.
+    booking.totalPrice = Number(realBooking!.total_price ?? booking.totalPrice);
+    booking.travelFee = Number(realBooking!.travel_fee ?? 0);
+    const dbServicePrice = (realBooking!.services as { price?: number } | null)?.price;
+    if (typeof dbServicePrice === "number") booking.servicePrice = dbServicePrice;
 
     const hasAddress = !!(booking.clientAddress && booking.clientAddress.trim().length > 0);
     const fullAddress = hasAddress ? [booking.clientAddress, booking.clientPostalCode, booking.clientCity].filter(Boolean).join(', ') : '';

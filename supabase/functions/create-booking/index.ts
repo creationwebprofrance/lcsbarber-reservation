@@ -70,7 +70,7 @@ serve(async (req) => {
       .maybeSingle();
     if (!service || !service.is_active) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Cette prestation n'est plus disponible. Recharge la page.' }),
+        JSON.stringify({ success: false, error: 'Cette prestation n’est plus disponible. Recharge la page.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

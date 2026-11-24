@@ -5,7 +5,7 @@ import { allowRequest } from "../_shared/rate-limit.ts";
 
 // Origines autorisées pour les URL de retour Stripe (le reste retombe sur le site officiel).
 const ALLOWED_ORIGINS = [
-  /^https://(www.)?(lcsbarber|blade-hairstyle).com$/,
+  /^https:\/\/(www\.)?(lcsbarber|blade-hairstyle)\.com$/,
   /^https:\/\/[a-z0-9-]+\.lovable\.app$/,
   /^http:\/\/localhost(:\d+)?$/,
 ];
