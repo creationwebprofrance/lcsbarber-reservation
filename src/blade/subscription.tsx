@@ -116,6 +116,7 @@ function SubscriptionPanel() {
           </article>;
         })}
       </div>
+      {source !== 'superadmin' && <p className="blade-note">En choisissant un plan, tu acceptes les <a href="/cgv-abonnement" target="_blank" rel="noopener" className="blade-text-link">conditions générales de l’abonnement BLADE</a>.</p>}
       <p className="blade-note">Paiement sécurisé par Stripe, sans engagement : tu peux résilier à tout moment. Les acomptes de tes clients restent versés sur ton propre lien Stripe ou Revolut (<Link to="/blade/pro/paiements" className="blade-text-link">Paiements</Link>).</p>
     </Section>
   </>;
