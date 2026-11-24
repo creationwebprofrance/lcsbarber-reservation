@@ -45,7 +45,7 @@ export function metaFor(pathname: string): PageMeta {
   }
   const table: Record<string, PageMeta> = {
     '/blade': DEFAULT,
-    '/blade/tarifs': { title: `Tarifs pour les barbers — ${SITE}`, description: 'Aucune commission sur tes prestations. Découverte gratuit, Pro à 14,90 €/mois avec carte de fidélité incluse, Premium à 29,90 €/mois. Sans engagement.' },
+    '/blade/tarifs': { title: `Tarifs pour les barbers — ${SITE}`, description: 'Aucune commission sur tes prestations. Découverte gratuit, Pro à 19,90 €/mois avec carte de fidélité incluse, Premium à 39,90 €/mois, 10 % de réduction en annuel. Sans engagement.' },
     '/blade/barber': { title: `Barbers à domicile en Île-de-France — ${SITE}`, description: 'Paris, Hauts-de-Seine, Seine-Saint-Denis, Val-de-Marne et toute l’Île-de-France : trouve un barber à domicile ou près de chez toi.' },
     '/blade/outils/calculateur-barber': { title: `Calculateur de revenus et de prix pour barber — ${SITE}`, description: 'Estime ton chiffre d’affaires, tes cotisations et ton revenu net de barber indépendant, et trouve le bon prix pour ta coupe.' },
     '/blade/client': { title: `Trouver un barber — ${SITE}`, description: 'Cherche un barber ou une coiffeuse à domicile ou près de chez toi et réserve en ligne.' },

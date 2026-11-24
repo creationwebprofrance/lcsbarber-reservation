@@ -9,11 +9,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Montants en centimes. L'annuel vaut 12 mois avec 10 % de réduction (arrondi à ,90).
 const PLANS = {
-  pro: { amount: 1490, name: "BLADE Pro" },
-  premium: { amount: 2990, name: "BLADE Premium" },
+  pro: { month: 1990, year: 21490, name: "BLADE Pro" },
+  premium: { month: 3990, year: 43090, name: "BLADE Premium" },
 } as const;
 type PaidPlan = keyof typeof PLANS;
+type Billing = "month" | "year";
+// Anciens montants mensuels (avant la grille de novembre 2026), pour reconnaître un abonnement existant.
+const LEGACY_AMOUNTS: Record<number, PaidPlan> = { 1490: "pro", 2990: "premium" };
 
 const LIVE_STATUSES = ["trialing", "active", "past_due"];
 const KNOWN_STATUSES = [
@@ -44,6 +48,7 @@ function isAllowedOrigin(origin: string): boolean {
 const schema = z.object({
   action: z.enum(["checkout", "sync", "portal"]),
   plan: z.enum(["pro", "premium"]).optional(),
+  billing: z.enum(["month", "year"]).optional(),
   session_id: z.string().min(5).max(255).optional(),
   origin: z.string().max(300),
 });
@@ -82,8 +87,10 @@ function planFromSubscription(sub: Stripe.Subscription, fallback: string): strin
   const meta = sub.metadata?.plan;
   if (meta === "pro" || meta === "premium") return meta;
   const amount = sub.items?.data?.[0]?.price?.unit_amount;
-  if (amount === PLANS.pro.amount) return "pro";
-  if (amount === PLANS.premium.amount) return "premium";
+  for (const id of Object.keys(PLANS) as PaidPlan[]) {
+    if (amount === PLANS[id].month || amount === PLANS[id].year) return id;
+  }
+  if (amount != null && LEGACY_AMOUNTS[amount]) return LEGACY_AMOUNTS[amount];
   return fallback;
 }
 
@@ -124,6 +131,7 @@ serve(async (req) => {
     const parsed = schema.safeParse(raw);
     if (!parsed.success) return json({ error: "Paramètres invalides" }, 400);
     const { action, plan, session_id } = parsed.data;
+    const billing: Billing = parsed.data.billing ?? "month";
     const origin = parsed.data.origin.replace(/\/+$/, "");
     if (!isAllowedOrigin(origin)) return json({ error: "Origine non autorisée" }, 400);
 
@@ -223,22 +231,22 @@ serve(async (req) => {
           {
             price_data: {
               currency: "eur",
-              unit_amount: p.amount,
-              recurring: { interval: "month" },
-              product_data: { name: p.name },
+              unit_amount: p[billing],
+              recurring: { interval: billing },
+              product_data: { name: billing === "year" ? `${p.name} (annuel)` : p.name },
             },
             quantity: 1,
           },
         ],
         subscription_data: {
-          metadata: { provider_id: provider.id, plan },
+          metadata: { provider_id: provider.id, plan, billing },
           ...(withTrial ? { trial_period_days: TRIAL_DAYS } : {}),
         },
-        metadata: { provider_id: provider.id, plan },
+        metadata: { provider_id: provider.id, plan, billing },
         success_url: `${origin}${RETURN_PATH}?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}${RETURN_PATH}?annule=1`,
       });
-      log("Checkout session created", { session: session.id, plan, withTrial });
+      log("Checkout session created", { session: session.id, plan, billing, withTrial });
       return json({ url: session.url });
     }
 

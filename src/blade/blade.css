@@ -390,6 +390,16 @@ html[data-blade-theme=dark] .bl2 .bl2-pill-outline{color:hsl(var(--foreground));
 .blade-plan li svg{color:hsl(var(--primary));margin-top:1px}
 .blade-plan-cta{width:100%;justify-content:center;text-align:center}
 .blade-pricing-note{margin:16px 0 0;font-size:13px;color:hsl(var(--muted-foreground))}
+/* Interrupteur Mensuel / Annuel et argument de prix */
+.blade-pricing-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin:0 0 28px}
+.blade-billing-toggle{display:inline-flex;padding:4px;border:1px solid hsl(var(--border));border-radius:999px;background:hsl(var(--card))}
+.blade-billing-toggle button{border:0;background:transparent;color:hsl(var(--muted-foreground));font:inherit;font-size:14px;font-weight:600;padding:8px 16px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.blade-billing-toggle button[aria-pressed="true"]{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
+.blade-billing-toggle button:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}
+.blade-billing-save{font-size:12px;font-weight:700;opacity:.85}
+.blade-pricing-pitch{margin:0;font-size:14px;color:hsl(var(--muted-foreground))}
+.blade-billing-toggle + .blade-sub-plans{margin-top:16px}
+.blade-plan-billed{margin:-8px 0 0;font-size:13px;color:hsl(var(--muted-foreground));min-height:1.4em}
 @media(max-width:1023px){.blade-pricing-grid{grid-template-columns:1fr;max-width:520px}.blade-pricing{padding:0 24px}}
 @media(max-width:767px){.blade-pricing{padding:0 16px;margin:40px auto}.blade-pricing-head h2{font-size:26px}.blade-pricing-grid{gap:24px;max-width:none}.blade-plan{padding:26px 18px 20px}.blade-plan-price strong{font-size:34px}}
 

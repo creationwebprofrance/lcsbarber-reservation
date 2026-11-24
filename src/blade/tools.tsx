@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Calculator } from 'lucide-react';
 import { SiteNav, SiteFooter } from './site-nav';
 
-const PLANS = [{ id: 'free', label: 'Découverte (0 €)', price: 0 }, { id: 'pro', label: 'Pro (14,90 €)', price: 14.9 }, { id: 'premium', label: 'Premium (29,90 €)', price: 29.9 }];
+const PLANS = [{ id: 'free', label: 'Découverte (0 €)', price: 0 }, { id: 'pro', label: 'Pro (19,90 €)', price: 19.9 }, { id: 'premium', label: 'Premium (39,90 €)', price: 39.9 }];
 const eur = (n: number) => (Number.isFinite(n) ? n : 0).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 const eur2 = (n: number) => (Number.isFinite(n) ? n : 0).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
