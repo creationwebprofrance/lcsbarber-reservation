@@ -17,7 +17,7 @@ type Subscription = {
 type Billing = 'month' | 'year';
 // Mêmes montants que supabase/functions/blade-subscription/index.ts (annuel = 12 mois - 10 %).
 const PLANS: { id: Exclude<Plan, 'free'>; name: string; price: Record<Billing, string>; points: string[] }[] = [
-  { id: 'pro', name: 'Pro', price: { month: '19,90 €/mois', year: '214,90 €/an (17,91 €/mois)' }, points: ['Réservations illimitées', 'Acomptes en ligne contre les no-shows', 'Carte de fidélité incluse', 'Rappels et relances automatiques'] },
+  { id: 'pro', name: 'Pro', price: { month: '19,90 €/mois', year: '214,90 €/an (17,91 €/mois)' }, points: ['Réservations illimitées', 'Acomptes en ligne contre les no-shows', 'Carte de fidélité incluse', 'Rappels automatiques et relances clients'] },
   { id: 'premium', name: 'Premium', price: { month: '39,90 €/mois', year: '430,90 €/an (35,91 €/mois)' }, points: ['Tout le plan Pro', 'Mise en avant dans ta ville', 'Badge « Pro vérifié »', 'Statistiques avancées'] },
 ];
 const NAMES: Record<Plan, string> = { free: 'Découverte (gratuit)', pro: 'Pro', premium: 'Premium' };

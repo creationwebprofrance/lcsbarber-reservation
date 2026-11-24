@@ -25,9 +25,11 @@ serve(async (req) => {
     );
 
     // Verify the request is from an admin
-    const authHeader = req.headers.get("Authorization")!;
+    const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    const { data: { user }, error: authError } = token
+      ? await supabaseClient.auth.getUser(token)
+      : { data: { user: null }, error: new Error("missing token") };
 
     if (authError || !user) {
       return new Response(

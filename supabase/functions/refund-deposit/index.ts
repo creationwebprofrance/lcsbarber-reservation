@@ -112,7 +112,7 @@ serve(async (req) => {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            from: "LCS Barber <onboarding@resend.dev>",
+            from: "LCS Barber <noreply@lookware.fr>",
             to: [booking.client_email],
             subject: "Remboursement de ton acompte",
             html: `<div style="font-family:Manrope,Arial,sans-serif;background:#0B0B0B;color:#F4F1EA;padding:24px;border-radius:12px">
