@@ -46,7 +46,7 @@ const copy: Record<Language, PricingCopy> = {
     note: 'Precios con IVA. Pago anual: 2 meses gratis.',
     plans: [
       { id: 'free', name: 'Descubrimiento', price: '0 €', period: '/mes', tagline: 'Para empezar en BLADE.', cta: 'Empezar gratis',
-        features: ['Perfil visible en la búsqueda', 'Hasta 20 reservas al mes', 'Agenda y horarios', 'Pago en el lugar', 'Sin comisión: los anticipos van a tu enlace Stripe o Revolut'] },
+        features: ['Perfil visible en la búsqueda', 'Hasta 20 reservas al mes', 'Agenda y horarios', 'Sin comisión: los anticipos van a tu enlace Stripe o Revolut'] },
       { id: 'pro', name: 'Pro', price: '14,90 €', period: '/mes', tagline: 'Para barberos a tiempo completo.', cta: 'Probar 30 días gratis', badge: 'El más elegido',
         features: ['Reservas ilimitadas', 'Tarjeta de fidelidad incluida (compatible NFC)', 'Anticipos online contra ausencias', 'Recordatorios automáticos', 'Galería de trabajos y mensajería', 'Estadísticas básicas'] },
       { id: 'premium', name: 'Premium', price: '29,90 €', period: '/mes', tagline: 'Para destacar en Île-de-France.', cta: 'Pasar a Premium',
