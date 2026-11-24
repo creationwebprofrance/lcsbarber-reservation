@@ -7,9 +7,21 @@ import { BLADE_SITE, detailRows, esc, frDate, layout, sendEmail, superadminEmail
 const res = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 const parisDate = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 
+// Called only by the pg_cron job blade-daily, which sends x-cron-secret read from Supabase Vault
+// (same secret as send-booking-reminders). Without the secret configured, every call is refused.
+const CRON_SECRET = Deno.env.get('REMINDERS_CRON_SECRET') ?? '';
+const safeEqual = (a: string, b: string) => {
+  if (!a || !b || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+};
+
 Deno.serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return res({ error: 'Method not allowed' }, 405);
+  if (!CRON_SECRET) { console.error('REMINDERS_CRON_SECRET missing: blade-daily disabled'); return res({ error: 'Service indisponible' }, 503); }
+  if (!safeEqual(req.headers.get('x-cron-secret') ?? '', CRON_SECRET)) return res({ error: 'Non autorisé' }, 401);
   const url = Deno.env.get('SUPABASE_URL'), key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if (!url || !key) return res({ error: 'Service indisponible' }, 503);
   const db = createClient(url, key, { auth: { persistSession: false } });

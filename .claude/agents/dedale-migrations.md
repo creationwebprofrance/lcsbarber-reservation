@@ -24,6 +24,15 @@ Uniquement dans `supabase/staged/<sujet>/`. Pour chaque changement :
   `blade_owns_provider`, sur le modèle des tables existantes.
 - Les fonctions `SECURITY DEFINER` ont `SET search_path = public` et ne renvoient que le nécessaire.
 - Aucun secret en clair. Les secrets des crons sont lus depuis Vault (`vault.decrypted_secrets`).
+- Jobs pg_cron qui appellent une fonction edge : en-têtes `Content-Type` et `x-cron-secret` lu dans
+  `vault.decrypted_secrets` (nom `reminders_cron_secret`) au moment de l'exécution, jamais de JWT
+  `apikey` en dur. Modèles : `supabase/staged/p0/01_reminders_once.sql` et
+  `supabase/staged/blade-daily-secret/`. Pour changer la commande d'un job existant, préfère
+  `cron.alter_job` (même jobid, nom et horaire). Relis l'état réel avec `cron.job`, en masquant les
+  JWT (`regexp_replace(command, 'eyJ[A-Za-z0-9_\-\.]+', '<JWT masque>', 'g')`).
+- Quand une fonction edge se met à exiger un en-tête, la migration du job s'applique AVANT le
+  déploiement de la fonction (écris-le en tête du fichier), et le retour arrière après le retour
+  à l'ancienne fonction.
 - Les migrations sont idempotentes quand c'est possible (`IF NOT EXISTS`, `CREATE OR REPLACE`).
 
 ## Comment tu testes (sans rien enregistrer)

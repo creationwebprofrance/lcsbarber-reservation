@@ -26,7 +26,10 @@ Si on te donne une branche ou des fichiers, relis ceux-là.
    - prix et montants relus en base, jamais pris tels quels dans le corps de la requête ;
    - limite de débit avec `allowRequest(req, scope, limit, seconds)` de `_shared/rate-limit.ts`
      sur tout point d'entrée public ;
-   - les crons exigent l'en-tête `x-cron-secret` (`REMINDERS_CRON_SECRET`) ;
+   - les crons exigent l'en-tête `x-cron-secret` (`REMINDERS_CRON_SECRET`) ; côté base, chaque job
+     pg_cron (`cron.job`) l'envoie lu dans `vault.decrypted_secrets` (`reminders_cron_secret`) et ne
+     porte aucun JWT en dur (cherche `eyJ` dans `command`, en masquant la valeur) ; modèles :
+     `supabase/staged/p0/01_reminders_once.sql`, `supabase/staged/blade-daily-secret/` ;
    - aucune clé `service_role` renvoyée au client ni écrite dans les journaux.
 3. **Secrets** : aucune clé API, aucun jeton, aucun mot de passe en clair dans le code, `.env*`,
    les tests ou les migrations. Cherche `sk_live`, `sk_test`, `service_role`, `eyJ` et `SUPABASE_ACCESS_TOKEN=`.
