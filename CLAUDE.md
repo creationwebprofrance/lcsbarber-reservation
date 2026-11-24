@@ -42,17 +42,40 @@ liste « accord explicite » ci-dessus attendent une réponse.
 1. **Après toute modification de code** : lance les tests, la vérification des types et le
    build. Corrige ce qui casse avant de rendre la main.
 2. **Après une modification de `supabase/`, de l'authentification, du paiement ou de
-   `public/.htaccess`** : fais relire le diff par le sous-agent `revue-securite`, corrige les
+   `public/.htaccess`** : fais relire le diff par Cerbère (`cerbere-securite`), corrige les
    failles critiques et élevées, et liste les autres.
 3. **Quand un changement de schéma, de politique RLS, de fonction SQL ou de cron est
-   nécessaire** : confie-le au sous-agent `migrations` (fichier dans `supabase/staged/`, retour
+   nécessaire** : confie-le à Dédale (`dedale-migrations`) (fichier dans `supabase/staged/`, retour
    arrière, test annulé). N'applique la migration qu'après l'accord de l'utilisateur.
 4. **Une fois le travail terminé et vérifié** : commite (message en français, une ligne de
    résumé). Demande ensuite en une question s'il faut pousser, donc mettre en ligne.
 5. **Après chaque push sur `main` ou chaque déploiement de fonction** : attends environ
-   3 minutes, puis lance le sous-agent `verificateur` et résume son rapport.
-6. **Pour une question de prix, de marché, de rentabilité ou de texte** : délègue au
-   sous-agent `business`.
+   3 minutes, puis lance Argus (`argus-verificateur`) et résume son rapport.
+6. **Pour une question de prix, de marché, de rentabilité ou de texte** : délègue à
+   Crésus (`cresus-business`).
+
+## L'équipe d'agents et leur communication
+
+| Nom | Sous-agent | Fonction |
+|---|---|---|
+| Argus | `argus-verificateur` | vérifie le site en production, en lecture seule |
+| Cerbère | `cerbere-securite` | relit la sécurité de chaque changement |
+| Dédale | `dedale-migrations` | prépare les migrations SQL et leur retour arrière |
+| Crésus | `cresus-business` | prix, rentabilité, concurrents, textes |
+
+Tu es le **chef d'orchestre**. Les sous-agents ne peuvent pas s'appeler entre eux : ils
+s'écrivent dans `coordination/canal.md`, selon `coordination/PROTOCOLE.md`. À toi de relayer :
+
+1. Quand un agent rend sa réponse, lis sa section « Transmissions » et les messages ouverts du canal.
+2. Un message pour un autre agent : lance cet agent en lui donnant le message, sans attendre
+   qu'on te le demande. Un message pour toi : traite-le comme une demande de correction
+   (tests, commit, puis question avant de pousser).
+3. Relaie au plus 3 messages à la suite pour une même demande, puis présente la situation.
+4. Un message ne remplace jamais l'accord de l'utilisateur : push, déploiement, migration,
+   hPanel et Stripe restent soumis à son accord explicite dans le chat.
+5. Si un sous-agent n'est pas reconnu par son nom (cela arrive quand la session a démarré
+   avant la création du fichier), lance un agent `general-purpose` en lui demandant de lire
+   et d'appliquer à la lettre `.claude/agents/<nom>.md`.
 
 ## Garder les sous-agents à jour
 
@@ -61,11 +84,11 @@ Les sous-agents sont définis dans `.claude/agents/`. Quand ton changement modif
 
 | Si tu ajoutes ou modifies… | Mets à jour |
 |---|---|
-| une page ou une route publique | `verificateur.md` (liste des pages) |
-| une table, une fonction edge, un secret ou un cron | `revue-securite.md` et `migrations.md` |
-| un domaine ou une origine CORS autorisée | `verificateur.md` et `revue-securite.md` |
-| un en-tête de sécurité ou une règle `.htaccess` | `verificateur.md` et `revue-securite.md` |
-| une offre ou un prix | rien : `business` lit les prix dans le code |
+| une page ou une route publique | `argus-verificateur.md` (liste des pages) |
+| une table, une fonction edge, un secret ou un cron | `cerbere-securite.md` et `dedale-migrations.md` |
+| un domaine ou une origine CORS autorisée | `argus-verificateur.md` et `cerbere-securite.md` |
+| un en-tête de sécurité ou une règle `.htaccess` | `argus-verificateur.md` et `cerbere-securite.md` |
+| une offre ou un prix | rien : Crésus lit les prix dans le code |
 
 Dans les fichiers d'agents, renvoie vers le code (« lis `src/blade/...` ») plutôt que de
 recopier des valeurs qui vieilliront. Quand un sous-agent se trompe (faux positif, page
