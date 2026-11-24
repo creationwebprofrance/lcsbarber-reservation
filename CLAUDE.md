@@ -7,8 +7,8 @@ Règles d'architecture : @AGENTS.md
 - Site de production : https://blade-hairstyle.com (accueil BLADE : `/blade`). Hostinger le
   déploie automatiquement depuis `main`, 1 à 3 minutes après un push. **Un push sur `main` est
   donc une mise en ligne.**
-- lcsbarber.com redirige en 301 vers blade-hairstyle.com (redirections hPanel ; la racine
-  va vers `/blade`).
+- L'ancien domaine lcsbarber.com est abandonné : il ne figure plus dans le code, le CORS ni
+  les agents. Ne le rajoute pas.
 - Supabase : projet `qgtbedvpxpadpqxrkzzx`, partagé avec LCS Barber et ses vrais clients.
 - Commandes :
   - tests : `npx -y bun@1.2.21 test src/blade`

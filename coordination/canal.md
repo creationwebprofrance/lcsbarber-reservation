@@ -6,7 +6,7 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 
 ### 2026-11-24 · Argus → chef d'orchestre · lcsbarber.com/blade/tarifs en 404
 - Priorité : normale
-- Statut : ouvert
+- Statut : traité par le chef d'orchestre le 2026-11-24 : sans objet, l'utilisateur abandonne lcsbarber.com ; le domaine est retiré du code et des agents.
 - Constat : https://lcsbarber.com/blade/tarifs renvoie 404 au lieu d'un 301 vers blade-hairstyle.com/blade/tarifs. La racine, www, /reservation et /cgv redirigent bien.
 - Preuve : `verification/rapport-2026-11-24.md`
 - Demande : ajouter la règle générique de redirection dans le .htaccess de lcsbarber.com (hPanel, hors dépôt), avec l'accord de l'utilisateur.

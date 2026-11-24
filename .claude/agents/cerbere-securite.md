@@ -21,7 +21,7 @@ Si on te donne une branche ou des fichiers, relis ceux-là.
    une politique RESTRICTIVE « Blade scoped … » qui utilise `blade_owns_provider`.
    Une nouvelle table sans RLS, ou une politique `USING (true)` pour `authenticated`, est critique.
 2. **Fonctions edge** (`supabase/functions/*`) :
-   - CORS limité à blade-hairstyle.com, www, lcsbarber.com, `*.lovable.app` et localhost ;
+   - CORS limité à blade-hairstyle.com, www, `*.lovable.app` et localhost (lcsbarber.com est abandonné et ne doit pas revenir) ;
      jamais `*`, ni le reflet de n'importe quelle origine ;
    - prix et montants relus en base, jamais pris tels quels dans le corps de la requête ;
    - limite de débit avec `allowRequest(req, scope, limit, seconds)` de `_shared/rate-limit.ts`

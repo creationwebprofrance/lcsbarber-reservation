@@ -34,8 +34,6 @@ type VerificationEmailRequest = z.infer<typeof verificationEmailSchema>;
 const ALLOWED_APP_ORIGINS = [
   "https://blade-hairstyle.com",
   "https://www.blade-hairstyle.com",
-  "https://lcsbarber.com",
-  "https://www.lcsbarber.com",
   "https://lcsbarber-reservation.lovable.app",
 ];
 

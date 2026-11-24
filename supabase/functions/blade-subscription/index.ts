@@ -72,8 +72,6 @@ const EXACT_ORIGINS = new Set([
   "https://blade-hairstyle.com",
   "https://www.blade-hairstyle.com",
   "https://lcsbarber-reservation.lovable.app",
-  "https://lcsbarber.com",
-  "https://www.lcsbarber.com",
 ]);
 const ORIGIN_PATTERNS = [
   /^https:\/\/[a-z0-9-]+(\.[a-z0-9-]+)*\.lovable\.app$/,
