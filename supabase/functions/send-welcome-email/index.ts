@@ -84,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
             C'est Lucas, le responsable de LCS Barber. Merci d'avoir créé ton compte.
           </p>
           <p style="margin:26px 0;">
-            <a href="https://lcsbarber.com/reservation"
+            <a href="https://blade-hairstyle.com/reservation"
                style="background:#C58B52; color:#0B0B0B; text-decoration:none; font-weight:700; padding:14px 26px; border-radius:10px; display:inline-block;">
               Prendre rendez-vous
             </a>
@@ -141,7 +141,7 @@ const handler = async (req: Request): Promise<Response> => {
               </tr>
             </table>
             <p style="margin:26px 0 0;">
-              <a href="https://lcsbarber.com/admin"
+              <a href="https://blade-hairstyle.com/admin"
                  style="background:#C58B52; color:#0B0B0B; text-decoration:none; font-weight:700; padding:14px 26px; border-radius:10px; display:inline-block;">
                 Voir dans l'admin
               </a>

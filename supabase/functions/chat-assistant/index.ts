@@ -3,7 +3,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `Tu es "Léo", l'assistant virtuel de LCS Barber (lcsbarber.com), le site de réservation de Lucas, barbier indépendant.
+const SYSTEM_PROMPT = `Tu es "Léo", l'assistant virtuel de LCS Barber (blade-hairstyle.com), le site de réservation de Lucas, barbier indépendant.
 
 Ton rôle : guider les visiteurs, répondre à leurs questions et les débloquer s'ils ont un problème.
 

@@ -330,7 +330,7 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
 
           <p style="margin:28px 0 0;">
-            <a href="https://lcsbarber.com/mes-rendez-vous"
+            <a href="https://blade-hairstyle.com/mes-rendez-vous"
                style="background:#C58B52; color:#0B0B0B; text-decoration:none; font-weight:700; padding:14px 26px; border-radius:10px; display:inline-block;">
               Voir mes rendez-vous
             </a>
@@ -338,7 +338,7 @@ const handler = async (req: Request): Promise<Response> => {
 
           <p style="line-height:1.6; color:#8C877F; font-size:13px; margin:26px 0 0;">À très bientôt,<br>— Lucas, LCS Barber</p>
         </div>
-        <p style="text-align:center; color:#666; font-size:12px; margin:16px 0 0;">LCS Barber — Coiffure à domicile · lcsbarber.com</p>
+        <p style="text-align:center; color:#666; font-size:12px; margin:16px 0 0;">LCS Barber — Coiffure à domicile · blade-hairstyle.com</p>
       </div>`;
 
       adminEmailHtml = `
@@ -366,7 +366,7 @@ const handler = async (req: Request): Promise<Response> => {
           </div>` : ''}
 
           <p style="margin:26px 0 0;">
-            <a href="https://lcsbarber.com/admin"
+            <a href="https://blade-hairstyle.com/admin"
                style="background:#C58B52; color:#0B0B0B; text-decoration:none; font-weight:700; padding:14px 26px; border-radius:10px; display:inline-block;">
               Voir dans l'admin
             </a>

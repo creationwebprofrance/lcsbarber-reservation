@@ -62,7 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
     const formattedTime = booking.appointment_time.slice(0, 5);
 
-    const trackingUrl = `https://lcsbarber.com/mes-rendez-vous?suivi=${booking.id}`;
+    const trackingUrl = `https://blade-hairstyle.com/mes-rendez-vous?suivi=${booking.id}`;
 
     const etaHtml =
       typeof etaMinutes === "number"
@@ -93,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
         <p style="margin:0;font-size:13px;color:#9a9a9a;">Prépare-toi, j'arrive ! À tout de suite ✂️</p>
       </div>
     </div>
-    <p style="text-align:center;font-size:11px;color:#666;margin-top:20px;">LCS Barber — lcsbarber.com</p>
+    <p style="text-align:center;font-size:11px;color:#666;margin-top:20px;">LCS Barber — blade-hairstyle.com</p>
   </div>
 </body>
 </html>`;

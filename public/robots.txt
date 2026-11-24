@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://lcsbarber-reservation.lovable.app/sitemap.xml
+Sitemap: https://blade-hairstyle.com/sitemap.xml

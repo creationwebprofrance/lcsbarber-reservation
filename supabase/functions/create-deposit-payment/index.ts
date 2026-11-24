@@ -39,7 +39,7 @@ serve(async (req) => {
     }
 
     const stripe = new Stripe(key, { apiVersion: "2023-10-16" });
-    const base = origin ?? req.headers.get("origin") ?? "https://lcsbarber.com";
+    const base = origin ?? req.headers.get("origin") ?? "https://blade-hairstyle.com";
 
     const common = {
       mode: "payment" as const,

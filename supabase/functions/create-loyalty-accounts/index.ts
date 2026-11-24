@@ -121,7 +121,7 @@ serve(async (req) => {
     }
 
     const results = { created: 0, emailed: 0, skipped: 0, failed: [] as string[] };
-    const redirectTo = "https://lcsbarber.com/reset-password";
+    const redirectTo = "https://blade-hairstyle.com/reset-password";
 
     for (const email of targets) {
       try {

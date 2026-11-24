@@ -24,6 +24,8 @@ const TRIAL_DAYS = 30;
 const RETURN_PATH = "/blade/pro/abonnement";
 
 const EXACT_ORIGINS = new Set([
+  "https://blade-hairstyle.com",
+  "https://www.blade-hairstyle.com",
   "https://lcsbarber-reservation.lovable.app",
   "https://lcsbarber.com",
   "https://www.lcsbarber.com",
