@@ -16,6 +16,7 @@ const AdminEvenements = lazy(() => import("./pages/AdminEvenements"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const MentionsLegales = lazy(() => import("./pages/legal/MentionsLegales"));
 const CGV = lazy(() => import("./pages/legal/CGV"));
+const CGVAbonnement = lazy(() => import("./pages/legal/CGVAbonnement"));
 const Confidentialite = lazy(() => import("./pages/legal/Confidentialite"));
 const Retractation = lazy(() => import("./pages/legal/Retractation"));
 const Auth = lazy(() => import("./pages/Auth").then(m => ({ default: m.Auth })));
@@ -70,6 +71,7 @@ const App = () => (
             <Route path="/admin-evenements" element={<AdminEvenements />} />
             <Route path="/mentions-legales" element={<MentionsLegales />} />
             <Route path="/cgv" element={<CGV />} />
+            <Route path="/cgv-abonnement" element={<CGVAbonnement />} />
             <Route path="/politique-de-confidentialite" element={<Confidentialite />} />
             <Route path="/droit-de-retractation" element={<Retractation />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

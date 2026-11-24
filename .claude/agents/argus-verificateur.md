@@ -29,7 +29,7 @@ L'ancien domaine lcsbarber.com est abandonné : ne le contrôle pas et ne le sig
 ## Ce que tu contrôles
 
 1. **Pages** : /blade, /blade/tarifs et chaque lien du menu et du pied de page, puis /reservation,
-   /mes-rendez-vous, /auth, /cgv, /mentions-legales, /politique-de-confidentialite,
+   /mes-rendez-vous, /auth, /cgv, /cgv-abonnement, /mentions-legales, /politique-de-confidentialite,
    /droit-de-retractation. Pour chacune : code HTTP, rafraîchissement direct sans 403 ni 404,
    erreurs dans la console, requêtes en échec, images cassées.
 2. **Affichage** en 375 px (mobile) et en bureau : pas de défilement horizontal, menus utilisables,
