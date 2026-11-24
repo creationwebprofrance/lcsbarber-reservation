@@ -154,7 +154,7 @@ serve(async (req) => {
 
         const name = escapeHtml((names.get(email) || "").trim());
         const { error: sendErr } = await resend.emails.send({
-          from: "LCS Barber <noreply@lookware.fr>",
+          from: "LCS Barber <noreply@blade-hairstyle.com>",
           to: [email],
           subject: "Ton compte fidélité LCS Barber est créé 👊",
           html: buildHtml(name, link),

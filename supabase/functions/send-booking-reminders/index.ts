@@ -165,7 +165,7 @@ serve(async (req: Request): Promise<Response> => {
             return { success: false, bookingId: booking.id, type, error: "BARBER_EMAIL missing" };
           }
           await resend.emails.send({
-            from: "LCS Barber <noreply@lookware.fr>",
+            from: "LCS Barber <noreply@blade-hairstyle.com>",
             to: [barberEmail],
             subject: `${type === 'tomorrow' ? 'Demain' : 'Dans 2h'} : RDV avec ${booking.client_name}`,
             html: `
@@ -188,7 +188,7 @@ serve(async (req: Request): Promise<Response> => {
           // Tenter d'envoyer au client (peut échouer en mode test)
           try {
             await resend.emails.send({
-              from: "LCS Barber <noreply@lookware.fr>",
+              from: "LCS Barber <noreply@blade-hairstyle.com>",
               to: [booking.client_email],
               subject: subject,
               html: `

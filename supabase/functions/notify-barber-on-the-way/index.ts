@@ -99,7 +99,7 @@ const handler = async (req: Request): Promise<Response> => {
 </html>`;
 
     const { error: sendError } = await resend.emails.send({
-      from: "LCS Barber <noreply@lookware.fr>",
+      from: "LCS Barber <noreply@blade-hairstyle.com>",
       to: [booking.client_email],
       subject: "LCS Barber est en route 🚗",
       html,

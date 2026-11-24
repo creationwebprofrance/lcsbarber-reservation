@@ -2,7 +2,7 @@
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { BLADE_LOGO_CID, BLADE_LOGO_PNG_BASE64 } from './blade-email-logo.ts';
 
-export const BLADE_SENDER = 'BLADE <noreply@lookware.fr>';
+export const BLADE_SENDER = 'BLADE <noreply@blade-hairstyle.com>';
 export const BLADE_SITE = 'https://blade-hairstyle.com/blade';
 
 export const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] || c));

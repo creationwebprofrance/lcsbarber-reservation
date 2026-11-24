@@ -396,7 +396,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email to client
     console.log("Sending email to client:", booking.clientEmail);
     const clientEmailResponse = await resend.emails.send({
-      from: "LCS Barber <noreply@lookware.fr>",
+      from: "LCS Barber <noreply@blade-hairstyle.com>",
       to: [booking.clientEmail],
       subject: clientSubject,
       html: clientEmailHtml,
@@ -407,7 +407,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (barberEmail) {
       console.log("Sending email to admin:", barberEmail);
       const adminEmailResponse = await resend.emails.send({
-        from: "LCS Barber <noreply@lookware.fr>",
+        from: "LCS Barber <noreply@blade-hairstyle.com>",
         to: [barberEmail],
         subject: adminSubject,
         html: adminEmailHtml,

@@ -53,7 +53,7 @@ serve(async (req) => {
       const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
       const modeLabel = d.mode === "domicile" ? "Le client se déplace" : d.mode === "deplacement" ? "LCS Barber se déplace" : "—";
       await resend.emails.send({
-        from: "LCS Barber <noreply@lookware.fr>",
+        from: "LCS Barber <noreply@blade-hairstyle.com>",
         to: ["lucas.chipan97@gmail.com"],
         reply_to: d.client_email,
         subject: `Nouvelle demande de réservation — ${d.client_name}`,

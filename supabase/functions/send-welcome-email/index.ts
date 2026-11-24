@@ -101,7 +101,7 @@ const handler = async (req: Request): Promise<Response> => {
     const subject = tpl?.subject ? render(tpl.subject) : "Bienvenue chez LCS Barber 👊";
 
     const { error: sendError } = await resend.emails.send({
-      from: "LCS Barber <noreply@lookware.fr>",
+      from: "LCS Barber <noreply@blade-hairstyle.com>",
       to: [email],
       subject,
       html,
@@ -118,7 +118,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Notification admin : nouveau compte créé
     const adminEmail = Deno.env.get("BARBER_EMAIL") || "lucas.chipan97@gmail.com";
     const { error: adminSendError } = await resend.emails.send({
-      from: "LCS Barber <noreply@lookware.fr>",
+      from: "LCS Barber <noreply@blade-hairstyle.com>",
       to: [adminEmail],
       subject: `🆕 Nouveau compte client : ${name}`,
       html: `

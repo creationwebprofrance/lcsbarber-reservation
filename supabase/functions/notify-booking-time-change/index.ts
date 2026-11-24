@@ -86,7 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send to client
     try {
       await resend.emails.send({
-        from: "LCS Barber <noreply@lookware.fr>",
+        from: "LCS Barber <noreply@blade-hairstyle.com>",
         to: [clientEmail],
         subject: `💈 ${changeLabel} - ${serviceName || 'Votre réservation'}`,
         html: clientHtml,
@@ -102,7 +102,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (barberEmail) {
       try {
         await resend.emails.send({
-          from: "LCS Barber <noreply@lookware.fr>",
+          from: "LCS Barber <noreply@blade-hairstyle.com>",
           to: [barberEmail],
           subject: `💈 ${isDateChange ? 'Date modifiée' : 'Horaire modifié'} - ${clientName} (${oldTime} → ${newTime})`,
           html: `

@@ -300,7 +300,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Envoyer au barbier (toujours réussi)
     const barberEmailResponse = await resend.emails.send({
-      from: "LCS Barber <noreply@lookware.fr>",
+      from: "LCS Barber <noreply@blade-hairstyle.com>",
       to: [barberEmail],
       subject: `📋 [COPIE] ${emailSubject}`,
       html: htmlContent,
@@ -312,7 +312,7 @@ const handler = async (req: Request): Promise<Response> => {
     let clientEmailResponse;
     try {
       clientEmailResponse = await resend.emails.send({
-        from: "LCS Barber <noreply@lookware.fr>",
+        from: "LCS Barber <noreply@blade-hairstyle.com>",
         to: [data.clientEmail],
         subject: emailSubject,
         html: htmlContent,
