@@ -1,5 +1,6 @@
 -- P0 · Isolation : l'admin LCS ne voit plus que les lignes de SES prestataires actifs (blade_owns_provider).
--- NON APPLIQUÉ. Généré depuis pg_policies (12 politiques, 7 tables). À tester d'abord sur une branche Supabase :
+-- NON APPLIQUÉ ET INUTILE (test du 24/11/2026, scripts/test-rls-isolation.mjs) : les politiques RESTRICTIVE « Blade scoped » isolent déjà les prestataires.
+-- Généré depuis pg_policies (12 politiques, 7 tables), en ne regardant que les politiques PERMISSIVE.
 -- le dashboard LCS doit garder 189 réservations, 93 clients, 5 services. Retour arrière : 02_rls_provider_isolation.rollback.sql
 -- Hors périmètre (pas de colonne provider_id) : pending_bookings, reviews, profiles, artists, events... à traiter ensuite.
 BEGIN;
