@@ -6,9 +6,10 @@ export default function CGV() {
       <section>
         <h2>1. Objet</h2>
         <p>
-          Les présentes conditions régissent les prestations de coiffure proposées par LCS Barber,
-          réservées via le site, que le client se déplace ou que LCS Barber se déplace chez le
-          client.
+          Les présentes conditions régissent les prestations de coiffure proposées par LCS Barber
+          (Lucas Chipan, entrepreneur individuel), réservées via le site, que le client se déplace
+          ou que LCS Barber se déplace chez le client. Les autres professionnels inscrits sur BLADE
+          appliquent leurs propres conditions.
         </p>
       </section>
 

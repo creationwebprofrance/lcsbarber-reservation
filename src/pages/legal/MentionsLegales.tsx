@@ -6,7 +6,9 @@ export default function MentionsLegales() {
       <section>
         <h2>Éditeur du site</h2>
         <p>
-          LCS Barber — entreprise individuelle de coiffure à domicile et en déplacement.
+          Lucas Chipan, entrepreneur individuel, éditeur de la plateforme BLADE
+          (blade-hairstyle.com) et exploitant de LCS Barber, activité de coiffure à domicile et en
+          déplacement.
           <br />
           Adresse : Imp. des Hirondelles Prolongée, 95380 Puiseux-en-France, France.
           <br />
@@ -19,8 +21,19 @@ export default function MentionsLegales() {
       <section>
         <h2>Immatriculation</h2>
         <p>
-          Numéro SIRET : à compléter. TVA non applicable, article 293 B du Code général des impôts
-          (sous réserve du régime réellement applicable).
+          Immatriculation en cours : le numéro SIRET sera indiqué sur cette page dès son
+          attribution. TVA non applicable, article 293 B du Code général des impôts.
+        </p>
+      </section>
+
+      <section>
+        <h2>Le service BLADE</h2>
+        <p>
+          BLADE est une plateforme qui permet de trouver des coiffeurs et barbiers indépendants et
+          de réserver leurs prestations. Chaque professionnel inscrit exerce sous sa propre
+          responsabilité : il fixe ses prix, réalise ses prestations et reçoit directement ses
+          acomptes. Pour les prestations de LCS Barber, les conditions générales de vente du site
+          s'appliquent.
         </p>
       </section>
 
@@ -35,9 +48,10 @@ export default function MentionsLegales() {
       <section>
         <h2>Propriété intellectuelle</h2>
         <p>
-          L'ensemble des contenus du site (textes, photographies de réalisations, logo, éléments
-          graphiques) est la propriété de LCS Barber. Toute reproduction sans autorisation écrite
-          est interdite.
+          Les marques BLADE et LCS Barber, ainsi que les textes, logos et éléments graphiques du
+          site, appartiennent à Lucas Chipan. Les photographies et textes publiés par les
+          professionnels sur leur profil restent leur propriété. Toute reproduction sans
+          autorisation écrite est interdite.
         </p>
       </section>
 

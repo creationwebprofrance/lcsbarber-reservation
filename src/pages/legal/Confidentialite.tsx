@@ -6,8 +6,8 @@ export default function Confidentialite() {
       <section>
         <h2>Responsable du traitement</h2>
         <p>
-          LCS Barber, Imp. des Hirondelles Prolongée, 95380 Puiseux-en-France —
-          lucas.chipan97@gmail.com.
+          Lucas Chipan, entrepreneur individuel, éditeur de BLADE et exploitant de LCS Barber,
+          Imp. des Hirondelles Prolongée, 95380 Puiseux-en-France — lucas.chipan97@gmail.com.
         </p>
       </section>
 
