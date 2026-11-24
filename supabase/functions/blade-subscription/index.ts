@@ -19,6 +19,47 @@ type Billing = "month" | "year";
 // Anciens montants mensuels (avant la grille de novembre 2026), pour reconnaître un abonnement existant.
 const LEGACY_AMOUNTS: Record<number, PaidPlan> = { 1490: "pro", 2990: "premium" };
 
+// Produits Stripe fixes : un produit par plan ET par périodicité, pour qu'un coupon puisse viser
+// précisément « Pro mensuel » (Stripe limite les coupons par produit, pas par prix).
+// Identifiants stables : blade_pro_month, blade_pro_year, blade_premium_month, blade_premium_year.
+// Le prix actif de chaque produit porte la lookup_key du même nom. Si un montant change dans PLANS,
+// un nouveau prix est créé et récupère la lookup_key ; les abonnements existants gardent leur ancien prix.
+const productId = (plan: PaidPlan, billing: Billing) => `blade_${plan}_${billing}`;
+
+async function ensurePrice(stripe: Stripe, plan: PaidPlan, billing: Billing): Promise<string> {
+  const key = productId(plan, billing);
+  const amount = PLANS[plan][billing];
+  const found = await stripe.prices.list({ lookup_keys: [key], active: true, limit: 1 });
+  const current = found.data[0];
+  if (current && current.unit_amount === amount && current.currency === "eur" && current.recurring?.interval === billing) {
+    return current.id;
+  }
+  const name = billing === "year" ? `${PLANS[plan].name} (annuel)` : `${PLANS[plan].name} (mensuel)`;
+  try {
+    await stripe.products.retrieve(key);
+  } catch (e) {
+    if ((e as { code?: string })?.code !== "resource_missing") throw e;
+    try {
+      await stripe.products.create({ id: key, name, metadata: { plan, billing } });
+    } catch (err) {
+      // Deux paiements lancés en même temps : l'autre a déjà créé le produit.
+      if ((err as { code?: string })?.code !== "resource_already_exists") throw err;
+    }
+  }
+  const price = await stripe.prices.create({
+    product: key,
+    currency: "eur",
+    unit_amount: amount,
+    recurring: { interval: billing },
+    lookup_key: key,
+    transfer_lookup_key: true,
+    metadata: { plan, billing },
+  });
+  if (current) await stripe.prices.update(current.id, { active: false });
+  log("Stripe price created", { key, amount });
+  return price.id;
+}
+
 const LIVE_STATUSES = ["trialing", "active", "past_due"];
 const KNOWN_STATUSES = [
   "trialing", "active", "past_due", "canceled", "incomplete",
@@ -86,7 +127,11 @@ function toIso(seconds: number | null | undefined) {
 function planFromSubscription(sub: Stripe.Subscription, fallback: string): string {
   const meta = sub.metadata?.plan;
   if (meta === "pro" || meta === "premium") return meta;
-  const amount = sub.items?.data?.[0]?.price?.unit_amount;
+  const price = sub.items?.data?.[0]?.price;
+  const product = typeof price?.product === "string" ? price.product : price?.product?.id;
+  const fromProduct = /^blade_(pro|premium)_(month|year)$/.exec(product ?? "");
+  if (fromProduct) return fromProduct[1];
+  const amount = price?.unit_amount;
   for (const id of Object.keys(PLANS) as PaidPlan[]) {
     if (amount === PLANS[id].month || amount === PLANS[id].year) return id;
   }
@@ -220,24 +265,14 @@ serve(async (req) => {
         return json({ url: await portalUrl(customerId), portal: true });
       }
 
-      const p = PLANS[plan as PaidPlan];
+      const priceId = await ensurePrice(stripe, plan as PaidPlan, billing);
       const withTrial = plan === "pro" && !row?.had_trial;
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         customer: customerId,
         locale: "fr",
         allow_promotion_codes: true,
-        line_items: [
-          {
-            price_data: {
-              currency: "eur",
-              unit_amount: p[billing],
-              recurring: { interval: billing },
-              product_data: { name: billing === "year" ? `${p.name} (annuel)` : p.name },
-            },
-            quantity: 1,
-          },
-        ],
+        line_items: [{ price: priceId, quantity: 1 }],
         subscription_data: {
           metadata: { provider_id: provider.id, plan, billing },
           ...(withTrial ? { trial_period_days: TRIAL_DAYS } : {}),
