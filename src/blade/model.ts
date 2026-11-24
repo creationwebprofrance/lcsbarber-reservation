@@ -5,7 +5,9 @@ export const clientLinks = [
   { path: '/blade/client/messages', label: 'Messages', icon: 'message' },
   { path: '/blade/client/profil', label: 'Profil', icon: 'user' },
 ] as const;
-export type ProNavItem = { path?: string; label: string; icon: string; children?: { path: string; label: string }[] };
+/** Salons : fonctionnalité en développement (branche dev/salon-barbers), masquée dans l'application. Les liens publics déjà partagés restent valides. */
+export const SALONS_VISIBLE = false;
+export type ProNavItem = { path?: string; label: string; icon: string; hidden?: boolean; children?: { path: string; label: string }[] };
 export const proNav: ProNavItem[] = [
   { path: '/blade/pro', label: 'Dashboard', icon: 'chart' },
   { path: '/blade/pro/prix', label: 'Prix', icon: 'coins' },
@@ -14,7 +16,7 @@ export const proNav: ProNavItem[] = [
   { path: '/blade/pro/emails', label: 'Emails', icon: 'message' },
   { path: '/blade/pro/relances', label: 'Relances', icon: 'bell' },
   { path: '/blade/pro/prestations', label: 'Prestations', icon: 'scissors' },
-  { path: '/blade/pro/salon', label: 'Mon salon', icon: 'pin' },
+  { path: '/blade/pro/salon', label: 'Mon salon', icon: 'pin', hidden: !SALONS_VISIBLE },
   { path: '/blade/pro/paiements', label: 'Paiements', icon: 'card' },
   { path: '/blade/pro/fidelite', label: 'Fidélité', icon: 'gift' },
   { path: '/blade/pro/boutique', label: 'Boutique (bientôt)', icon: 'shop' },
