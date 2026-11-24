@@ -1,53 +1,8 @@
 project_id = "qgtbedvpxpadpqxrkzzx"
 
-[functions.send-booking-emails]
-verify_jwt = false
-
 [functions.send-booking-reminders]
 verify_jwt = false
 
-[functions.generate-calendar-event]
-verify_jwt = false
-
-[functions.send-verification-email]
-verify_jwt = false
-
-[functions.create-pending-booking]
-verify_jwt = false
-
-[functions.create-booking]
-verify_jwt = false
-
-[functions.notify-price-change]
-verify_jwt = false
-
-[functions.notify-booking-price-change]
-verify_jwt = false
-
-[functions.notify-booking-time-change]
-verify_jwt = false
-
-[functions.send-welcome-email]
-verify_jwt = false
-
-[functions.chat-assistant]
-verify_jwt = false
-
-
-[functions.create-deposit-payment]
-verify_jwt = false
-
-[functions.verify-deposit-payment]
-verify_jwt = false
-
-[functions.notify-barber-on-the-way]
-verify_jwt = false
-
-[functions.authorize-tracking]
-verify_jwt = false
-
-[functions.create-booking-request]
-verify_jwt = false
 
 [functions.blade-notify]
 verify_jwt = false

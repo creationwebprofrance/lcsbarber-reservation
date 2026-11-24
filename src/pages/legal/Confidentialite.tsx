@@ -1,7 +1,8 @@
 import LegalLayout from "./LegalLayout";
 
 // Chaque phrase doit correspondre au code : relue par Cerbère le 24/11/2026
-// (supabase/functions/blade-trip, chat-assistant, blade-subscription, cartes, connexion Google).
+// (supabase/functions/blade-trip, blade-subscription, cartes, connexion Google). L'assistant de
+// discussion de l'ancien site LCS Barber a été retiré ; celui de BLADE est désactivé (ASSISTANT_ACTIVE).
 export default function Confidentialite() {
   return (
     <LegalLayout title="Politique de confidentialité">
@@ -32,11 +33,6 @@ export default function Confidentialite() {
           continu. Le lien de suivi envoyé au client est lisible par toute personne qui le possède :
           ne le partagez pas.
         </p>
-        <p>
-          Assistant de discussion : les messages que vous lui écrivez sont transmis à un service
-          d'intelligence artificielle pour produire la réponse. N'y saisissez pas de données
-          sensibles.
-        </p>
       </section>
 
       <section>
@@ -65,7 +61,6 @@ export default function Confidentialite() {
             IP quand une carte s'affiche.
           </li>
           <li>Google : connexion avec Google et polices de caractères (votre adresse IP).</li>
-          <li>Lovable : assistant de discussion (modèle d'intelligence artificielle de Google).</li>
         </ul>
         <p>
           Certains de ces prestataires peuvent traiter des données hors de l'Union européenne,

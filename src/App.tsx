@@ -1,18 +1,11 @@
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
-const Home = lazy(() => import("./pages/Home"));
-const Reservation = lazy(() => import("./pages/Reservation"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Simulator = lazy(() => import("./pages/Simulator"));
-const Carnaval = lazy(() => import("./pages/Carnaval"));
-const Evenements = lazy(() => import("./pages/Evenements"));
-const Catalogue = lazy(() => import("./pages/Catalogue"));
-const MesRendezVous = lazy(() => import("./pages/MesRendezVous"));
-const AdminEvenements = lazy(() => import("./pages/AdminEvenements"));
+import { ThemeProvider } from "next-themes";
+import ScrollToTop from "./components/ScrollToTop";
+
+// Pages hors de /blade : compte (connexion, mot de passe) et pages légales.
+// Les anciennes adresses du site LCS Barber renvoient vers BLADE, pour que les liens déjà envoyés restent utiles.
 const NotFound = lazy(() => import("./pages/NotFound"));
 const MentionsLegales = lazy(() => import("./pages/legal/MentionsLegales"));
 const CGV = lazy(() => import("./pages/legal/CGV"));
@@ -22,76 +15,61 @@ const Retractation = lazy(() => import("./pages/legal/Retractation"));
 const Auth = lazy(() => import("./pages/Auth").then(m => ({ default: m.Auth })));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const Admin = lazy(() => import("./pages/Admin").then(m => ({ default: m.Admin })));
-const AdminVehicules = lazy(() => import("./pages/AdminVehicules"));
-import { AuthProvider } from "./hooks/useAuth";
-import { LanguageProvider } from "./hooks/useLanguage";
-import { ThemeProvider } from "next-themes";
-import RequireAuth from "./components/RequireAuth";
-import ScrollToTop from "./components/ScrollToTop";
-import ChatBot from "./components/ChatBot";
 
-const queryClient = new QueryClient();
+/** Anciennes adresses LCS Barber → page BLADE équivalente (rechargement complet : BLADE a sa propre application). */
+const LEGACY_REDIRECTS: Record<string, string> = {
+  "/lcsbarber": "/blade",
+  "/reservation": "/blade",
+  "/simulator": "/blade",
+  "/carnaval": "/blade",
+  "/evenements": "/blade",
+  "/catalogue": "/blade",
+  "/mes-rendez-vous": "/blade/client/rendez-vous",
+  "/dashboard": "/blade/pro",
+  "/admin": "/blade/pro",
+  "/admin/vehicules": "/blade/pro/vehicule",
+  "/admin-evenements": "/blade/pro",
+};
 
-const LEGAL_PATHS = ["/mentions-legales", "/cgv", "/cgv-abonnement", "/politique-de-confidentialite", "/droit-de-retractation"];
+function LegacyRedirect({ to }: { to: string }) {
+  useEffect(() => { window.location.replace(to); }, [to]);
+  return null;
+}
 
-/** index.html carries BLADE metadata; the LCS Barber pages keep their own tab title. */
-function LcsTitle() {
+/** Titre d'onglet des pages de compte ; les pages légales posent le leur (LegalLayout). */
+function AccountTitle() {
   useEffect(() => {
-    // Les pages légales sont communes à BLADE et LCS Barber : elles posent leur propre titre (LegalLayout).
-    if (LEGAL_PATHS.includes(window.location.pathname)) return;
-    document.title = "LCS Barber ⭐ - Réservez votre rendez-vous en ligne";
+    if (document.title.includes("BLADE")) return;
+    document.title = "BLADE — Mon compte";
   }, []);
   return null;
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="lcs-theme">
-    <LanguageProvider>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <LcsTitle />
-
-          <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
-          <Routes>
-            <Route path="/" element={<Navigate to="/lcsbarber" replace />} />
-            <Route path="/lcsbarber" element={<Home />} />
-            <Route path="/reservation" element={<RequireAuth><Reservation /></RequireAuth>} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/vehicules" element={<AdminVehicules />} />
-            <Route path="/simulator" element={<Simulator />} />
-            <Route path="/carnaval" element={<Carnaval />} />
-            <Route path="/evenements" element={<Evenements />} />
-            <Route path="/catalogue" element={<Catalogue />} />
-            <Route path="/mes-rendez-vous" element={<RequireAuth><MesRendezVous /></RequireAuth>} />
-            <Route path="/admin-evenements" element={<AdminEvenements />} />
-            <Route path="/mentions-legales" element={<MentionsLegales />} />
-            <Route path="/cgv" element={<CGV />} />
-            <Route path="/cgv-abonnement" element={<CGVAbonnement />} />
-            <Route path="/politique-de-confidentialite" element={<Confidentialite />} />
-            <Route path="/droit-de-retractation" element={<Retractation />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          </Suspense>
-          <ChatBot />
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-    </LanguageProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-
+  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="lcs-theme">
+    <Toaster />
+    <BrowserRouter>
+      <ScrollToTop />
+      <AccountTitle />
+      <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
+        <Routes>
+          {Object.entries(LEGACY_REDIRECTS).map(([from, to]) => (
+            <Route key={from} path={from} element={<LegacyRedirect to={to} />} />
+          ))}
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
+          <Route path="/cgv" element={<CGV />} />
+          <Route path="/cgv-abonnement" element={<CGVAbonnement />} />
+          <Route path="/politique-de-confidentialite" element={<Confidentialite />} />
+          <Route path="/droit-de-retractation" element={<Retractation />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  </ThemeProvider>
 );
 
 export default App;

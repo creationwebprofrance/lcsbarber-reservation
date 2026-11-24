@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Home, Calendar } from "lucide-react";
@@ -20,10 +20,10 @@ const NotFound = () => {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button asChild>
-            <Link to="/"><Home className="h-4 w-4 mr-2" /> Accueil</Link>
+            <a href="/blade"><Home className="h-4 w-4 mr-2" /> Accueil</a>
           </Button>
           <Button asChild variant="outline">
-            <Link to="/reservation"><Calendar className="h-4 w-4 mr-2" /> Prendre rendez-vous</Link>
+            <a href="/blade/client"><Calendar className="h-4 w-4 mr-2" /> Prendre rendez-vous</a>
           </Button>
         </div>
       </div>

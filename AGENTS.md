@@ -1,11 +1,12 @@
 # Architecture rules
 
-- Select BLADE at the root entry using an exact /blade path boundary and dynamic imports; never import the LCSBARBER App, providers or stylesheet on that branch.
+- Select BLADE at the root entry using an exact /blade path boundary and dynamic imports; never import the account/legal App (src/App.tsx), its providers or stylesheet on that branch.
 - BLADE accesses shared LCSBARBER data through src/blade/data.ts; provider business reads and explicit saves use owner-validated RPCs, while vehicles retain existing owner-scoped tables, to avoid client-side authorization assumptions.
 - BLADE slot requests are live through the create-slot-request server function; drafts must still stage new server source outside auto-deployed functions to preserve draft isolation.
 - Keep BLADE components and scoped CSS under src/blade with local assets under public/blade.
 - Keep booking/payment flows separate; provider editing is explicitly authorized, but staged schema and manual email activation require acceptance and deployment approval to preserve shared-backend isolation.
-- The site root / opens BLADE (entryPath in src/blade/model.ts); the LCSBARBER home lives at /lcsbarber and its other routes are unchanged, so existing LCSBARBER links and bookings keep working.
+- The site root / opens BLADE (entryPath in src/blade/model.ts). The former LCSBARBER website was removed from this repository (archive: Lucas-Chipan97/old-lcsbarber); src/App.tsx only serves account pages (/auth, password reset) and legal pages, and redirects the old LCSBARBER paths to BLADE with full reloads (LEGACY_REDIRECTS), so links already sent to clients still lead somewhere. LCS Barber itself remains a BLADE provider and the superadmin.
+- LCSBARBER edge functions removed from the repository may still be deployed in Supabase; removing source never undeploys them. send-booking-reminders and geocode-city stay because BLADE bookings and search use them.
 - BLADE maps use Leaflet with OpenStreetMap tiles; keep the verified town-centre marker explicitly approximate until the exact business coordinates are supplied.
 - Professional provider screens use provider.tsx and provider-model.ts with existing maintenance calculations without generic forecast defaults; this keeps accounting and maintenance rules testable without invented records.
 - All pre-BLADE LCSBARBER rows were assigned to the LCS Barber provider with a row-level backup in blade_legacy_assignment_backup, and an insert trigger gives LCSBARBER-created rows that owner, because the LCSBARBER site never sets provider_id itself.

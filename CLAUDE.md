@@ -10,6 +10,8 @@ Règles d'architecture : @AGENTS.md
 - L'ancien domaine lcsbarber.com est abandonné : il ne figure plus dans le code, le CORS ni
   les agents. Ne le rajoute pas.
 - Supabase : projet `qgtbedvpxpadpqxrkzzx`, partagé avec LCS Barber et ses vrais clients.
+- L'ancien site LCS Barber n'est plus dans ce dépôt : il est archivé dans `Lucas-Chipan97/old-lcsbarber`.
+  Ses fonctions edge peuvent rester déployées dans Supabase ; ne les supprime pas sans accord.
 - Commandes :
   - tests : `npx -y bun@1.2.21 test src/blade`
   - types : `npx tsc --noEmit -p tsconfig.app.json`

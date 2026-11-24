@@ -28,9 +28,11 @@ L'ancien domaine lcsbarber.com est abandonné : ne le contrôle pas et ne le sig
 
 ## Ce que tu contrôles
 
-1. **Pages** : /blade, /blade/tarifs et chaque lien du menu et du pied de page, puis /reservation,
-   /mes-rendez-vous, /auth, /cgv, /cgv-abonnement, /mentions-legales, /politique-de-confidentialite,
-   /droit-de-retractation. Pour chacune : code HTTP, rafraîchissement direct sans 403 ni 404,
+1. **Pages** : /blade, /blade/tarifs et chaque lien du menu et du pied de page, puis /auth,
+   /mot-de-passe-oublie, /cgv, /cgv-abonnement, /mentions-legales, /politique-de-confidentialite,
+   /droit-de-retractation. Les anciennes adresses LCS Barber (/lcsbarber, /reservation,
+   /mes-rendez-vous, /dashboard, /admin) doivent rediriger vers BLADE (liste : `LEGACY_REDIRECTS`
+   dans `src/App.tsx`). Pour chacune : code HTTP, rafraîchissement direct sans 403 ni 404,
    erreurs dans la console, requêtes en échec, images cassées.
 2. **Affichage** en 375 px (mobile) et en bureau : pas de défilement horizontal, menus utilisables,
    carte Île-de-France sous la barre de navigation et non par-dessus. Remets ensuite la fenêtre
