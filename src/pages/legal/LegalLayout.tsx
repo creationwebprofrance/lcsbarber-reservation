@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 
 export default function LegalLayout({ title, children }: { title: string; children: ReactNode }) {
+  useEffect(() => { document.title = `${title} · BLADE`; }, [title]);
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-3xl mx-auto px-5 py-12">

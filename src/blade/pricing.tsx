@@ -23,7 +23,7 @@ const copy: Record<Language, PricingCopy> = {
     pitch: 'Un rendez-vous manqué évité par mois, et le plan Pro est remboursé.',
     monthly: 'Mensuel', annual: 'Annuel', save: '-10 %', period: '/mois',
     billedYearly: a => `soit ${a} facturés par an`,
-    note: 'Prix TTC. Annuel : 10 % d’économie, payé en une fois. Résiliable à tout moment.',
+    note: 'TVA non applicable, art. 293 B du CGI. Annuel : 10 % d’économie, payé en une fois. Résiliable à tout moment.',
     plans: [
       { id: 'free', name: 'Découverte', price: '0 €', tagline: 'Pour te lancer sur BLADE.', cta: 'Commencer gratuitement',
         features: ['Profil visible dans la recherche', 'Jusqu’à 20 réservations par mois', 'Agenda et créneaux', 'Aucune commission : tes acomptes arrivent sur ton lien Stripe ou Revolut'] },
@@ -40,7 +40,7 @@ const copy: Record<Language, PricingCopy> = {
     pitch: 'Avoid one missed appointment a month and the Pro plan pays for itself.',
     monthly: 'Monthly', annual: 'Yearly', save: '-10%', period: '/month',
     billedYearly: a => `i.e. ${a} billed yearly`,
-    note: 'Prices include VAT. Yearly: save 10%, paid once. Cancel anytime.',
+    note: 'VAT not applicable (French tax code, art. 293 B). Yearly: save 10%, paid once. Cancel anytime.',
     plans: [
       { id: 'free', name: 'Starter', price: '€0', tagline: 'To get started on BLADE.', cta: 'Start for free',
         features: ['Profile visible in search', 'Up to 20 bookings per month', 'Calendar and time slots', 'No fee: deposits go straight to your own Stripe or Revolut link'] },
@@ -57,7 +57,7 @@ const copy: Record<Language, PricingCopy> = {
     pitch: 'Evita una cita perdida al mes y el plan Pro se paga solo.',
     monthly: 'Mensual', annual: 'Anual', save: '-10 %', period: '/mes',
     billedYearly: a => `es decir ${a} facturados al año`,
-    note: 'Precios con IVA. Anual: 10 % de ahorro, pago único. Cancela cuando quieras.',
+    note: 'IVA no aplicable (código fiscal francés, art. 293 B). Anual: 10 % de ahorro, pago único. Cancela cuando quieras.',
     plans: [
       { id: 'free', name: 'Descubrimiento', price: '0 €', tagline: 'Para empezar en BLADE.', cta: 'Empezar gratis',
         features: ['Perfil visible en la búsqueda', 'Hasta 20 reservas al mes', 'Agenda y horarios', 'Sin comisión: los anticipos van a tu enlace Stripe o Revolut'] },

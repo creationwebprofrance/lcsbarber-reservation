@@ -33,9 +33,15 @@ import ChatBot from "./components/ChatBot";
 
 const queryClient = new QueryClient();
 
+const LEGAL_PATHS = ["/mentions-legales", "/cgv", "/cgv-abonnement", "/politique-de-confidentialite", "/droit-de-retractation"];
+
 /** index.html carries BLADE metadata; the LCS Barber pages keep their own tab title. */
 function LcsTitle() {
-  useEffect(() => { document.title = "LCS Barber ⭐ - Réservez votre rendez-vous en ligne"; }, []);
+  useEffect(() => {
+    // Les pages légales sont communes à BLADE et LCS Barber : elles posent leur propre titre (LegalLayout).
+    if (LEGAL_PATHS.includes(window.location.pathname)) return;
+    document.title = "LCS Barber ⭐ - Réservez votre rendez-vous en ligne";
+  }, []);
   return null;
 }
 
