@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
 import { ThemeProvider } from "next-themes";
 import ScrollToTop from "./components/ScrollToTop";
@@ -32,16 +32,20 @@ const LEGACY_REDIRECTS: Record<string, string> = {
 };
 
 function LegacyRedirect({ to }: { to: string }) {
-  useEffect(() => { window.location.replace(to); }, [to]);
+  // Garde les paramètres (?ref=…) et l'ancre des liens déjà envoyés.
+  useEffect(() => { window.location.replace(to + window.location.search + window.location.hash); }, [to]);
   return null;
 }
 
+const LEGAL_PATHS = ["/mentions-legales", "/cgv", "/cgv-abonnement", "/politique-de-confidentialite", "/droit-de-retractation"];
+
 /** Titre d'onglet des pages de compte ; les pages légales posent le leur (LegalLayout). */
 function AccountTitle() {
+  const { pathname } = useLocation();
   useEffect(() => {
-    if (document.title.includes("BLADE")) return;
+    if (LEGAL_PATHS.includes(pathname)) return;
     document.title = "BLADE — Mon compte";
-  }, []);
+  }, [pathname]);
   return null;
 }
 
