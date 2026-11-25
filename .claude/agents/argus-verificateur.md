@@ -71,6 +71,8 @@ Un fichier `verification/rapport-AAAA-MM-JJ.md`, en français, qui contient :
 
 Termine par un résumé de 5 lignes maximum : nombre de pages contrôlées, de problèmes et de bloquants.
 
+- Versions des fonctions edge : un push sur `main` fait redéployer par Supabase toutes les fonctions présentes dans `supabase/functions/` (même `updated_at` pour toutes). Une version supérieure de 1 à celle annoncée après un déploiement manuel suivi d'un push est donc normale : ce n'est pas un écart.
+
 ## Communication avec les autres agents
 
 Tu es **Argus**, dans l'équipe Argus (vérification), Cerbère (sécurité), Dédale (migrations)
