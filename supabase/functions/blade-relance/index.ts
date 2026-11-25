@@ -1,6 +1,7 @@
 // BLADE : un prestataire relance par email des clients de son propre fichier.
 // Contrôles : prestataire actif, clients lui appartenant, non bloqués, avec email ;
 // au plus une relance par client tous les 7 jours et 200 emails par jour et par prestataire.
+// Fonction des plans Pro et Premium : le plan est relu côté serveur (blade_effective_plan).
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@4';
@@ -40,6 +41,9 @@ Deno.serve(async req => {
   try {
     const { data: provider } = await db.from('blade_providers').select('id,status,display_name,email').eq('user_id', user.id).maybeSingle();
     if (!provider || provider.status !== 'active') return res({ error: 'Espace professionnel non activé' }, 403);
+    const { data: plan, error: planError } = await db.rpc('blade_effective_plan', { p_provider: provider.id });
+    if (planError) { console.error('blade-relance plan', planError.message); return res({ error: 'Service indisponible' }, 503); }
+    if (plan !== 'pro' && plan !== 'premium') return res({ error: 'La relance des clients est incluse dans le plan Pro.' }, 403);
 
     const ids = [...new Set(input.client_ids)];
     const { data: clients } = await db.from('clients').select('id,name,email,is_blacklisted').eq('provider_id', provider.id).in('id', ids);

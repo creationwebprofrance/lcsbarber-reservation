@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight, Minus } from 'lucide-react';
 import { BladeButton } from './common';
 import { useBladePreferences, type Language } from './preferences';
 import { SiteNav, SiteFooter, useHashScroll } from './site-nav';
 import { useSession } from './data';
+import { FEATURE_TABLES, type Cell } from './plan-features';
 
 type Billing = 'month' | 'year';
 // yearly : prix facturé une fois par an ; yearlyMonth : son équivalent mensuel affiché en grand.
@@ -26,11 +27,11 @@ const copy: Record<Language, PricingCopy> = {
     note: 'TVA non applicable, art. 293 B du CGI. Annuel : 10 % d’économie, payé en une fois. Résiliable à tout moment.',
     plans: [
       { id: 'free', name: 'Découverte', price: '0 €', tagline: 'Pour te lancer sur BLADE.', cta: 'Commencer gratuitement',
-        features: ['Profil visible dans la recherche', 'Jusqu’à 20 réservations par mois', 'Agenda et créneaux', 'Aucune commission : tes acomptes arrivent sur ton lien Stripe ou Revolut'] },
+        features: ['Profil visible dans la recherche', 'Jusqu’à 20 réservations par mois', 'Agenda, horaires et congés', 'Mails de confirmation et d’annulation', 'Suivi de ton véhicule', 'Aucune commission sur tes prestations'] },
       { id: 'pro', name: 'Pro', price: '19,90 €', yearly: '214,90 €', yearlyMonth: '17,91 €', tagline: 'Pour remplir ton agenda sans rendez-vous perdus.', cta: 'Essayer 30 jours gratuits', badge: 'Le plus choisi',
-        features: ['Réservations illimitées', 'Acomptes en ligne contre les rendez-vous non honorés', 'Rappels automatiques aux clients', 'Relance par e-mail des clients qui ne reviennent plus', 'Carte de fidélité incluse (cartes NFC compatibles)', 'Galerie de réalisations et messagerie', 'Statistiques de base'] },
+        features: ['Réservations illimitées', 'Acomptes en ligne contre les rendez-vous non honorés', 'Rappels automatiques aux clients', 'Relance par e-mail des clients qui ne reviennent plus', 'Pourboires en ligne par ton lien Stripe ou Revolut', 'Carte de fidélité incluse (cartes NFC compatibles)'] },
       { id: 'premium', name: 'Premium', price: '39,90 €', yearly: '430,90 €', yearlyMonth: '35,91 €', tagline: 'Pour être trouvé en premier en Île-de-France.', cta: 'Passer Premium',
-        features: ['Tout le plan Pro', 'Mise en avant dans les résultats de ta ville', 'Badge « Pro vérifié »', 'Suivi du trajet en direct à domicile', 'Statistiques avancées'] },
+        features: ['Tout le plan Pro', 'Mise en avant dans les résultats de ta ville', 'Badge « Pro vérifié »', 'Suivi du trajet en direct à domicile'] },
     ],
   },
   en: {
@@ -43,11 +44,11 @@ const copy: Record<Language, PricingCopy> = {
     note: 'VAT not applicable (French tax code, art. 293 B). Yearly: save 10%, paid once. Cancel anytime.',
     plans: [
       { id: 'free', name: 'Starter', price: '€0', tagline: 'To get started on BLADE.', cta: 'Start for free',
-        features: ['Profile visible in search', 'Up to 20 bookings per month', 'Calendar and time slots', 'No fee: deposits go straight to your own Stripe or Revolut link'] },
+        features: ['Profile visible in search', 'Up to 20 bookings per month', 'Calendar, hours and days off', 'Confirmation and cancellation emails', 'Vehicle tracking', 'No fee on your services'] },
       { id: 'pro', name: 'Pro', price: '€19.90', yearly: '€214.90', yearlyMonth: '€17.91', tagline: 'To fill your calendar without lost appointments.', cta: 'Try 30 days free', badge: 'Most popular',
-        features: ['Unlimited bookings', 'Online deposits against no-shows', 'Automatic client reminders', 'Email follow-up for clients who stopped coming', 'Loyalty card included (NFC cards supported)', 'Work gallery and messaging', 'Basic statistics'] },
+        features: ['Unlimited bookings', 'Online deposits against no-shows', 'Automatic client reminders', 'Email follow-up for clients who stopped coming', 'Online tips through your Stripe or Revolut link', 'Loyalty card included (NFC cards supported)'] },
       { id: 'premium', name: 'Premium', price: '€39.90', yearly: '€430.90', yearlyMonth: '€35.91', tagline: 'To be found first in Île-de-France.', cta: 'Go Premium',
-        features: ['Everything in Pro', 'Featured in your city’s results', '“Verified pro” badge', 'Live travel tracking for home visits', 'Advanced statistics'] },
+        features: ['Everything in Pro', 'Featured in your city’s results', '“Verified pro” badge', 'Live travel tracking for home visits'] },
     ],
   },
   es: {
@@ -60,11 +61,11 @@ const copy: Record<Language, PricingCopy> = {
     note: 'IVA no aplicable (código fiscal francés, art. 293 B). Anual: 10 % de ahorro, pago único. Cancela cuando quieras.',
     plans: [
       { id: 'free', name: 'Descubrimiento', price: '0 €', tagline: 'Para empezar en BLADE.', cta: 'Empezar gratis',
-        features: ['Perfil visible en la búsqueda', 'Hasta 20 reservas al mes', 'Agenda y horarios', 'Sin comisión: los anticipos van a tu enlace Stripe o Revolut'] },
+        features: ['Perfil visible en la búsqueda', 'Hasta 20 reservas al mes', 'Agenda, horarios y vacaciones', 'E-mails de confirmación y cancelación', 'Seguimiento del vehículo', 'Sin comisión sobre tus servicios'] },
       { id: 'pro', name: 'Pro', price: '19,90 €', yearly: '214,90 €', yearlyMonth: '17,91 €', tagline: 'Para llenar tu agenda sin citas perdidas.', cta: 'Probar 30 días gratis', badge: 'El más elegido',
-        features: ['Reservas ilimitadas', 'Anticipos online contra ausencias', 'Recordatorios automáticos', 'Recordatorio por e-mail a clientes que ya no vuelven', 'Tarjeta de fidelidad incluida (compatible NFC)', 'Galería de trabajos y mensajería', 'Estadísticas básicas'] },
+        features: ['Reservas ilimitadas', 'Anticipos online contra ausencias', 'Recordatorios automáticos', 'Recordatorio por e-mail a clientes que ya no vuelven', 'Propinas online con tu enlace Stripe o Revolut', 'Tarjeta de fidelidad incluida (compatible NFC)'] },
       { id: 'premium', name: 'Premium', price: '39,90 €', yearly: '430,90 €', yearlyMonth: '35,91 €', tagline: 'Para aparecer primero en Île-de-France.', cta: 'Pasar a Premium',
-        features: ['Todo el plan Pro', 'Destacado en los resultados de tu ciudad', 'Insignia «Pro verificado»', 'Seguimiento del trayecto en directo', 'Estadísticas avanzadas'] },
+        features: ['Todo el plan Pro', 'Destacado en los resultados de tu ciudad', 'Insignia «Pro verificado»', 'Seguimiento del trayecto en directo'] },
     ],
   },
 };
@@ -104,7 +105,35 @@ export function PricingPlans() {
       })}
     </div>
     <p className="blade-pricing-note">{c.note}</p>
+    <PlanComparison names={c.plans.map(p => p.name)} />
   </section>;
+}
+
+function CellValue({ value, yes, no }: { value: Cell; yes: string; no: string }) {
+  if (typeof value === 'string') return <span className="blade-compare-text">{value}</span>;
+  return value ? <Check size={18} className="blade-compare-yes" aria-label={yes} /> : <Minus size={18} className="blade-compare-no" aria-label={no} />;
+}
+
+// Tableau détaillé des fonctionnalités, plan par plan (données : plan-features.ts).
+function PlanComparison({ names }: { names: string[] }) {
+  const { language } = useBladePreferences();
+  const t = FEATURE_TABLES[language] ?? FEATURE_TABLES.fr;
+  return <div className="blade-compare" aria-labelledby="blade-compare-title">
+    <h3 id="blade-compare-title">{t.title}</h3>
+    <p className="blade-compare-lead">{t.lead}</p>
+    <div className="blade-compare-scroll">
+      <table>
+        <thead><tr><td />{names.map(n => <th key={n} scope="col">{n}</th>)}</tr></thead>
+        {t.groups.map(g => <tbody key={g.title}>
+          <tr className="blade-compare-group"><th scope="rowgroup" colSpan={4}>{g.title}</th></tr>
+          {g.rows.map(r => <tr key={r.label}>
+            <th scope="row">{r.label}{r.hint && <small>{r.hint}</small>}</th>
+            {(['free', 'pro', 'premium'] as const).map(k => <td key={k}><CellValue value={r[k]} yes={t.included} no={t.excluded} /></td>)}
+          </tr>)}
+        </tbody>)}
+      </table>
+    </div>
+  </div>;
 }
 
 // Page « Tarifs » accessible depuis la barre de navigation.

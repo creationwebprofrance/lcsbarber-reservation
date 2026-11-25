@@ -21,6 +21,16 @@ export function validatePaymentLink(kind: 'revolut' | 'stripe', value: string): 
   return STRIPE_LINK.test(v) ? null : 'Lien Stripe invalide : il doit commencer par https://buy.stripe.com/';
 }
 
+/** Lien de pourboire : un lien Revolut ou un lien de paiement Stripe (montant libre côté Stripe). */
+export const TIP_LINK_ERROR = 'Lien invalide : il doit commencer par https://revolut.me/ ou https://buy.stripe.com/';
+export function validateTipLink(value: string): string | null {
+  const v = value.trim();
+  if (!v) return null;
+  return REVOLUT_LINK.test(v) || STRIPE_LINK.test(v) ? null : TIP_LINK_ERROR;
+}
+/** Lien affichable au client : seulement un lien Revolut ou Stripe valide, sinon null. */
+export const safeTipLink = (value: string | null | undefined) => value && !validateTipLink(value) && value.trim() ? value.trim() : null;
+
 /** Returns the reason a provider cannot save these links, or null when allowed. */
 export function paymentLinksError(p: Pick<ProviderAccount, 'status' | 'opt_payment_links'>, revolut: string, stripe: string): string | null {
   if (p.status !== 'active') return 'Compte prestataire non actif';

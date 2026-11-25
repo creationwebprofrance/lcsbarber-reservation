@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ProviderPage } from './provider';
 import { Section, BladeButton, EmptyState, Icon } from './common';
 import { fmtDate, isoDate, type ProviderBundle } from './data';
+import { PlanGate } from './plan';
 
 const TEMPLATES = [
   { label: 'Ça fait longtemps', subject: '{prenom}, ça fait un moment !', message: 'Bonjour {prenom},\n\nÇa fait un moment qu’on ne s’est pas vus. Il est peut-être temps de rafraîchir ta coupe ?\n\nJ’ai des créneaux disponibles cette semaine : réserve directement en cliquant sur le bouton ci-dessous.\n\nÀ très vite !' },
@@ -16,7 +17,7 @@ type Relance = { client_id: string; sent_at: string };
 type Result = { sent: number; skipped: { id: string; name: string; reason: string }[] };
 
 export function ProviderRelances() {
-  return <ProviderPage title="Relances">{data => <RelancesBody data={data} />}</ProviderPage>;
+  return <ProviderPage title="Relances">{data => <PlanGate need="pro" feature="La relance des clients"><RelancesBody data={data} /></PlanGate>}</ProviderPage>;
 }
 
 function RelancesBody({ data }: { data: ProviderBundle }) {

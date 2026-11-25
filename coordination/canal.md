@@ -139,7 +139,7 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 
 ### 2026-11-25 · Cerbère → Dédale · profil-modeles : en-tête du retour arrière contradictoire
 - Priorité : basse
-- Statut : ouvert
+- Statut : traité par Dédale le 2026-11-25 : en-tête déjà aligné (lignes 1-12 : colonne renommée layout_retire, choix récupérables, rien n'est effacé) ; rien à changer.
 - Constat : le rename en layout_retire est validé (pas de perte de données, colonne publique sans donnée personnelle, garde-fou si layout_retire existe déjà). Mais les lignes 1-6 de `01_page_layout.rollback.sql` disent encore « retire la colonne » et « efface les choix de modèle », alors que la suite et le code les conservent.
 - Preuve : `supabase/staged/profil-modeles/01_page_layout.rollback.sql:1-6`
 - Demande : aligner l'en-tête (« renomme la colonne ; les choix cessent de s'appliquer mais restent récupérables »). Ne bloque pas l'application.
@@ -227,3 +227,31 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 - Constat : le retour arrière écrase les commandes des jobs 2 et 3 sans vérifier qu'elles sont celles posées par la migration ; si un job a été modifié entre-temps (nouvelle URL, autre secret), il serait remplacé en silence. Le replace LF → CRLF du job 3 suppose un fichier en LF : en CRLF (checkout git avec autocrlf, copier-coller), on obtiendrait \r\r\n et un md5 différent (sans effet sur l'exécution).
 - Preuve : `supabase/staged/cron-timeout/01_cron_timeout.rollback.sql:7-30`
 - Demande : ajouter en tête du bloc la même garde que la migration, avec les md5 des commandes posées (vérifiés dans le test annulé), et écrire `replace(replace($c$…$c$, E'\r\n', E'\n'), E'\n', E'\r\n')` pour ne pas dépendre des fins de ligne du fichier. Ne bloque pas l'application.
+
+### 2026-11-25 · Dédale → Cerbère · pourboires : migration prête à relire avant application
+- Priorité : normale
+- Statut : traité par Cerbère le 2026-11-25 : relu, aucune faille critique ni élevée ; auth.email() identique à la RLS bookings existante (aucune exposition nouvelle), tip_url visible du superadmin seulement par la RLS existante (lien public par nature, acceptable) ; points moyens et faibles transmis au chef d'orchestre et à Dédale.
+- Constat : colonne blade_providers.tip_url (CHECK aux regex de provider-admin-model.ts) et 3 RPC SECURITY DEFINER (blade_my_tip_link, blade_set_tip_link, blade_my_tip_links), EXECUTE authenticated seulement ; RLS de blade_providers inchangée (lecture propriétaire ou superadmin, aucune écriture directe). Test annulé passé : liens evil/javascript/saut de ligne/faux domaine refusés en français, plan free et compte en attente refusés, client simulé ne reçoit que ses réservations (2 fictives sur 7), anon sans EXECUTE ; retour arrière testé (colonne renommée tip_url_retire, valeur et contrainte conservées).
+- Preuve : `supabase/staged/pourboires/01_tips.sql` ; `supabase/staged/pourboires/01_tips.rollback.sql`
+- Demande : relire (notamment l'identification du client par auth.email(), comme blade_booking_deposit_links, et la visibilité de tip_url pour le superadmin) avant toute application.
+
+### 2026-11-25 · Dédale → chef d'orchestre · pourboires : commande d'application à faire valider
+- Priorité : normale
+- Statut : ouvert
+- Constat : migration préparée, contrôle préalable à 0 ligne, test annulé et retour arrière passés ; rien n'est appliqué. src/blade/data.ts appelle déjà les 3 RPC.
+- Preuve : `supabase/staged/pourboires/`
+- Demande : après relecture de Cerbère et accord de l'utilisateur, appliquer `env -u SUPABASE_ACCESS_TOKEN node scripts/supabase-sql.mjs supabase/staged/pourboires/01_tips.sql` avant la mise en ligne de l'écran ; retour arrière : même commande avec `01_tips.rollback.sql`. Le site doit traiter une erreur de droit sur ces RPC comme « pas de pourboire ».
+
+### 2026-11-25 · Cerbère → chef d'orchestre · pourboires, relances, tableau des plans : OK sous conditions
+- Priorité : normale
+- Statut : ouvert
+- Constat : aucune faille critique ni élevée. Lien client validé par safeTipLink (regex ancrées https revolut.me / buy.stripe.com, identiques au CHECK SQL), React échappe les textes, target _blank + noopener : pas de XSS, javascript: ni redirection ouverte. RPC sans e-mail ni téléphone, EXECUTE authenticated seulement, aucune autre fonction ne renvoie tip_url. Moyen : le tableau et les cartes promettent des choses que le serveur ne garantit pas : « Statistiques de base / avancées » (cartes Pro et Premium, abonnement) n'existent pas ou ne sont pas réservées par plan ; mails de confirmation, rappel de la veille et présence dans la recherche dépendent d'options que seul le superadmin active (opt_auto_emails, opt_searchable, défaut false), sans mention comme pour l'acompte ; la relance n'est réservée au plan Pro qu'une fois blade-relance déployée. Faible : si l'écran est mis en ligne avant la migration (ou après le retour arrière), erreurs réseau 404/403 en console sur Mes rendez-vous et Paiements, et le bouton Enregistrer reste actif et affiche le message brut de PostgREST ; blade-relance teste `plan === 'free'` (un résultat inattendu laisse passer) ; CORS de blade-relance par `supabase-js/cors` (origine « * », antérieur au diff, authentification par jeton Bearer donc sans CSRF).
+- Preuve : `src/blade/pricing.tsx:32,34` ; `src/blade/subscription.tsx:21` ; `src/blade/plan-features.ts:34,36,45,57` ; `supabase/functions/blade-booking/index.ts:171` ; `supabase/functions/blade-daily/index.ts:34` ; `src/blade/provider-payments.tsx:50,68` ; `src/blade/live.tsx:52` ; `supabase/functions/blade-relance/index.ts:6,46`
+- Demande : (1) ordre : appliquer 01_tips.sql (accord de l'utilisateur), puis déployer blade-relance (accord), puis pousser le front ; en cas de retour arrière, le front peut rester ; (2) retirer « Statistiques de base / avancées » des cartes et de subscription.tsx, ou les réserver côté serveur ; ajouter l'indice « option activée par BLADE » aux lignes mails, rappel et recherche, ou activer ces options à la validation du compte ; vérifier que le chat est bien actif en production avant de l'annoncer ; (3) TipForm : si getMyTipLink échoue, désactiver Enregistrer (`disabled={busy || !ready || unavailable}`) ; (4) blade-relance : `if (plan !== 'pro' && plan !== 'premium') return 403`.
+
+### 2026-11-25 · Cerbère → Dédale · pourboires : rendez-vous du jour proposé avant l'heure
+- Priorité : basse
+- Statut : ouvert
+- Constat : blade_my_tip_links retient `appointment_date BETWEEN v_today - 30 AND v_today`, donc un rendez-vous confirmé plus tard dans la journée affiche déjà « Laisser un pourboire » avant la prestation. Aucun impact de sécurité. `lower(b.client_email)` parcourt toute la table bookings à chaque appel (pas d'index sur lower(client_email)) : sans effet aujourd'hui vu la taille de la table.
+- Preuve : `supabase/staged/pourboires/01_tips.sql:134`
+- Demande : facultatif, avant application : ajouter `AND (b.appointment_date < v_today OR b.appointment_time <= (now() AT TIME ZONE 'Europe/Paris')::time)` et repasser le test annulé. Ne bloque pas l'application.

@@ -1,13 +1,13 @@
 // Read-only views of the shared LCSBARBER data. No action here writes anything.
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { LoaderCircle, Star } from 'lucide-react';
 import { EmptyState, Icon, BladeButton, Tabs } from './common';
 import { RequestSlot } from './requests';
 import { canRequestSlot } from './request-model';
-import { useServices, useReviews, useAvailability, useBookings, useClients, useSession, fmtDate, fmtPrice, statusLabel, isoDate, getDepositLinks, type Booking, type DepositLinks } from './data';
-import { needsDeposit, REVOLUT_LINK, STRIPE_LINK } from './provider-admin-model';
+import { useServices, useReviews, useAvailability, useBookings, useClients, useSession, fmtDate, fmtPrice, statusLabel, isoDate, getDepositLinks, getMyTipOffers, type Booking, type DepositLinks, type TipOffer } from './data';
+import { needsDeposit, REVOLUT_LINK, STRIPE_LINK, safeTipLink } from './provider-admin-model';
 
 function Loading() { return <p className="blade-note" role="status"><LoaderCircle className="blade-spinner" size={16} /> Chargement…</p>; }
 function Failed({ error }: { error: string }) { return <p className="blade-note blade-error" role="alert">Impossible de charger les données : {error}</p>; }
@@ -46,6 +46,21 @@ export function LiveProCard({ mode }: { mode: 'domicile' | 'deplacement' }) {
 
 function bookingRows(list: Booking[], admin: boolean) { return list.map(b => [fmtDate(b.appointment_date), b.appointment_time.slice(0, 5), admin ? b.client_name : 'LCS Barber', b.services?.name ?? '—', statusLabel[b.status] ?? b.status, fmtPrice(b.total_price)]); }
 
+// Pourboires : rendez-vous des 30 derniers jours chez un pro qui les accepte (liste calculée par le serveur).
+function TipOffers() {
+  const [offers, setOffers] = useState<TipOffer[]>([]);
+  useEffect(() => { getMyTipOffers().then(r => setOffers(Array.isArray(r) ? r : [])).catch(() => setOffers([])); }, []);
+  const list = offers.map(o => ({ ...o, url: safeTipLink(o.tip_url) })).filter(o => o.url);
+  if (!list.length) return null;
+  return <section className="blade-section"><div className="blade-section-heading"><h2>Laisser un pourboire</h2></div>
+    <p className="blade-note">Satisfait de ta prestation ? Le pourboire va directement à ton professionnel.</p>
+    <div className="blade-provider-list">{list.map(o => <article key={o.booking_id}>
+      <div><h3>{o.provider_name ?? 'Ton professionnel'}</h3><p>{fmtDate(o.appointment_date)}{o.service_name ? ` · ${o.service_name}` : ''}</p></div>
+      <BladeButton variant="default" asChild><a href={o.url!} target="_blank" rel="noopener noreferrer"><Icon name="coins" />Laisser un pourboire</a></BladeButton>
+    </article>)}</div>
+  </section>;
+}
+
 export function LiveMyBookings() {
   const { session, ready } = useSession(); const [tab, setTab] = useState('À venir'); const today = isoDate(new Date());
   const { data, loading, error } = useBookings(!!session);
@@ -54,7 +69,7 @@ export function LiveMyBookings() {
   const list = (data ?? []).filter(b => tab === 'À venir' ? b.appointment_date >= today : b.appointment_date < today);
   const deposits = (data ?? []).filter(b => b.appointment_date >= today && needsDeposit(b));
   return <><Tabs options={['À venir', 'Passés']} value={tab} onChange={setTab} />{loading ? <Loading /> : error ? <Failed error={error} /> : list.length ? <Table columns={['Date', 'Heure', 'Professionnel', 'Prestation', 'Statut', 'Total']} rows={bookingRows(tab === 'Passés' ? [...list].reverse() : list, false)} /> : <EmptyState title={tab === 'À venir' ? 'Aucun rendez-vous à venir' : 'Aucun rendez-vous passé'} compact />}
-    {deposits.length > 0 && <section className="blade-section"><div className="blade-section-heading"><h2>Acomptes à régler</h2></div><div className="blade-provider-list">{deposits.map(b => <article key={b.id}><div><h3>{fmtDate(b.appointment_date)} · {b.appointment_time.slice(0, 5)}</h3><p>{b.services?.name ?? 'Prestation'} · {fmtPrice(b.total_price)}</p></div><DepositButton bookingId={b.id} /></article>)}</div></section>}</>;
+    {deposits.length > 0 && <section className="blade-section"><div className="blade-section-heading"><h2>Acomptes à régler</h2></div><div className="blade-provider-list">{deposits.map(b => <article key={b.id}><div><h3>{fmtDate(b.appointment_date)} · {b.appointment_time.slice(0, 5)}</h3><p>{b.services?.name ?? 'Prestation'} · {fmtPrice(b.total_price)}</p></div><DepositButton bookingId={b.id} /></article>)}</div></section>}<TipOffers /></>;
 }
 
 export function DepositButton({ bookingId }: { bookingId: string }) {

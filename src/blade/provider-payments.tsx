@@ -1,10 +1,10 @@
 // Provider payments: own Revolut / Stripe deposit links (only when LCS Barber allows it)
 // and manual "Acompte reçu" confirmation for bookings paid by link.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BladeButton, EmptyState, Section } from './common';
-import { cancelProviderBooking, fmtDate, fmtPrice, markDepositReceived, updateOwnProvider, useSession } from './data';
+import { cancelProviderBooking, fmtDate, fmtPrice, getMyTipLink, markDepositReceived, setMyTipLink, updateOwnProvider, useSession } from './data';
 import { Field, ProviderPage, Status } from './provider';
-import { PAYMENT_OPTION_OFF, needsDeposit, paymentLinksError } from './provider-admin-model';
+import { PAYMENT_OPTION_OFF, needsDeposit, paymentLinksError, validateTipLink } from './provider-admin-model';
 import { PlanGate } from './plan';
 
 function LinksForm() {
@@ -39,6 +39,40 @@ function LinksForm() {
   </Section>;
 }
 
+// Pourboires : un lien Revolut ou un lien de paiement Stripe à montant libre. Le client le voit
+// dans « Mes rendez-vous » jusqu'à 30 jours après son rendez-vous. Le serveur relit le plan.
+function TipForm() {
+  const [url, setUrl] = useState(''); const [saved, setSaved] = useState<string | null>(null);
+  const [ready, setReady] = useState(false); const [unavailable, setUnavailable] = useState(false); const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(''); const [message, setMessage] = useState('');
+  useEffect(() => {
+    getMyTipLink().then(r => { setUrl(r?.tip_url ?? ''); setSaved(r?.tip_url ?? null); })
+      .catch(() => setUnavailable(true))
+      .finally(() => setReady(true));
+  }, []);
+  async function save(next: string) {
+    const problem = validateTipLink(next);
+    if (problem) { setError(problem); return; }
+    setBusy(true); setError(''); setMessage('');
+    try { const r = await setMyTipLink(next); setUrl(r?.tip_url ?? ''); setSaved(r?.tip_url ?? null); setMessage(r?.tip_url ? 'Lien de pourboire enregistré.' : 'Pourboires désactivés.'); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Enregistrement refusé'); }
+    finally { setBusy(false); }
+  }
+  if (unavailable) return <Section title="Pourboires"><p className="blade-note">Les pourboires arrivent bientôt sur BLADE.</p></Section>;
+  return <Section title="Pourboires">
+    <div className="blade-local-form">
+      <p className="blade-note">Après leur rendez-vous, tes clients voient un bouton « Laisser un pourboire » pendant 30 jours. L’argent arrive directement sur ton compte, sans commission BLADE.</p>
+      <Field label="Lien de pourboire (https://revolut.me/… ou https://buy.stripe.com/…)" value={url} onChange={setUrl}/>
+      <p className="blade-note">Avec Stripe, crée un lien de paiement où le client choisit le montant.</p>
+      <Status error={error} message={message}/>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <BladeButton variant="default" disabled={busy || !ready} onClick={() => save(url)}>{busy ? 'Enregistrement…' : 'Enregistrer'}</BladeButton>
+        {saved && <BladeButton disabled={busy} onClick={() => save('')}>Désactiver les pourboires</BladeButton>}
+      </div>
+    </div>
+  </Section>;
+}
+
 export function ProviderPayments() {
   const { provider } = useSession();
   const [busy, setBusy] = useState(''); const [error, setError] = useState(''); const [message, setMessage] = useState('');
@@ -57,6 +91,7 @@ export function ProviderPayments() {
     }
     return <>
       <PlanGate need="pro" feature="L’acompte en ligne"><LinksForm/></PlanGate>
+      <PlanGate need="pro" feature="Le pourboire en ligne"><TipForm/></PlanGate>
       <Section title="Acomptes en attente">
         <Status error={error} message={message}/>
         {!provider?.opt_payment_links ? <p className="blade-note">{PAYMENT_OPTION_OFF}.</p> : null}

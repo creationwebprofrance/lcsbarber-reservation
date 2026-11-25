@@ -1,5 +1,5 @@
 import { test, expect } from 'bun:test';
-import { paymentLinksError, validatePaymentLink, proAccess, isInactive, needsDeposit, PAYMENT_OPTION_OFF } from './provider-admin-model';
+import { paymentLinksError, validateTipLink, safeTipLink, TIP_LINK_ERROR, validatePaymentLink, proAccess, isInactive, needsDeposit, PAYMENT_OPTION_OFF } from './provider-admin-model';
 
 const active = { status: 'active', opt_payment_links: true };
 
@@ -43,4 +43,16 @@ test('a booking paid by link stays pending until the provider confirms the depos
   expect(needsDeposit({ status: 'pending', deposit_paid: false, provider_id: 'p' })).toBe(true);
   expect(needsDeposit({ status: 'confirmed', deposit_paid: true, provider_id: 'p' })).toBe(false);
   expect(needsDeposit({ status: 'pending', deposit_paid: false, provider_id: null })).toBe(false);
+});
+
+test('lien de pourboire : Revolut ou Stripe uniquement', () => {
+  expect(validateTipLink('')).toBeNull();
+  expect(validateTipLink(' https://revolut.me/lucas ')).toBeNull();
+  expect(validateTipLink('https://buy.stripe.com/abc_123')).toBeNull();
+  expect(validateTipLink('https://evil.example/x')).toBe(TIP_LINK_ERROR);
+  expect(validateTipLink('javascript:alert(1)')).toBe(TIP_LINK_ERROR);
+  expect(validateTipLink('https://revolut.me.evil.com/lucas')).toBe(TIP_LINK_ERROR);
+  expect(safeTipLink('javascript:alert(1)')).toBeNull();
+  expect(safeTipLink(null)).toBeNull();
+  expect(safeTipLink(' https://revolut.me/lucas')).toBe('https://revolut.me/lucas');
 });

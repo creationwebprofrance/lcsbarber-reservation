@@ -62,6 +62,7 @@ Si on te donne une branche ou des fichiers, relis ceux-là.
    lisent jamais ces tables : `blade-booking` (actions `days` et `slots`) calcule les créneaux. Une
    politique qui appelle `blade_my_provider_id()` est un point élevé : authenticated ne peut pas
    l'exécuter, la lecture échouerait. LCS Barber (superadmin) garde `calendar_settings` et `date_overrides`.
+11. **Pourboires** (`blade_providers.tip_url`, RPC `blade_my_tip_link`, `blade_set_tip_link`, `blade_my_tip_links` ; lis `supabase/staged/pourboires/`) : lien Revolut/Stripe contrôlé par la contrainte `blade_providers_tip_url_check` (mêmes regex que `src/blade/provider-admin-model.ts`), écrit seulement par `blade_set_tip_link` (prestataire actif, plan ≠ free), lu par le client seulement via `blade_my_tip_links` (ses réservations des 30 derniers jours, sans e-mail ni téléphone) ; EXECUTE refusé à anon et PUBLIC. Renvoyer tip_url par une autre fonction ou une politique est un point à signaler.
 
 ## Ce que tu rends
 
