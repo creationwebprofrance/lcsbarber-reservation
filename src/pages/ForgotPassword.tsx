@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, MailCheck } from "lucide-react";
-import lcsBarberLogo from "@/assets/lcs-barber-logo.png";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -38,7 +37,7 @@ export default function ForgotPassword() {
           <Link to="/auth" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Connexion
           </Link>
-          <img src={lcsBarberLogo} alt="LCS Barber" className="h-9" />
+          <img src="/blade/logo-white.png" alt="BLADE" className="h-9" />
         </div>
 
         <Card className="border-border/60">
