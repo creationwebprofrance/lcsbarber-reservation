@@ -1320,3 +1320,20 @@ html[data-blade-theme=dark] .bl2 .bl2-trust svg{color:#f2c98f}
 /* Pro : nombre total de clients en tête de la page Clients. */
 .blade-client-total{margin:0 0 12px;color:hsl(var(--muted-foreground));font-size:15px}
 .blade-client-total strong{color:hsl(var(--foreground));font-size:22px;font-weight:600;margin-right:4px;font-variant-numeric:tabular-nums}
+.blade-client-total strong.is-small{font-size:15px;margin:0}
+/* Pro : régularité des clients (pastille de couleur + libellé, jamais la couleur seule). */
+.blade-tier-filters{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.blade-tier-chip{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:6px 12px;border-radius:999px;border:1px solid hsl(var(--border));background:hsl(var(--background));color:hsl(var(--foreground));font-size:14px;cursor:pointer}
+.blade-tier-chip small{color:hsl(var(--muted-foreground));font-variant-numeric:tabular-nums}
+.blade-tier-chip.active{border-color:hsl(var(--foreground));background:hsl(var(--muted))}
+.blade-tier-chip:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}
+.blade-tier-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:var(--tier)}
+.blade-provider-list h3 .blade-tier-dot{margin-right:8px;vertical-align:middle}
+.blade-tier-tag{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:500;vertical-align:middle;color:var(--tier-ink);background:color-mix(in srgb,var(--tier) 16%,transparent)}
+.blade-client-stats{font-size:14px;font-variant-numeric:tabular-nums}
+.blade-tier-dot.is-regulier,.blade-tier-tag.is-regulier{--tier:#2f9e5b;--tier-ink:#1f7a43}
+.blade-tier-dot.is-nouveau,.blade-tier-tag.is-nouveau{--tier:#3b7dd8;--tier-ink:#2a62b0}
+.blade-tier-dot.is-occasionnel,.blade-tier-tag.is-occasionnel{--tier:#d39b1f;--tier-ink:#946a0c}
+.blade-tier-dot.is-a_relancer,.blade-tier-tag.is-a_relancer{--tier:#d9573b;--tier-ink:#b23e25}
+.blade-tier-dot.is-jamais,.blade-tier-tag.is-jamais{--tier:#9a9a9a;--tier-ink:#666}
+[data-blade-theme=dark] .blade-tier-tag.is-regulier{--tier-ink:#6fd096}[data-blade-theme=dark] .blade-tier-tag.is-nouveau{--tier-ink:#8db7f0}[data-blade-theme=dark] .blade-tier-tag.is-occasionnel{--tier-ink:#e9c164}[data-blade-theme=dark] .blade-tier-tag.is-a_relancer{--tier-ink:#f0907a}[data-blade-theme=dark] .blade-tier-tag.is-jamais{--tier-ink:#bbb}

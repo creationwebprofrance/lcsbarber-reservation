@@ -5,7 +5,7 @@ import { ProTrips } from './trip';
 import { Link } from 'react-router-dom';
 import { PageHeading, Section, EmptyState, BladeButton, Modal, Tabs, Icon } from './common';
 import { useSession, useProviderData, useProviderVehicle, saveProviderRecord, saveVehicleReading, saveVehicleMaintenance, sendProviderEmail, fmtPrice, fmtDate, isoDate, type ProviderBundle, type ProviderService, type ProviderTemplate, type ProviderClient } from './data';
-import { revenueByMonth, cityVisits, positiveInterval, serviceSchema } from './provider-model';
+import { revenueByMonth, cityVisits, positiveInterval, serviceSchema, clientStats, CLIENT_TIERS, CLIENT_TIER_ORDER, type ClientTier } from './provider-model';
 import { computeDue } from '@/lib/vehicle';
 import { ProviderCityMap } from './provider-map';
 import { BladeVehicle3D } from './vehicle3d';
@@ -53,8 +53,15 @@ function WorkEditor({data,done}:{data:ProviderBundle;done:()=>void}) {
 export function ProviderClients() {return <ProviderPage title="Clients">{(data,reload)=><ClientsBody data={data} reload={reload}/>}</ProviderPage>;}
 function ClientsBody({data,reload}:{data:ProviderBundle;reload:()=>void}) {
   const [q,setQ]=useState('');const [id,setId]=useState('');const client=data.clients.find(c=>c.id===id);
-  const total=data.clients.length;const shown=data.clients.filter(c=>`${c.name} ${c.email} ${c.phone||''}`.toLowerCase().includes(q.toLowerCase()));
-  return <><p className="blade-client-total" role="status"><strong>{total}</strong> client{total>1?'s':''} au total{q.trim()?` · ${shown.length} trouvé${shown.length>1?'s':''}`:''}</p><Field label="Rechercher par nom, email ou téléphone" value={q} onChange={setQ} type="search"/><div className="blade-provider-list">{shown.map(c=><article key={c.id}><div><h3>{c.name}</h3><p>{c.email} · {c.phone||'Téléphone non renseigné'}</p><small>{c.is_blacklisted?'Bloqué · ':''}{c.unpaid_amount?`${fmtPrice(c.unpaid_amount)} impayés`:''}</small></div><BladeButton onClick={()=>setId(c.id)}>Voir la fiche</BladeButton></article>)}</div>{client&&<Modal title={client.name} onClose={()=>setId('')}><ClientEditor key={client.id} data={data} client={client} reload={reload}/></Modal>}</>;
+  const [tier,setTier]=useState<ClientTier|''>('');
+  // Régularité et panier moyen de chaque client, calculés sur ses rendez-vous honorés.
+  const today=isoDate(new Date());const stats=new Map(data.clients.map(c=>[c.id,clientStats(c,data.bookings,today)]));
+  const counts=CLIENT_TIER_ORDER.map(k=>[k,data.clients.filter(c=>stats.get(c.id)?.tier===k).length] as const);
+  const visits=[...stats.values()].reduce((s,x)=>s+x.visits,0);const spent=[...stats.values()].reduce((s,x)=>s+x.spent,0);
+  const total=data.clients.length;const shown=data.clients.filter(c=>(!tier||stats.get(c.id)?.tier===tier)&&`${c.name} ${c.email} ${c.phone||''}`.toLowerCase().includes(q.toLowerCase()));
+  return <><p className="blade-client-total" role="status"><strong>{total}</strong> client{total>1?'s':''} au total{visits?<> · panier moyen <strong className="is-small">{fmtPrice(Math.round(spent/visits*100)/100)}</strong></>:null}{q.trim()||tier?` · ${shown.length} affiché${shown.length>1?'s':''}`:''}</p>
+    <div className="blade-tier-filters" role="group" aria-label="Filtrer par régularité">{counts.map(([k,n])=><button type="button" key={k} className={`blade-tier-chip${tier===k?' active':''}`} aria-pressed={tier===k} title={CLIENT_TIERS[k].hint} onClick={()=>setTier(tier===k?'':k)}><i className={`blade-tier-dot is-${k}`} aria-hidden="true"/>{CLIENT_TIERS[k].label}<small>{n}</small></button>)}</div>
+    <Field label="Rechercher par nom, email ou téléphone" value={q} onChange={setQ} type="search"/><div className="blade-provider-list">{shown.map(c=>{const s=stats.get(c.id)!;return <article key={c.id}><div><h3><i className={`blade-tier-dot is-${s.tier}`} aria-hidden="true"/>{c.name} <span className={`blade-tier-tag is-${s.tier}`} title={CLIENT_TIERS[s.tier].hint}>{CLIENT_TIERS[s.tier].label}</span></h3><p>{c.email} · {c.phone||'Téléphone non renseigné'}</p><p className="blade-client-stats">{s.visits?<>{s.visits} visite{s.visits>1?'s':''} · panier moyen {fmtPrice(s.avgBasket??0)} · dernière visite le {fmtDate(s.lastVisit!)}</>:'Aucun rendez-vous honoré'}</p><small>{c.is_blacklisted?'Bloqué · ':''}{c.unpaid_amount?`${fmtPrice(c.unpaid_amount)} impayés`:''}</small></div><BladeButton onClick={()=>setId(c.id)}>Voir la fiche</BladeButton></article>;})}</div>{client&&<Modal title={client.name} onClose={()=>setId('')}><ClientEditor key={client.id} data={data} client={client} reload={reload}/></Modal>}</>;
 }
 function ClientEditor({data,client,reload}:{data:ProviderBundle;client:ProviderClient;reload:()=>void}) {
   const [name,setName]=useState(client.name);const [phone,setPhone]=useState(client.phone||'');const [address,setAddress]=useState(client.address||'');const [unpaid,setUnpaid]=useState(String(client.unpaid_amount));const [blocked,setBlocked]=useState(client.is_blacklisted);const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');

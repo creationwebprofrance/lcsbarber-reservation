@@ -26,3 +26,36 @@ export function cityVisits(bookings: RevenueBooking[], from: string, to: string,
   }
   return [...cities.values()].sort((a, b) => b.count - a.count);
 }
+
+// Régularité des clients : calculée à partir des rendez-vous honorés (confirmés ou terminés, date passée).
+export type ClientTier = 'regulier' | 'nouveau' | 'occasionnel' | 'a_relancer' | 'jamais';
+export const CLIENT_TIERS: Record<ClientTier, { label: string; hint: string }> = {
+  regulier: { label: 'Régulier', hint: 'Au moins 3 visites sur 12 mois, la dernière il y a moins de 60 jours' },
+  nouveau: { label: 'Nouveau', hint: 'Première visite il y a moins de 60 jours' },
+  occasionnel: { label: 'Occasionnel', hint: 'Dernière visite il y a moins de 4 mois' },
+  a_relancer: { label: 'À relancer', hint: 'Pas venu depuis plus de 4 mois' },
+  jamais: { label: 'Jamais venu', hint: 'Aucun rendez-vous honoré' },
+};
+export const CLIENT_TIER_ORDER: ClientTier[] = ['regulier', 'nouveau', 'occasionnel', 'a_relancer', 'jamais'];
+export type ClientStats = { visits: number; lastVisit: string | null; spent: number; avgBasket: number | null; tier: ClientTier };
+type StatBooking = { client_id: string | null; client_email?: string | null; appointment_date: string; status: string; total_price: number };
+const HONORED = new Set(['confirmed', 'completed']);
+const daysBetween = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86400000);
+
+/** Statistiques d'un client : visites honorées, dernière visite, panier moyen et niveau de régularité. */
+export function clientStats(client: { id: string; email?: string | null }, bookings: StatBooking[], today: string): ClientStats {
+  const email = client.email?.trim().toLowerCase();
+  const mine = bookings.filter(b => HONORED.has(b.status) && b.appointment_date <= today
+    && (b.client_id ? b.client_id === client.id : !!email && b.client_email?.trim().toLowerCase() === email));
+  const visits = mine.length;
+  const spent = Math.round(mine.reduce((s, b) => s + Number(b.total_price || 0), 0) * 100) / 100;
+  const lastVisit = mine.reduce<string | null>((m, b) => (!m || b.appointment_date > m ? b.appointment_date : m), null);
+  const avgBasket = visits ? Math.round((spent / visits) * 100) / 100 : null;
+  let tier: ClientTier = 'jamais';
+  if (lastVisit) {
+    const since = daysBetween(lastVisit, today);
+    const lastYear = mine.filter(b => daysBetween(b.appointment_date, today) <= 365).length;
+    tier = since <= 60 && lastYear >= 3 ? 'regulier' : since <= 60 && visits === 1 ? 'nouveau' : since <= 120 ? 'occasionnel' : 'a_relancer';
+  }
+  return { visits, lastVisit, spent, avgBasket, tier };
+}
