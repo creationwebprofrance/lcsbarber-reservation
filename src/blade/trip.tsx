@@ -40,6 +40,9 @@ async function publicTrip(token: string): Promise<PublicTrip | null> {
   return (data as PublicTrip | null) ?? null;
 }
 export async function myTrips(): Promise<{ booking_id: string; token: string; status: TripStatus }[]> {
+  // Sans session, le serveur répond 401 : on ne demande rien (évite l'erreur en console).
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return [];
   const { data, error } = await db.rpc('blade_my_trips');
   if (error) throw error;
   return (data as { booking_id: string; token: string; status: TripStatus }[] | null) ?? [];
