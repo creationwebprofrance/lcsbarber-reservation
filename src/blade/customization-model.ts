@@ -94,6 +94,9 @@ export const LAYOUTS = {
 } as const;
 export type LayoutKey = keyof typeof LAYOUTS;
 export const LAYOUT_KEYS = Object.keys(LAYOUTS) as LayoutKey[];
+/** Modèles réservés au plan Premium (le serveur le vérifie aussi dans blade_save_page). */
+export const PREMIUM_LAYOUTS: readonly LayoutKey[] = ['vitrine', 'salon'];
+export const layoutAllowed = (k: LayoutKey, plan: string | null | undefined) => plan === 'premium' || !PREMIUM_LAYOUTS.includes(k);
 export const layoutOf = (value: unknown): LayoutKey => (typeof value === 'string' && Object.prototype.hasOwnProperty.call(LAYOUTS, value) ? value as LayoutKey : 'classique');
 
 // ---- Profil en widgets ----

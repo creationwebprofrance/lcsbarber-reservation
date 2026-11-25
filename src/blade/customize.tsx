@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BladeButton, EmptyState, Section, Tabs, Plus, ArrowRight } from './common';
 import { Field, ProviderPage, Status } from './provider';
-import { FONTS, FONT_KEYS, LAYOUTS, LAYOUT_KEYS, PALETTE, isVideoPath, layoutOf, moveItem, parseOptions, sectionsOfWidgets, shortId, widgetsOf, type FontKey } from './customization-model';
+import { useMyPlan } from './plan';
+import { FONTS, FONT_KEYS, LAYOUTS, LAYOUT_KEYS, PALETTE, isVideoPath, layoutAllowed, layoutOf, moveItem, parseOptions, sectionsOfWidgets, shortId, widgetsOf, type FontKey } from './customization-model';
 import { pageOf, savePage, uploadMedia, useMediaUrls, usePublicPage, type PageSettings } from './customization-data';
 import { BrandScope, BrandLogo, ProviderProfileView, useBrandFont } from './brand';
 import { WidgetBoard } from './widget-board';
@@ -37,6 +38,7 @@ function CustomizeBody({ providerId }: { providerId: string }) {
   const state = usePublicPage(providerId, refresh);
   const [draft, setDraft] = useState<PageSettings | null>(null);
   const [tab, setTab] = useState('Profil');
+  const { data: myPlan } = useMyPlan();
   const [busy, setBusy] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -80,12 +82,13 @@ function CustomizeBody({ providerId }: { providerId: string }) {
     {tab === 'Profil' ? <>
       <Section title="Modèle de page">
         <div className="blade-choices blade-layout-choices" role="group" aria-label="Modèle de page">
-          {LAYOUT_KEYS.map(k => <button type="button" key={k} className={`blade-choice ${layoutOf(draft.layout) === k ? 'active' : ''}`} aria-pressed={layoutOf(draft.layout) === k} onClick={() => set({ layout: k })}>
-            <span className={`blade-layout-thumb is-${k}`} aria-hidden="true"><i/><i/><i/><i/></span>
-            <strong>{LAYOUTS[k].label}</strong><small>{LAYOUTS[k].hint}</small>
-          </button>)}
+          {LAYOUT_KEYS.map(k => { const locked = !!myPlan && !layoutAllowed(k, myPlan.plan) && layoutOf(state.data?.page?.layout) !== k;
+            return <button type="button" key={k} disabled={locked} className={`blade-choice ${layoutOf(draft.layout) === k ? 'active' : ''}${locked ? ' is-locked' : ''}`} aria-pressed={layoutOf(draft.layout) === k} onClick={() => set({ layout: k })}>
+              <span className={`blade-layout-thumb is-${k}`} aria-hidden="true"><i/><i/><i/><i/></span>
+              <strong>{LAYOUTS[k].label}</strong><small>{locked ? 'Inclus dans le plan Premium' : LAYOUTS[k].hint}</small>
+            </button>; })}
         </div>
-        <p className="blade-note">Ta couleur, ta police, tes photos et tes prestations restent les mêmes : seule la mise en page change.</p>
+        <p className="blade-note">Ta couleur, ta police, tes photos et tes prestations restent les mêmes : seule la mise en page change.{myPlan && myPlan.plan !== 'premium' && !layoutAllowed(layoutOf(state.data?.page?.layout), myPlan.plan) && <> <strong>Ton modèle {LAYOUTS[layoutOf(state.data?.page?.layout)].label} n’est plus affiché à tes clients : ils voient le modèle Classique jusqu’à ton passage en Premium.</strong></>}{myPlan && myPlan.plan !== 'premium' && <> Les modèles Vitrine et Salon sont inclus dans le plan <Link className="blade-text-link" to="/blade/pro/abonnement?plan=premium">Premium</Link> ; tu peux les voir en aperçu.</>}</p>
         <Link className="blade-text-link" to={`/blade/profil/${providerId}?modele=${layoutOf(draft.layout)}`} target="_blank">Aperçu du modèle {LAYOUTS[layoutOf(draft.layout)].label} <ArrowRight size={16}/></Link>
       </Section>
       <div className="blade-two-columns">

@@ -15,6 +15,6 @@ export function PublicProviderProfile() {
   useEffect(() => { if (name) document.title = `${name}${city ? ` — ${city}` : ''} | BLADE Hairstyle`; }, [name, city]);
   return <div className="blade-app"><main className="blade-main">
     <BladeButton asChild><Link to="/blade">BLADE</Link></BladeButton>
-    {state.loading ? <p role="status">Chargement…</p> : !state.data ? <EmptyState icon="user" title="Profil introuvable" description="Ce professionnel n’existe pas ou n’est plus actif." /> : <ProviderProfileView data={state.data} layout={params.get('modele') ?? undefined} />}
+    {state.loading ? <p role="status">Chargement…</p> : !state.data ? <EmptyState icon="user" title="Profil introuvable" description="Ce professionnel n’existe pas ou n’est plus actif." /> : <ProviderProfileView data={state.data} layout={params.get('modele') ?? (state.data.layout_locked ? 'classique' : undefined)} />}
   </main></div>;
 }

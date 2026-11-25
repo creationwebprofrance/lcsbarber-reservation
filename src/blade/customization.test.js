@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { stepsFor, allowedModes, checkAnswers, quote, DEFAULT_PRICING as P } from '../../supabase/functions/_shared/blade-booking-rules.ts';
-import { brandVars, readableOn, nextReward, pointsForAmount, codeFromScan, moveItem, toggleSection, parseOptions, layoutOf, LAYOUT_KEYS } from './customization-model.ts';
+import { brandVars, readableOn, nextReward, pointsForAmount, codeFromScan, moveItem, toggleSection, parseOptions, layoutOf, layoutAllowed, LAYOUT_KEYS } from './customization-model.ts';
 
 describe('Provider booking page settings', () => {
   test('step order follows the provider choice, e.g. date before the prestation', () => {
@@ -115,4 +115,13 @@ describe('Profile page layouts', () => {
     expect(LAYOUT_KEYS).toEqual(['classique', 'agenda', 'vitrine', 'salon']);
     for (const k of LAYOUT_KEYS) expect(layoutOf(k)).toBe(k);
   });
+});
+
+test('modèles Vitrine et Salon réservés au plan Premium', () => {
+  expect(layoutAllowed('classique', 'free')).toBe(true);
+  expect(layoutAllowed('agenda', 'pro')).toBe(true);
+  expect(layoutAllowed('vitrine', 'pro')).toBe(false);
+  expect(layoutAllowed('salon', 'free')).toBe(false);
+  expect(layoutAllowed('salon', undefined)).toBe(false);
+  expect(layoutAllowed('vitrine', 'premium')).toBe(true);
 });

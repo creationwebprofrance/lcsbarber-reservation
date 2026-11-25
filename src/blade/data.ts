@@ -249,12 +249,15 @@ export async function cancelProviderBooking(bookingId: string) {
 }
 export type DepositLinks = { available: boolean; deposit_paid: boolean; status: string; provider_name?: string; revolut_url?: string | null; stripe_link_url?: string | null } | null;
 export const getDepositLinks = (bookingId: string) => rpc<DepositLinks>('blade_booking_deposit_links', { p_booking: bookingId });
-// Pourboires : lien du prestataire (Pro et Premium), proposé au client jusqu'à 30 jours après son rendez-vous.
+// Pourboires : lien du prestataire (plan Premium), proposé au client jusqu'à 30 jours après son rendez-vous.
 export type MyTipLink = { tip_url: string | null; allowed: boolean } | null;
 export const getMyTipLink = () => rpc<MyTipLink>('blade_my_tip_link');
 export const setMyTipLink = (url: string) => rpc<MyTipLink>('blade_set_tip_link', { p_url: url.trim() || null });
 export type TipOffer = { booking_id: string; appointment_date: string; provider_name: string | null; service_name?: string | null; tip_url: string };
 export const getMyTipOffers = () => rpc<TipOffer[] | null>('blade_my_tip_links');
+/** Cartes de fidélité utilisées et limite du plan (50 en Pro, null en Premium, 0 en Découverte). */
+export type LoyaltyUsage = { used: number; limit: number | null };
+export const getMyLoyaltyUsage = () => rpc<LoyaltyUsage>('blade_my_loyalty_usage');
 
 // ---- BLADE client booking (server recomputes slots, price and status) ----
 export type BookingQuote = { quote: import('../../supabase/functions/_shared/blade-booking-rules').Quote; status: 'pending' | 'confirmed'; deposit: number; travel_minutes: number };

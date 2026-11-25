@@ -17,8 +17,8 @@ type Subscription = {
 type Billing = 'month' | 'year';
 // Mêmes montants que supabase/functions/blade-subscription/index.ts (annuel = 12 mois - 10 %).
 const PLANS: { id: Exclude<Plan, 'free'>; name: string; price: Record<Billing, string>; points: string[] }[] = [
-  { id: 'pro', name: 'Pro', price: { month: '19,90 €/mois', year: '214,90 €/an (17,91 €/mois)' }, points: ['Réservations illimitées', 'Acomptes et pourboires en ligne', 'Rappel la veille et 100 relances clients par mois', 'Carte de fidélité et suivi du véhicule'] },
-  { id: 'premium', name: 'Premium', price: { month: '39,90 €/mois', year: '430,90 €/an (35,91 €/mois)' }, points: ['Tout le plan Pro', 'Relances clients illimitées', 'Suivi du trajet en direct pour ton client', 'Mise en avant dans ta ville et badge « Pro vérifié »', 'Boutique en ligne (bientôt)'] },
+  { id: 'pro', name: 'Pro', price: { month: '19,90 €/mois', year: '214,90 €/an (17,91 €/mois)' }, points: ['Réservations illimitées', 'Acomptes en ligne', 'Rappel la veille et 100 relances clients par mois', 'Fidélité pour 50 clients et suivi du véhicule'] },
+  { id: 'premium', name: 'Premium', price: { month: '39,90 €/mois', year: '430,90 €/an (35,91 €/mois)' }, points: ['Tout le plan Pro, sans ses limites : relances (200 mails par jour au plus) et fidélité illimitées', 'Pourboires en ligne', 'Suivi du trajet en direct pour ton client', 'Modèles de page Vitrine et Salon', 'Mise en avant dans ta ville et badge « Pro vérifié »', 'Boutique en ligne (bientôt)'] },
 ];
 const NAMES: Record<Plan, string> = { free: 'Découverte (gratuit)', pro: 'Pro', premium: 'Premium' };
 const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '');

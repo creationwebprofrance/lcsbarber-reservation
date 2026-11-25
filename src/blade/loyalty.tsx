@@ -4,13 +4,22 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { BladeButton, EmptyState, Modal, PageHeading, Section, Plus } from './common';
 import { Field, ProviderPage, Status } from './provider';
-import { useSession, type ProviderClient } from './data';
+import { getMyLoyaltyUsage, useSession, type ProviderClient } from './data';
 import { codeFromScan, earnRule, nextReward, pointsForAmount, shortId, type Reward } from './customization-model';
 import { addPoints, cardLink, findCard, issueCard, loyaltyOverview, myCards, publicCard, redeemReward, saveProgram, scanLink, sendCardEmail, useAsync, useMediaUrls, type LoyaltyCard, type LoyaltyProgram } from './customization-data';
 import { BrandLogo, BrandScope } from './brand';
 import { Nfc } from 'lucide-react';
 import { nfcErrorText, nfcSupported, readNfcUrl, writeNfcUrl } from './nfc';
 import { PlanGate } from './plan';
+
+/** Cartes utilisées et limite du plan (50 en Pro, null en Premium) ; le serveur refuse la 51e carte en Pro. */
+function LoyaltyQuota({ refresh }: { refresh: number }) {
+  const usage = useAsync(() => getMyLoyaltyUsage(), [refresh]);
+  const u = usage.data;
+  if (!u || u.limit === null || u.limit === 0) return null;
+  const full = u.used >= u.limit;
+  return <p className="blade-note" role="status"><strong>{u.used} carte{u.used > 1 ? 's' : ''} sur {u.limit}</strong> avec le plan Pro.{full ? ' Limite atteinte : tes clients actuels gardent leur carte.' : ''} Cartes illimitées avec le plan <Link className="blade-text-link" to="/blade/pro/abonnement?plan=premium">Premium</Link>.</p>;
+}
 
 const when = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 const errText = (e: unknown) => e instanceof Error ? e.message : 'Action impossible. Réessaie.';
@@ -113,7 +122,7 @@ function LoyaltyBody({ clients }: { clients: ProviderClient[] }) {
     {program?.active && <>
       <div className="blade-two-columns">
         <Section title="Scanner une carte"><ScanPanel onCode={open}/><Status error={findError}/></Section>
-        <Section title="Offrir une carte"><IssueForm clients={clients} onIssued={c => updated(c)}/></Section>
+        <Section title="Offrir une carte"><LoyaltyQuota refresh={refresh}/><IssueForm clients={clients} onIssued={c => updated(c)}/></Section>
       </div>
       <Section title={`Cartes offertes (${ov.data?.cards.length ?? 0})`}>
         <label className="blade-search"><input type="search" aria-label="Rechercher une carte" placeholder="Rechercher un client" value={q} onChange={e => setQ(e.target.value)}/></label>

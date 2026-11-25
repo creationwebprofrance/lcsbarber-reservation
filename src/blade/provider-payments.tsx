@@ -91,7 +91,7 @@ export function ProviderPayments() {
     }
     return <>
       <PlanGate need="pro" feature="L’acompte en ligne"><LinksForm/></PlanGate>
-      <PlanGate need="pro" feature="Le pourboire en ligne"><TipForm/></PlanGate>
+      <PlanGate need="premium" feature="Le pourboire en ligne"><TipForm/></PlanGate>
       <Section title="Acomptes en attente">
         <Status error={error} message={message}/>
         {!provider?.opt_payment_links ? <p className="blade-note">{PAYMENT_OPTION_OFF}.</p> : null}

@@ -1,10 +1,12 @@
 // Tableau détaillé « Ce que comprend chaque plan » de la page Tarifs.
 // Chaque ligne doit refléter ce que le serveur fait respecter (blade_effective_plan) :
 // - 20 réservations par mois en Découverte : blade-booking ;
-// - acompte et pourboire par lien : blade_booking_deposit_links, blade_my_tip_links (Pro) ;
+// - acompte et pourboire par lien : blade_booking_deposit_links, blade_my_tip_links (Premium) ;
 // - rappel la veille : blade-daily et send-booking-reminders (Pro) ;
-// - relances : blade-relance (100 par mois en Pro, illimitées en Premium) ; fidélité : blade_loyalty_* (Pro) ;
+// - relances : blade-relance (100 par mois en Pro, illimitées en Premium) ; fidélité : blade_loyalty_* ;
 // - véhicule (Pro) et boutique (Premium) : écrans réservés par PlanGate ;
+// - fidélité 50 clients en Pro, illimitée en Premium ; modèles Vitrine et Salon et pourboires : Premium
+//   (supabase/staged/offres-premium) ;
 // - trajet estimé : blade-trip ; mise en avant et badge : blade_public_providers (Premium).
 import type { Language } from './preferences';
 
@@ -29,7 +31,7 @@ const fr: FeatureTable = {
     { title: 'Paiements', rows: [
       { label: 'Aucune commission sur tes prestations', free: true, pro: true, premium: true },
       { label: 'Acompte en ligne par ton lien Stripe ou Revolut', hint: 'Option activée par BLADE après vérification de ton lien', free: false, pro: true, premium: true },
-      { label: 'Pourboires en ligne par ton lien Stripe ou Revolut', hint: 'Proposés au client jusqu’à 30 jours après son rendez-vous', free: false, pro: true, premium: true },
+      { label: 'Pourboires en ligne par ton lien Stripe ou Revolut', hint: 'Proposés au client jusqu’à 30 jours après son rendez-vous', free: false, pro: false, premium: true },
     ] },
     { title: 'Mails aux clients', rows: [
       { label: 'Mails de confirmation et d’annulation, au client et à toi', hint: 'Mails automatiques activés par BLADE à la validation de ton compte', free: true, pro: true, premium: true },
@@ -40,11 +42,12 @@ const fr: FeatureTable = {
     { title: 'Clients et fidélité', rows: [
       { label: 'Fichier clients : coordonnées, historique, impayés, blocage', free: true, pro: true, premium: true },
       { label: 'Avis clients sur ton profil', free: true, pro: true, premium: true },
-      { label: 'Carte de fidélité à points, QR code et cartes NFC', free: false, pro: true, premium: true },
+      { label: 'Carte de fidélité à points, QR code et cartes NFC', free: false, pro: '50 clients', premium: 'Illimitée' },
     ] },
     { title: 'Visibilité', rows: [
       { label: 'Profil public et présence dans la recherche', hint: 'Présence dans la recherche activée par BLADE après vérification', free: true, pro: true, premium: true },
-      { label: 'Personnalisation : logo, couverture, couleur, police et 4 modèles de page', free: true, pro: true, premium: true },
+      { label: 'Personnalisation : logo, couverture, couleur et police', free: true, pro: true, premium: true },
+      { label: 'Modèles de page', hint: 'Classique et Agenda pour tous ; Vitrine et Salon en Premium', free: '2', pro: '2', premium: '4' },
       { label: 'Galerie de réalisations', free: true, pro: true, premium: true },
       { label: 'Mise en avant dans les résultats de ta ville', free: false, pro: false, premium: true },
       { label: 'Badge « Pro vérifié »', free: false, pro: false, premium: true },
@@ -76,7 +79,7 @@ const en: FeatureTable = {
     { title: 'Payments', rows: [
       { label: 'No fee on your services', free: true, pro: true, premium: true },
       { label: 'Online deposit through your Stripe or Revolut link', hint: 'Enabled by BLADE once your link is checked', free: false, pro: true, premium: true },
-      { label: 'Online tips through your Stripe or Revolut link', hint: 'Offered to the client up to 30 days after the appointment', free: false, pro: true, premium: true },
+      { label: 'Online tips through your Stripe or Revolut link', hint: 'Offered to the client up to 30 days after the appointment', free: false, pro: false, premium: true },
     ] },
     { title: 'Client emails', rows: [
       { label: 'Confirmation and cancellation emails, to the client and to you', hint: 'Automatic emails enabled by BLADE when your account is approved', free: true, pro: true, premium: true },
@@ -87,11 +90,12 @@ const en: FeatureTable = {
     { title: 'Clients and loyalty', rows: [
       { label: 'Client file: contact details, history, unpaid amounts, blocking', free: true, pro: true, premium: true },
       { label: 'Client reviews on your profile', free: true, pro: true, premium: true },
-      { label: 'Points loyalty card, QR code and NFC cards', free: false, pro: true, premium: true },
+      { label: 'Points loyalty card, QR code and NFC cards', free: false, pro: '50 clients', premium: 'Unlimited' },
     ] },
     { title: 'Visibility', rows: [
       { label: 'Public profile and listing in search', hint: 'Search listing enabled by BLADE after a check', free: true, pro: true, premium: true },
-      { label: 'Customisation: logo, cover, colour, font and 4 page layouts', free: true, pro: true, premium: true },
+      { label: 'Customisation: logo, cover, colour and font', free: true, pro: true, premium: true },
+      { label: 'Page layouts', hint: 'Classic and Agenda for everyone; Showcase and Salon in Premium', free: '2', pro: '2', premium: '4' },
       { label: 'Work gallery', free: true, pro: true, premium: true },
       { label: 'Featured in your city’s results', free: false, pro: false, premium: true },
       { label: '“Verified pro” badge', free: false, pro: false, premium: true },
@@ -123,7 +127,7 @@ const es: FeatureTable = {
     { title: 'Pagos', rows: [
       { label: 'Sin comisión sobre tus servicios', free: true, pro: true, premium: true },
       { label: 'Anticipo online con tu enlace Stripe o Revolut', hint: 'Activado por BLADE tras verificar tu enlace', free: false, pro: true, premium: true },
-      { label: 'Propinas online con tu enlace Stripe o Revolut', hint: 'Propuestas al cliente hasta 30 días después de la cita', free: false, pro: true, premium: true },
+      { label: 'Propinas online con tu enlace Stripe o Revolut', hint: 'Propuestas al cliente hasta 30 días después de la cita', free: false, pro: false, premium: true },
     ] },
     { title: 'E-mails a clientes', rows: [
       { label: 'E-mails de confirmación y cancelación, al cliente y a ti', hint: 'E-mails automáticos activados por BLADE al validar tu cuenta', free: true, pro: true, premium: true },
@@ -134,11 +138,12 @@ const es: FeatureTable = {
     { title: 'Clientes y fidelidad', rows: [
       { label: 'Fichero de clientes: datos, historial, impagos, bloqueo', free: true, pro: true, premium: true },
       { label: 'Opiniones de clientes en tu perfil', free: true, pro: true, premium: true },
-      { label: 'Tarjeta de fidelidad con puntos, QR y tarjetas NFC', free: false, pro: true, premium: true },
+      { label: 'Tarjeta de fidelidad con puntos, QR y tarjetas NFC', free: false, pro: '50 clientes', premium: 'Ilimitada' },
     ] },
     { title: 'Visibilidad', rows: [
       { label: 'Perfil público y presencia en la búsqueda', hint: 'Presencia en la búsqueda activada por BLADE tras verificación', free: true, pro: true, premium: true },
-      { label: 'Personalización: logo, portada, color, fuente y 4 modelos de página', free: true, pro: true, premium: true },
+      { label: 'Personalización: logo, portada, color y fuente', free: true, pro: true, premium: true },
+      { label: 'Modelos de página', hint: 'Clásico y Agenda para todos; Escaparate y Salón en Premium', free: '2', pro: '2', premium: '4' },
       { label: 'Galería de trabajos', free: true, pro: true, premium: true },
       { label: 'Destacado en los resultados de tu ciudad', free: false, pro: false, premium: true },
       { label: 'Insignia «Pro verificado»', free: false, pro: false, premium: true },

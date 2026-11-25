@@ -1311,3 +1311,4 @@ html[data-blade-theme=dark] .bl2 .bl2-trust svg{color:#f2c98f}
 .blade-compare-no{color:hsl(var(--muted-foreground)/.6)}
 .blade-compare-text{font-weight:600;font-size:13px}
 @media(max-width:767px){.blade-compare{margin-top:40px}.blade-compare table{min-width:0}.blade-compare thead tr,.blade-compare tbody tr:not(.blade-compare-group){display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.blade-compare thead td{display:none}.blade-compare thead th{padding:12px 4px;font-size:14px}.blade-compare tbody th[scope=row]{grid-column:1/-1;width:auto;padding:12px 12px 2px}.blade-compare td{padding:6px 4px 12px}.blade-compare tbody tr+tr td{border-top:0}.blade-compare-group,.blade-compare-group th{display:block}}
+.blade-choice:disabled.is-locked{opacity:.6;cursor:not-allowed}
