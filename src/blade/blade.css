@@ -312,6 +312,8 @@ html[data-blade-theme=dark] .bl2 .bl2-pill-outline{color:hsl(var(--foreground));
 .blade-brand-cover img{width:100%;height:100%;object-fit:cover;display:block}
 .blade-brand-identity{display:flex;gap:16px;align-items:flex-end;padding:0 20px 16px;margin-top:-44px;flex-wrap:wrap}
 .blade-brand-identity>div{flex:1;min-width:180px}
+/* Le nom et la note restent sous la photo de couverture, quelle que soit la taille du logo. */
+.blade-brand-identity>div{margin-top:52px}
 .blade-brand-logo{width:96px;height:96px;border-radius:50%;border:4px solid hsl(var(--background));background:hsl(var(--primary));color:hsl(var(--primary-foreground));display:grid;place-items:center;overflow:hidden;font-size:32px;font-weight:700;flex-shrink:0}
 .blade-brand-logo img{width:100%;height:100%;object-fit:cover}
 .blade-preview-identity{margin-top:0;padding:0}
