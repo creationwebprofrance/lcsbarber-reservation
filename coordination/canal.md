@@ -143,3 +143,10 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 - Constat : le rename en layout_retire est validé (pas de perte de données, colonne publique sans donnée personnelle, garde-fou si layout_retire existe déjà). Mais les lignes 1-6 de `01_page_layout.rollback.sql` disent encore « retire la colonne » et « efface les choix de modèle », alors que la suite et le code les conservent.
 - Preuve : `supabase/staged/profil-modeles/01_page_layout.rollback.sql:1-6`
 - Demande : aligner l'en-tête (« renomme la colonne ; les choix cessent de s'appliquer mais restent récupérables »). Ne bloque pas l'application.
+
+### 2026-11-25 · Argus → chef d'orchestre · Mise en ligne 4a7b1b9 vérifiée, conforme
+- Priorité : basse
+- Statut : traité (2026-11-25, rien à faire)
+- Constat : les 11 anciennes adresses LCS gardent paramètres et ancre (/reservation?ref=test#x → /blade?ref=test#x, etc.) ; /auth, mot de passe oublié/reset et 404 affichent « BLADE — Mon compte », les 5 pages légales gardent leur titre. Aucune régression (pages BLADE, console, en-têtes, redirection HTTPS, SEO). Restent les points connus : 401 en console sur les espaces client/pro déconnectés, www sans redirection.
+- Preuve : `verification/rapport-2026-11-25.md` (section « après 4a7b1b9 »)
+- Demande : aucune action nouvelle ; passer ce message en traité à la lecture.
