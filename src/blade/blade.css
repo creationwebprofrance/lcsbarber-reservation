@@ -95,7 +95,10 @@
 .blade-live-days li{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;padding:10px 14px;border:1px solid hsl(var(--border));border-radius:12px;background:hsl(var(--card))}
 .blade-live-days strong{text-transform:capitalize;min-width:96px}.blade-live-days small{margin-left:auto;color:hsl(var(--muted-foreground))}
 .blade-live-pro{display:grid;gap:14px;padding:20px;border:1px solid hsl(var(--border));border-radius:20px;background:hsl(var(--background))}
-.blade-live-pro-head{display:flex;gap:14px;align-items:center}.blade-live-pro-head h3{margin:0;font-size:20px}.blade-live-pro-head p{margin:2px 0 0;color:hsl(var(--muted-foreground));font-size:14px}.blade-live-pro-head strong{margin-left:auto;white-space:nowrap;color:hsl(var(--primary))}
+.blade-live-pro-head{display:flex;gap:14px;align-items:center}
+.blade-live-pro-head .blade-brand-logo{width:56px;height:56px;border-width:0;flex:none;font-size:22px}
+/* Leaflet force width:auto et max-width:none sur les images du repère : le logo reprend la taille du cercle. */
+.leaflet-container .leaflet-marker-pane .blade-logo-pin img{position:absolute;inset:0;width:100%!important;height:100%!important;max-width:100%!important}.blade-live-pro-head h3{margin:0;font-size:20px}.blade-live-pro-head p{margin:2px 0 0;color:hsl(var(--muted-foreground));font-size:14px}.blade-live-pro-head strong{margin-left:auto;white-space:nowrap;color:hsl(var(--primary))}
 .blade-live-pro h4{margin:0;font-size:14px}
 .blade-live-reviews{list-style:none;margin:0;padding:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
 .blade-live-reviews li{padding:14px;border:1px solid hsl(var(--border));border-radius:14px;background:hsl(var(--card))}
@@ -1314,3 +1317,6 @@ html[data-blade-theme=dark] .bl2 .bl2-trust svg{color:#f2c98f}
 .blade-compare-text{font-weight:600;font-size:13px}
 @media(max-width:767px){.blade-compare{margin-top:40px}.blade-compare table{min-width:0}.blade-compare thead tr,.blade-compare tbody tr:not(.blade-compare-group){display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.blade-compare thead td{display:none}.blade-compare thead th{padding:12px 4px;font-size:14px}.blade-compare tbody th[scope=row]{grid-column:1/-1;width:auto;padding:12px 12px 2px}.blade-compare td{padding:6px 4px 12px}.blade-compare tbody tr+tr td{border-top:0}.blade-compare-group,.blade-compare-group th{display:block}}
 .blade-choice:disabled.is-locked{opacity:.6;cursor:not-allowed}
+/* Pro : nombre total de clients en tête de la page Clients. */
+.blade-client-total{margin:0 0 12px;color:hsl(var(--muted-foreground));font-size:15px}
+.blade-client-total strong{color:hsl(var(--foreground));font-size:22px;font-weight:600;margin-right:4px;font-variant-numeric:tabular-nums}

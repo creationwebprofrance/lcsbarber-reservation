@@ -8,6 +8,8 @@ import { RequestSlot } from './requests';
 import { canRequestSlot } from './request-model';
 import { useServices, useReviews, useAvailability, useBookings, useClients, useSession, fmtDate, fmtPrice, statusLabel, isoDate, getDepositLinks, getMyTipOffers, type Booking, type DepositLinks, type TipOffer } from './data';
 import { needsDeposit, REVOLUT_LINK, STRIPE_LINK, safeTipLink } from './provider-admin-model';
+import { usePublicPage, useMediaUrls, pageOf } from './customization-data';
+import { BrandLogo } from './brand';
 
 function Loading() { return <p className="blade-note" role="status"><LoaderCircle className="blade-spinner" size={16} /> Chargement…</p>; }
 function Failed({ error }: { error: string }) { return <p className="blade-note blade-error" role="alert">Impossible de charger les données : {error}</p>; }
@@ -40,8 +42,13 @@ export function LiveAvailability({ mode, limit = 7 }: { mode: 'domicile' | 'depl
 /** The single LCS Barber professional card shown on the search page. */
 export function LiveProCard({ mode }: { mode: 'domicile' | 'deplacement' }) {
   const services = useServices();
+  // Logo de la fiche publique (le même que sur la carte) ; les ciseaux restent si aucun logo n'est envoyé.
+  const lcs = usePublicPage(null);
+  const logoPath = lcs.data ? pageOf(lcs.data).logo_path : null;
+  const logoStyle = lcs.data ? pageOf(lcs.data).logo_style : null;
+  const logo = useMediaUrls([logoPath])[logoPath ?? ''];
   const min = services.data?.length ? Math.min(...services.data.map(s => Number(s.price))) : null;
-  return <article className="blade-live-pro"><div className="blade-live-pro-head"><span className="blade-profile-placeholder"><Icon name="scissors" size={24} /></span><div><h3>LCS Barber</h3><RatingSummary /><p>{mode === 'deplacement' ? 'Se déplace chez vous · Puiseux-en-France et alentours' : 'Puiseux-en-France'}</p></div>{min !== null && <strong>dès {fmtPrice(min)}</strong>}</div><h4>Prochaines disponibilités</h4><LiveAvailability mode={mode} limit={3} /><BladeButton asChild variant="default"><Link to="/blade/client/profil-professionnel">Voir le profil</Link></BladeButton></article>;
+  return <article className="blade-live-pro"><div className="blade-live-pro-head">{logo ? <BrandLogo url={logo} name="LCS Barber" logoStyle={logoStyle} /> : <span className="blade-profile-placeholder"><Icon name="scissors" size={24} /></span>}<div><h3>LCS Barber</h3><RatingSummary /><p>{mode === 'deplacement' ? 'Se déplace chez vous · Puiseux-en-France et alentours' : 'Puiseux-en-France'}</p></div>{min !== null && <strong>dès {fmtPrice(min)}</strong>}</div><h4>Prochaines disponibilités</h4><LiveAvailability mode={mode} limit={3} /><BladeButton asChild variant="default"><Link to="/blade/client/profil-professionnel">Voir le profil</Link></BladeButton></article>;
 }
 
 function bookingRows(list: Booking[], admin: boolean) { return list.map(b => [fmtDate(b.appointment_date), b.appointment_time.slice(0, 5), admin ? b.client_name : 'LCS Barber', b.services?.name ?? '—', statusLabel[b.status] ?? b.status, fmtPrice(b.total_price)]); }

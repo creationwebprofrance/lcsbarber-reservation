@@ -1,7 +1,7 @@
 // Pro: weekly opening hours and dated exceptions ("Mes horaires").
 // Reads go through RLS (own rows only); writes only through owner-checked RPCs.
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { BladeButton, EmptyState, Section, Plus } from './common';
@@ -20,9 +20,9 @@ type Override = { id: string; date: string; is_available: boolean; start_time: s
 
 export function ProHours() {
   const { isSuperadmin } = useSession();
-  return <ProviderPage title="Mes horaires">{data => isSuperadmin
-    ? <Section title="Horaires de LCS Barber"><p className="blade-note">Les horaires de LCS Barber restent gérés dans l’agenda historique (journées et disponibilités). Cet écran sert aux autres prestataires.</p><BladeButton asChild><Link to="/blade/pro/agenda">Ouvrir l’agenda</Link></BladeButton></Section>
-    : <HoursBody providerId={data.provider_id}/>}</ProviderPage>;
+  // LCS Barber gère ses horaires dans l'agenda historique : on l'y envoie directement.
+  if (isSuperadmin) return <Navigate to="/blade/pro/agenda" replace />;
+  return <ProviderPage title="Mes horaires">{data => <HoursBody providerId={data.provider_id}/>}</ProviderPage>;
 }
 
 const MODES: HoursMode[] = ['both', 'domicile', 'deplacement'];
