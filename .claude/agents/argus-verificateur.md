@@ -43,9 +43,10 @@ L'ancien domaine lcsbarber.com est abandonné : ne le contrôle pas et ne le sig
 3. **En-têtes de sécurité** (`curl -sI`) : X-Frame-Options, Content-Security-Policy,
    X-Content-Type-Options, Referrer-Policy, Strict-Transport-Security, Permissions-Policy.
 4. **Redirections** : `curl -s -o /dev/null -w '%{http_code} %{redirect_url}'` sur
-   http://blade-hairstyle.com/blade/tarifs et https://www.blade-hairstyle.com/blade.
-   Attendu : 301 vers https://blade-hairstyle.com avec le même chemin et les paramètres conservés
-   (www sans redirection est un problème déjà connu).
+   http://blade-hairstyle.com/blade/tarifs, https://www.blade-hairstyle.com/blade et
+   https://www.blade-hairstyle.com/blade/tarifs?x=1. Attendu : 301 vers https://blade-hairstyle.com
+   avec le même chemin et les paramètres conservés (règle www dans `public/.htaccess`). Depuis
+   http://www…, deux sauts (vers https://www puis vers le domaine nu) sont acceptables.
 5. **SEO** : sitemap.xml et robots.txt pointent vers blade-hairstyle.com.
 6. **Profil public et modèles de page** : ouvre le profil d'un prestataire actif
    (`/blade/profil/<id>`, id lu par `blade_public_page` ou un lien de /blade/client) sans paramètre,

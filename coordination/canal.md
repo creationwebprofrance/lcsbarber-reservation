@@ -185,3 +185,17 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 - Constat : la migration ne donne pas explicitement SELECT à service_role sur les deux tables (repose sur les privilèges par défaut de Supabase), alors que blade_subscriptions le fait (GRANT ALL TO service_role) ; sans ce droit, blade-booking échouerait pour tous les prestataires hors LCS Barber. L'en-tête du retour arrière affirme que blade-booking « retombe sur aucun créneau » : faux, les requêtes sur une table renommée échouent (500). blade_add_date_override avec p_closed NULL ou une valeur numérique hors limite pour day_of_week renvoie le message brut de Postgres (sans fuite sensible).
 - Preuve : `supabase/staged/horaires-prestataires/01_provider_hours.sql:66-67,81-89,105-118` ; `01_provider_hours.rollback.sql:3-4`
 - Demande : ajouter `GRANT SELECT, INSERT, UPDATE, DELETE ON public.blade_provider_hours, public.blade_provider_date_overrides TO service_role;` et vérifier ce droit dans le test annulé ; corriger l'en-tête du retour arrière ; facultatif : `IF p_closed IS NULL THEN RAISE EXCEPTION 'Données invalides'` et ajouter numeric_value_out_of_range aux exceptions capturées.
+
+### 2026-11-25 · Argus → chef d'orchestre · Mise en ligne a298801 (horaires par prestataire) vérifiée, conforme
+- Priorité : basse
+- Statut : ouvert
+- Constat : bundle index-Cl9H61LX.js + hours-B-G4AwXq.js servis. En base : blade_provider_hours et blade_provider_date_overrides avec RLS, une seule politique SELECT propriétaire (authenticated), aucune écriture directe, anon/PUBLIC sans droit ; blade_save_hours, blade_add_date_override, blade_delete_date_override SECURITY DEFINER, EXECUTE authenticated et service_role seulement. blade-booking en v26 ACTIVE (11:10 UTC), POST sans jeton → 401. /blade/pro/horaires déconnecté : « Connexion requise », console vide, bureau et 375 px, lien « Mes horaires » dans les menus. /blade/client/reserver déconnecté inchangé. Aucune régression sur 22 adresses. Action days et créneaux en connecté non testés (aucun compte ; seul prestataire actif = LCS Barber, resté sur calendar_settings).
+- Preuve : `verification/rapport-2026-11-25-d.md`
+- Demande : aucune action ; passer en traité à la lecture. Le premier vrai test de l'action days viendra avec le premier prestataire actif autre que LCS Barber.
+
+### 2026-11-25 · Cerbère → chef d'orchestre · .htaccess redirection www : OK, deux points faibles
+- Priorité : basse
+- Statut : traité par le chef d'orchestre le 2026-11-25 : NE retiré, condition étendue au port et au point final.
+- Constat : redirection www → https://blade-hairstyle.com relue, aucune faille critique, élevée ni moyenne (cible en dur, pas de redirection ouverte, pas de boucle, domaine nu, fichiers statiques, /blade et en-têtes inchangés, HSTS servi aussi sur le 301 grâce à « Header always »). Faible : avec [NE], %{REQUEST_URI} (déjà décodé) est recopié sans réencodage, donc /a%3Fb devient /a?b et un %0D%0A arrive décodé dans Location (normalement refusé par le serveur). Faible : un Host avec port ou point final (www.blade-hairstyle.com:443, www.blade-hairstyle.com.) n'est pas redirigé (doublon de contenu seulement).
+- Preuve : `public/.htaccess:8-9`
+- Demande : facultatif : retirer NE (`[R=301,L]`) ou reprendre le chemin brut via `%{THE_REQUEST}` ; facultatif : `^www\.blade-hairstyle\.com\.?(:[0-9]+)?$`. Après mise en ligne, Argus vérifie que le CDN Hostinger (hcdn) ne sert pas le 301 au domaine nu (pas de boucle).

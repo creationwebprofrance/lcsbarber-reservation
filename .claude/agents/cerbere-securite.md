@@ -42,7 +42,9 @@ Si on te donne une branche ou des fichiers, relis ceux-là.
    données client visibles par leur seul prestataire, pas de champ collecté sans usage.
 7. **En-têtes** : `public/.htaccess` garde X-Frame-Options, la CSP frame-ancestors, nosniff,
    Referrer-Policy, HSTS et Permissions-Policy, ainsi que `DirectorySlash Off`, qui évite
-   l'erreur 403 sur /blade.
+   l'erreur 403 sur /blade. La redirection www → domaine nu vise un domaine écrit en dur
+   (https://blade-hairstyle.com) : une cible construite à partir de %{HTTP_HOST} serait une
+   redirection ouverte (point élevé).
 8. **Migrations** (`supabase/staged/**`) : chaque fichier a son `.rollback.sql`. Une suppression
    de données ou de colonne est signalée comme bloquante.
 9. **Page de profil** (`blade_provider_pages`) : la table n'est écrite que par `blade_save_page`
