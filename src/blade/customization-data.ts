@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Review, Service } from './data';
-import { DEFAULT_ACCENT, ALL_SECTIONS, type FontKey, type Reward, type SectionKey, type Widget, type LogoStyle } from './customization-model';
+import { DEFAULT_ACCENT, ALL_SECTIONS, type FontKey, type Reward, type SectionKey, type Widget, type LogoStyle, type LayoutKey } from './customization-model';
 import type { BookingModes, Question, StepOrder } from '../../supabase/functions/_shared/blade-booking-rules';
 
 const db = supabase as SupabaseClient;
@@ -28,11 +28,11 @@ export type PageSettings = {
   accent_color: string; font_key: FontKey; logo_path: string | null; cover_path: string | null; bio: string | null; city: string | null; salon_address: string | null;
   instagram: string | null; tiktok: string | null; sections: SectionKey[]; gallery_paths: string[]; booking_modes: BookingModes; step_order: StepOrder;
   welcome_message: string | null; booking_rules: string | null; custom_questions: Question[];
-  widgets: Widget[] | null; logo_style: LogoStyle | null;
+  widgets: Widget[] | null; logo_style: LogoStyle | null; layout: LayoutKey;
 };
 export const DEFAULT_PAGE: PageSettings = {
   accent_color: DEFAULT_ACCENT, font_key: 'classique', logo_path: null, cover_path: null, bio: null, city: null, salon_address: null, instagram: null, tiktok: null,
-  sections: ALL_SECTIONS, gallery_paths: [], booking_modes: 'both', step_order: 'service', welcome_message: null, booking_rules: null, custom_questions: [], widgets: null, logo_style: null,
+  sections: ALL_SECTIONS, gallery_paths: [], booking_modes: 'both', step_order: 'service', welcome_message: null, booking_rules: null, custom_questions: [], widgets: null, logo_style: null, layout: 'classique',
 };
 export type OpeningHour = { day_of_week: number; start_time: string; end_time: string; mode: string };
 export type PublicPage = { provider_id: string; name: string; is_lcs: boolean; is_premium?: boolean; page: Partial<PageSettings> | null; services: Service[]; reviews: Review[]; hours: OpeningHour[] };

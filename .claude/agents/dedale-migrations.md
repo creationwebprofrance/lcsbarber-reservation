@@ -34,6 +34,18 @@ Uniquement dans `supabase/staged/<sujet>/`. Pour chaque changement :
   déploiement de la fonction (écris-le en tête du fichier), et le retour arrière après le retour
   à l'ancienne fonction.
 - Les migrations sont idempotentes quand c'est possible (`IF NOT EXISTS`, `CREATE OR REPLACE`).
+- Pour modifier une fonction existante, reprends sa définition actuelle complète avec
+  `pg_get_functiondef` (jamais une copie du dépôt, qui peut être en retard), change seulement les
+  lignes demandées, et mets ses empreintes `md5(pg_get_functiondef(oid))` dans le contrôle préalable
+  pour qu'une fonction modifiée entre-temps bloque l'application. Le retour arrière remet la
+  définition d'origine telle quelle ; vérifie dans le test annulé que les md5 et `proacl` reviennent
+  identiques. Modèle : `supabase/staged/profil-modeles/`.
+- Le retour arrière d'une colonne ajoutée ne la supprime pas : il la renomme `<nom>_retire` et le
+  signale en tête (les valeurs cessent de s'appliquer mais restent récupérables). Un `DROP COLUMN`
+  définitif reste une décision séparée de l'utilisateur.
+- Une colonne ajoutée à `blade_provider_pages` est écrite par `blade_save_page` et contrôlée par le
+  trigger `blade_validate_page` (message en français, comme les autres valeurs de la table) ;
+  `blade_public_page` la renvoie d'elle-même (`to_jsonb(p)`), donc elle doit être publique par nature.
 
 ## Comment tu testes (sans rien enregistrer)
 

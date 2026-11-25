@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { stepsFor, allowedModes, checkAnswers, quote, DEFAULT_PRICING as P } from '../../supabase/functions/_shared/blade-booking-rules.ts';
-import { brandVars, readableOn, nextReward, pointsForAmount, codeFromScan, moveItem, toggleSection, parseOptions } from './customization-model.ts';
+import { brandVars, readableOn, nextReward, pointsForAmount, codeFromScan, moveItem, toggleSection, parseOptions, layoutOf, LAYOUT_KEYS } from './customization-model.ts';
 
 describe('Provider booking page settings', () => {
   test('step order follows the provider choice, e.g. date before the prestation', () => {
@@ -100,5 +100,19 @@ describe('Logo adjustments', () => {
   test('gallery videos are recognised by extension', () => {
     expect(isVideoPath('a/gallery-1.MP4')).toBe(true);
     expect(isVideoPath('a/gallery-1.webp')).toBe(false);
+  });
+});
+
+describe('Profile page layouts', () => {
+  test('unknown or missing layouts fall back to the classic page', () => {
+    expect(layoutOf(undefined)).toBe('classique');
+    expect(layoutOf('xyz')).toBe('classique');
+    expect(layoutOf(null)).toBe('classique');
+    expect(layoutOf('constructor')).toBe('classique');
+    expect(layoutOf('__proto__')).toBe('classique');
+  });
+  test('the four layouts match the values accepted by the database', () => {
+    expect(LAYOUT_KEYS).toEqual(['classique', 'agenda', 'vitrine', 'salon']);
+    for (const k of LAYOUT_KEYS) expect(layoutOf(k)).toBe(k);
   });
 });

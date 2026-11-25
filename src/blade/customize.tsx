@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BladeButton, EmptyState, Section, Tabs, Plus, ArrowRight } from './common';
 import { Field, ProviderPage, Status } from './provider';
-import { FONTS, FONT_KEYS, PALETTE, isVideoPath, moveItem, parseOptions, sectionsOfWidgets, shortId, widgetsOf, type FontKey } from './customization-model';
+import { FONTS, FONT_KEYS, LAYOUTS, LAYOUT_KEYS, PALETTE, isVideoPath, layoutOf, moveItem, parseOptions, sectionsOfWidgets, shortId, widgetsOf, type FontKey } from './customization-model';
 import { pageOf, savePage, uploadMedia, useMediaUrls, usePublicPage, type PageSettings } from './customization-data';
 import { BrandScope, BrandLogo, ProviderProfileView, useBrandFont } from './brand';
 import { WidgetBoard } from './widget-board';
@@ -78,6 +78,16 @@ function CustomizeBody({ providerId }: { providerId: string }) {
     <FontSamples/>
     <Tabs options={['Profil', 'Réservation']} value={tab} onChange={setTab}/>
     {tab === 'Profil' ? <>
+      <Section title="Modèle de page">
+        <div className="blade-choices blade-layout-choices" role="group" aria-label="Modèle de page">
+          {LAYOUT_KEYS.map(k => <button type="button" key={k} className={`blade-choice ${layoutOf(draft.layout) === k ? 'active' : ''}`} aria-pressed={layoutOf(draft.layout) === k} onClick={() => set({ layout: k })}>
+            <span className={`blade-layout-thumb is-${k}`} aria-hidden="true"><i/><i/><i/><i/></span>
+            <strong>{LAYOUTS[k].label}</strong><small>{LAYOUTS[k].hint}</small>
+          </button>)}
+        </div>
+        <p className="blade-note">Ta couleur, ta police, tes photos et tes prestations restent les mêmes : seule la mise en page change.</p>
+        <Link className="blade-text-link" to={`/blade/profil/${providerId}?modele=${layoutOf(draft.layout)}`} target="_blank">Aperçu du modèle {LAYOUTS[layoutOf(draft.layout)].label} <ArrowRight size={16}/></Link>
+      </Section>
       <div className="blade-two-columns">
         <Section title="Couleur et police">
           <div className="blade-swatches" role="group" aria-label="Couleur principale">

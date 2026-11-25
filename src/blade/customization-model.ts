@@ -84,6 +84,18 @@ export function codeFromScan(text: string): string | null {
 export const earnRule = (p: { kind: 'visits' | 'euros'; points_per_visit: number; points_per_euro: number }) =>
   p.kind === 'visits' ? `${p.points_per_visit} point${p.points_per_visit > 1 ? 's' : ''} par visite` : `${Number(p.points_per_euro).toLocaleString('fr-FR')} point${Number(p.points_per_euro) > 1 ? 's' : ''} par euro dépensé`;
 
+// ---- Modèle de page de profil ----
+/** Mises en page du profil public ; « classique » est l'affichage historique en widgets. */
+export const LAYOUTS = {
+  classique: { label: 'Classique', hint: 'Tes blocs dans l’ordre que tu choisis' },
+  agenda: { label: 'Agenda', hint: 'La réservation d’abord : fiche à gauche, prestations à choisir à droite' },
+  vitrine: { label: 'Vitrine', hint: 'Tes réalisations d’abord : grande couverture, galerie, prestations en cartes' },
+  salon: { label: 'Salon', hint: 'Adresse, horaires et avis mis en avant, encadré de réservation' },
+} as const;
+export type LayoutKey = keyof typeof LAYOUTS;
+export const LAYOUT_KEYS = Object.keys(LAYOUTS) as LayoutKey[];
+export const layoutOf = (value: unknown): LayoutKey => (typeof value === 'string' && Object.prototype.hasOwnProperty.call(LAYOUTS, value) ? value as LayoutKey : 'classique');
+
 // ---- Profil en widgets ----
 export const WIDGETS = {
   about: { label: 'Présentation', hint: 'Ta bio, quelques mots sur toi' },

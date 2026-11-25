@@ -45,6 +45,12 @@ Si on te donne une branche ou des fichiers, relis ceux-là.
    l'erreur 403 sur /blade.
 8. **Migrations** (`supabase/staged/**`) : chaque fichier a son `.rollback.sql`. Une suppression
    de données ou de colonne est signalée comme bloquante.
+9. **Page de profil** (`blade_provider_pages`) : la table n'est écrite que par `blade_save_page`
+   (SECURITY DEFINER, EXECUTE pour authenticated et service_role seulement, jamais anon ni PUBLIC)
+   et chaque colonne à valeurs fixes (police, lieux, ordre des étapes, modèle de page `layout`…)
+   est contrôlée par le trigger `blade_validate_page`. Une nouvelle colonne écrite par
+   `blade_save_page` sans contrôle dans ce trigger est un point élevé. Tout ce qui est dans cette
+   table est public (`blade_public_page` renvoie `to_jsonb(p)`) : aucune donnée personnelle n'y va.
 
 ## Ce que tu rends
 
