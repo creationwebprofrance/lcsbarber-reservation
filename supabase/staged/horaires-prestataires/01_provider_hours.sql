@@ -1,5 +1,5 @@
 -- Horaires d'ouverture propres à chaque prestataire BLADE.
--- NON APPLIQUÉ. À appliquer après relecture de Cerbère et accord de l'utilisateur.
+-- APPLIQUÉ le 2026-11-25 (accord de l'utilisateur), avant le déploiement de blade-booking v26.
 --
 -- Pourquoi : blade-booking lit public.calendar_settings et public.date_overrides, qui n'ont pas de
 --   colonne prestataire : ce sont les horaires de LCS Barber. Un autre prestataire n'a donc aucun
