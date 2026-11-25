@@ -51,7 +51,19 @@ function BookingFlow({ data, initialService }: { data: PublicPage; initialServic
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const days = useAvailability(mode ?? 'domicile');
-  const dayList = isLcs ? days.data ?? [] : [];
+  // Other providers: open days come from their own hours, computed by blade-booking.
+  const [proDays, setProDays] = useState<{ loading: boolean; list: { date: string }[]; error: string | null }>({ loading: false, list: [], error: null });
+  useEffect(() => {
+    if (isLcs || step !== 'date' || !mode) return;
+    let alive = true; setProDays({ loading: true, list: [], error: null });
+    bladeBooking<{ days: string[] }>({ action: 'days', provider_id: data.provider_id, mode })
+      .then(r => alive && setProDays({ loading: false, list: r.days.map(date => ({ date })), error: null }))
+      .catch(e => alive && setProDays({ loading: false, list: [], error: e.message }));
+    return () => { alive = false; };
+  }, [isLcs, step, mode, data.provider_id]);
+  const dayList = isLcs ? days.data ?? [] : proDays.list;
+  const daysLoading = isLcs ? days.loading : proDays.loading;
+  const daysError = isLcs ? days.error : proDays.error;
   const salon = isLcs ? DOMICILE_ADDRESS : settings.salon_address || settings.city || 'Chez le professionnel';
 
   useEffect(() => { if (!name && (meta.full_name || meta.name)) setName(meta.full_name || meta.name); }, [meta.full_name, meta.name, name]);
@@ -130,9 +142,9 @@ function BookingFlow({ data, initialService }: { data: PublicPage; initialServic
           {mode === 'deplacement' && addressField}
         </>}
 
-        {step === 'date' && mode && (isLcs && days.loading ? <p role="status">Chargement des disponibilités…</p> : isLcs && days.error ? <p role="alert">{days.error}</p> : !dayList.length
+        {step === 'date' && mode && (daysLoading ? <p role="status">Chargement des disponibilités…</p> : daysError ? <p role="alert">{daysError}</p> : !dayList.length
           ? (isLcs ? <><EmptyState title="Aucune disponibilité ouverte" description={`Envoie une demande de créneau, ${data.name} te recontacte.`} compact/><RequestSlot mode={mode}/></>
-            : <EmptyState title="Pas encore d’agenda en ligne" description={`${data.name} n’a pas encore ouvert de créneaux. Contacte-le directement.`} compact/>)
+            : <EmptyState title="Aucune disponibilité ouverte" description={`${data.name} n’a pas de créneau libre dans les 3 prochains mois. Contacte-le directement.`} compact/>)
           : <div className="blade-choices blade-choices-small">{dayList.map(d => <button type="button" key={d.date} className={`blade-choice ${date === d.date ? 'active' : ''}`} aria-pressed={date === d.date} onClick={() => { setDate(d.date); setTime(null); next('date'); }}><strong>{fmtDate(d.date)}</strong></button>)}</div>)}
 
         {step === 'time' && (slots.loading ? <p role="status">Chargement des horaires…</p> : slots.error ? <p role="alert">{slots.error}</p> : !slots.list.length

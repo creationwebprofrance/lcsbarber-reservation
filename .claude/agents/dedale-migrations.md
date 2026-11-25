@@ -46,6 +46,8 @@ Uniquement dans `supabase/staged/<sujet>/`. Pour chaque changement :
 - Une colonne ajoutée à `blade_provider_pages` est écrite par `blade_save_page` et contrôlée par le
   trigger `blade_validate_page` (message en français, comme les autres valeurs de la table) ;
   `blade_public_page` la renvoie d'elle-même (`to_jsonb(p)`), donc elle doit être publique par nature.
+- Une politique RLS « propriétaire » s'écrit `EXISTS (SELECT 1 FROM public.blade_providers p WHERE p.id = <table>.provider_id AND p.user_id = auth.uid())` (modèle : `blade_subscriptions`, `supabase/staged/horaires-prestataires/`). N'utilise pas `blade_my_provider_id()` dans une politique : authenticated n'a pas EXECUTE dessus.
+- Pour tester une fonction appelée par un prestataire dans le test annulé : `set_config('request.jwt.claims', json_build_object('sub', <user_id>, 'role', 'authenticated')::text, true)` puis `SET LOCAL ROLE authenticated`, et terminer par `RAISE EXCEPTION` avec le résultat (le script n'affiche que le dernier résultat).
 
 ## Comment tu testes (sans rien enregistrer)
 
