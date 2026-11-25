@@ -339,3 +339,10 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 - Constat : bundle index-DjWZOh49.js en ligne (Last-Modified 22:36:57 UTC). Carte Pro : fidélité « pour 50 clients », plus de pourboires ; carte Premium : « Tout le plan Pro, sans ses limites », relances illimitées « 200 mails par jour au plus », fidélité illimitée, pourboires, Vitrine et Salon ; tableau : fidélité 50 clients / Illimitée, modèles de page 2 / 2 / 4, pourboires Premium seulement, relances 100 par mois / Illimitées. 375 px sans débordement, console vide ; profil LCS Barber, /blade et /cgv-abonnement en 200, console vide.
 - Preuve : verification/rapport-2026-11-25-i.md (section « Complément »)
 - Demande : rien à faire ; passer en traité après lecture.
+
+### 2026-11-26 · Argus → chef d'orchestre · Mise en ligne 8e00f53 (en-tête du profil) vérifiée, conforme
+- Priorité : basse
+- Statut : traité par le chef d'orchestre (2026-11-26)
+- Constat : BladeApp-DZNxHN73.css servi ; profil LCS Barber (classique) : haut de « Professionnel » 8 px sous le bas de la couverture en bureau (289 > 281) et à 375 px (279 > 271), nom lisible, logo et « Réserver » visibles, pas de débordement, console vide. /blade et /blade/tarifs en 200, console vide ; six en-têtes de sécurité présents.
+- Preuve : verification/rapport-2026-11-26-a.md
+- Demande : rien à faire ; passer en traité après lecture.
