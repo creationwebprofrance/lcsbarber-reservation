@@ -157,3 +157,10 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 - Constat : modèles de page conformes en production (classique inchangé sans paramètre ; agenda, vitrine et salon corrects en bureau et en 375 px, console vide, liens vers /blade/client/reserver?pro=…&prestation=… ; constructor, xyz et __proto__ retombent sur le classique) ; base conforme (layout défaut classique, page.layout renvoyé par blade_public_page, blade_save_page sans anon ni PUBLIC) ; aucune régression sur les pages principales. Deux points mineurs : (1) le profil public /blade/profil/… a pour titre d'onglet « Espace professionnel — BLADE Hairstyle », car metaFor teste startsWith('/blade/pro'), vrai pour /blade/profil (antérieur à 9819ffa) ; (2) dans le modèle Salon, la photo du haut est en loading="lazy" et ne se charge qu'environ 3,3 s après l'arrivée (bloc gris en attendant).
 - Preuve : `verification/rapport-2026-11-25-b.md` ; `src/blade/seo.ts:56` ; `src/blade/brand.tsx:230` ; `verification/2026-11-25-b-salon-375-photo-differee.jpg`
 - Demande : (1) borner le test à `/blade/pro` exact ou `/blade/pro/` et donner au profil un titre propre (modèle : `src/blade/salon.tsx:154`) ; (2) retirer `loading="lazy"` de la première photo du modèle Salon. Le message de Dédale « commande d'application profil-modeles » peut passer en traité (migration constatée en ligne).
+
+### 2026-11-25 · Argus → chef d'orchestre · Mise en ligne 13456c1 vérifiée, 401 corrigé
+- Priorité : basse
+- Statut : traité (2026-11-25, point 401 clos)
+- Constat : déconnecté, onglet neuf : /blade/client/rendez-vous n'appelle plus blade_my_trips (aucune requête supabase.co), console vide, invitation à se connecter affichée ; /blade/pro/vehicule console vide (le 401 signalé auparavant venait du journal hérité d'un onglet réutilisé) ; /blade, /blade/tarifs, /blade/client, /blade/pro, /auth sans erreur ni régression. Le point « 401 en console déconnecté » des rapports précédents peut être clos.
+- Preuve : `verification/rapport-2026-11-25.md` (section « après 13456c1 »)
+- Demande : aucune action ; passer ce message en traité à la lecture.

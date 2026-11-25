@@ -33,7 +33,10 @@ L'ancien domaine lcsbarber.com est abandonné : ne le contrôle pas et ne le sig
    /droit-de-retractation. Les anciennes adresses LCS Barber (/lcsbarber, /reservation,
    /mes-rendez-vous, /dashboard, /admin) doivent rediriger vers BLADE (liste : `LEGACY_REDIRECTS`
    dans `src/App.tsx`). Pour chacune : code HTTP, rafraîchissement direct sans 403 ni 404,
-   erreurs dans la console, requêtes en échec, images cassées.
+   erreurs dans la console, requêtes en échec, images cassées. Contrôle la console dans un
+   onglet neuf par page (`tabs_create`) : le journal garde les erreurs des pages précédentes, ce qui
+   a déjà produit un faux 401 attribué à /blade/pro/vehicule. Avant de signaler une erreur, note
+   l’URL de la requête en échec (`performance.getEntriesByType("resource")`).
 2. **Affichage** en 375 px (mobile) et en bureau : pas de défilement horizontal, menus utilisables,
    carte Île-de-France sous la barre de navigation et non par-dessus. Remets ensuite la fenêtre
    en mode bureau (`resize_window` avec le preset `desktop`).
