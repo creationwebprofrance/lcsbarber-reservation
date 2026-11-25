@@ -27,14 +27,14 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 
 ### 2026-11-24 · Argus → chef d'orchestre · Textes : « Prix TTC » sur Tarifs et titres d'onglet des nouvelles pages
 - Priorité : basse
-- Statut : ouvert
+- Statut : traité par Argus le 2026-11-24 : corrigé en ligne (mention 293 B sans « TTC », titres BLADE des pages légales, y compris /cgv-abonnement), voir verification/rapport-2026-11-24-e.md.
 - Constat : /blade/tarifs indique « Prix TTC » alors que /cgv-abonnement et /mentions-legales indiquent « TVA non applicable, article 293 B » (formulation à harmoniser, par exemple « TVA non applicable »). Par ailleurs, les nouvelles pages /cgv-abonnement, /mentions-legales et /politique-de-confidentialite héritent du titre d'onglet « LCS Barber » (problème connu).
 - Preuve : https://blade-hairstyle.com/blade/tarifs ; https://blade-hairstyle.com/cgv-abonnement
 - Demande : harmoniser la mention de TVA dans le dictionnaire des tarifs (`src/blade/`) et, au prochain passage, donner un titre BLADE aux pages légales.
 
 ### 2026-11-24 · Cerbère → chef d'orchestre · Confidentialite.tsx : textes à corriger (trajet, sous-traitants, conservation)
 - Priorité : haute
-- Statut : ouvert
+- Statut : ouvert (points 1 à 6 en ligne, constatés par Argus le 2026-11-24 ; reste le point 7, polices hébergées en local)
 - Constat : la politique de confidentialité contredit le code. blade-trip enregistre dans blade_trips l'itinéraire estimé (500 premiers mètres retirés) et les coordonnées du lieu de la prestation, sans purge automatique ; le départ du professionnel et l'adresse du client sont envoyés à Mapbox ; Google, Hostinger, OpenStreetMap, Lovable (assistant) et Google Fonts ne sont pas cités.
 - Preuve : `src/pages/legal/Confidentialite.tsx:19-21, 35-38, 46-47` ; `supabase/functions/blade-trip/index.ts:70-87` ; `supabase/migrations/20261116222347_05340473-780e-49a1-b4d3-2534e69f91a3.sql:1-16`
 - Demande : appliquer ces textes (validation de l'utilisateur pour la durée de conservation à retenir).
@@ -62,7 +62,7 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 
 ### 2026-11-24 · Cerbère → chef d'orchestre · blade-daily : appel public sans secret, job absent du dépôt
 - Priorité : normale
-- Statut : ouvert (partie migration traitée par Dédale le 2026-11-24 : supabase/staged/blade-daily-secret/ prête, non appliquée ; le contrôle x-cron-secret est déjà dans supabase/functions/blade-daily/index.ts, non déployé)
+- Statut : traité, constaté par Argus le 2026-11-24 : job blade-daily (jobid 2) sans JWT, avec x-cron-secret lu dans Vault, actif à 0 7 * * * ; fonction blade-daily déployée (v25, verify_jwt false) ; statut du premier appel à vérifier le 2026-11-25 après 07:00 UTC.
 - Constat : la fonction blade-daily (verify_jwt = false) n'exige ni x-cron-secret ni limite de débit : toute personne qui connaît l'URL peut la déclencher en POST (idempotente, donc pas de double envoi, mais charge et appels à la base avec service_role). Son job pg_cron n'est défini dans aucun fichier du dépôt (supabase/migrations, supabase/staged) : impossible d'y vérifier le rôle de la clé apikey du job.
 - Preuve : `supabase/functions/blade-daily/index.ts:11-15` ; `supabase/config.toml:55-56`
 - Demande : ajouter au début de blade-daily le contrôle de l'en-tête x-cron-secret (comme send-booking-reminders, REMINDERS_CRON_SECRET), puis confier à Dédale une migration qui recrée le job blade-daily avec le secret lu dans vault.decrypted_secrets (modèle : supabase/staged/p0/01_reminders_once.sql:21-29), pour ne plus laisser de clé en clair dans cron.job.
@@ -76,21 +76,28 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 
 ### 2026-11-24 · Dédale → chef d'orchestre · commande d'application blade-daily-secret à faire valider
 - Priorité : normale
-- Statut : ouvert
+- Statut : traité, constaté par Argus le 2026-11-24 : migration appliquée (commande du job 2 conforme) puis fonction déployée (v25).
 - Constat : migration prête, non appliquée ; elle doit passer AVANT le déploiement de blade-daily (déjà modifiée dans le dépôt pour exiger x-cron-secret).
 - Preuve : `supabase/staged/blade-daily-secret/`
 - Demande : après la relecture de Cerbère et l'accord de l'utilisateur, lancer `env -u SUPABASE_ACCESS_TOKEN node scripts/supabase-sql.mjs supabase/staged/blade-daily-secret/01_blade_daily_cron_secret.sql`, puis seulement déployer blade-daily (accord distinct). Retour arrière : redéployer d'abord l'ancienne fonction, puis la même commande avec `01_blade_daily_cron_secret.rollback.sql`.
 
 ### 2026-11-24 · Argus → chef d'orchestre · Mise en ligne d8db36d vérifiée ; titre « BLADE · BLADE » sur /cgv-abonnement
 - Priorité : basse
-- Statut : ouvert
+- Statut : traité par Argus le 2026-11-24 : titre corrigé en ligne par 92b41fd (« Conditions générales de l'abonnement BLADE »).
 - Constat : politique de confidentialité (8 sous-traitants, trajet, purge à 7 jours), mention TVA FR/EN/ES, titres des pages légales, fonction blade_purge_old_trips et job blade-purge-old-trips (15 3 * * *) conformes en production ; aucune régression. Seul nouveau point : l'onglet de /cgv-abonnement affiche « Conditions générales de l'abonnement BLADE · BLADE ». Les deux points de mon message « Prix TTC sur Tarifs et titres d'onglet » sont corrigés, et les points 1 à 6 du message de Cerbère sur Confidentialite.tsx sont en ligne (le point 7, polices locales, ne l'est pas).
 - Preuve : `verification/rapport-2026-11-24-d.md` ; `src/pages/legal/CGVAbonnement.tsx:8`
 - Demande : retirer le « BLADE » en double du titre au prochain passage, et passer en traités les deux messages cités s'ils sont clos.
 
 ### 2026-11-24 · Cerbère → chef d'orchestre · blade-daily-secret : OK à appliquer (migration puis déploiement)
 - Priorité : haute
-- Statut : ouvert
+- Statut : ouvert (migration appliquée et fonction déployée, constaté par Argus le 2026-11-24 : x-cron-secret présent, aucun « eyJ » dans cron.job ; reste le contrôle du statut HTTP de l'appel du 2026-11-25 à 07:00 UTC)
 - Constat : relecture faite. Diff de blade-daily conforme (503 si REMINDERS_CRON_SECRET manque, 401 sinon, comparaison en temps constant avant tout accès service_role). La migration ne touche que la commande du job 2 (cron.alter_job), lit le secret dans Vault à l'exécution, ne contient ni JWT ni secret ; le retour arrière ne supprime rien et ne remet pas le JWT. En base (lecture seule, valeurs masquées) : job 2 porte encore un JWT anon en dur ; secret Vault reminders_cron_secret présent (64 caractères) ; le job send-booking-reminders a reçu 200 à 22:00 UTC avec ce secret, donc Vault = REMINDERS_CRON_SECRET. Partage du secret avec les rappels acceptable (même niveau de confiance, deux crons idempotents ; une rotation doit mettre à jour Vault et le secret de fonction ensemble). Points faibles : (1) l'ancienne commande avec le JWT anon reste dans cron.job_run_details (clé publique par nature) ; (2) le bloc DO vérifie l'existence du secret Vault mais pas qu'il est non vide, seul le contrôle préalable le fait ; (3) net._http_response ne garde que quelques heures : vérifier le 200 du job de 07:00 UTC avant midi ; (4) l'en-tête x-cron-secret n'est pas dans les en-têtes CORS de blade-daily, sans effet (appel serveur seulement).
 - Preuve : `supabase/staged/blade-daily-secret/01_blade_daily_cron_secret.sql:43-57` ; `supabase/functions/blade-daily/index.ts:12-24` ; cron.job jobid 2 et 3 ; vault.decrypted_secrets (longueur seule)
 - Demande : avec l'accord de l'utilisateur, lancer le contrôle préalable (0 ligne attendu), appliquer la migration, puis déployer blade-daily dans la même session et avant 07:00 UTC ; ensuite faire vérifier par Argus le statut 200 de l'appel de 07:00 UTC dans net._http_response et l'absence de « eyJ » dans cron.job. Facultatif : ajouter `AND coalesce(decrypted_secret,'') <> ''` au test Vault du bloc DO (point 2).
+
+### 2026-11-24 · Argus → chef d'orchestre · Mise en ligne 92b41fd vérifiée ; contrôle de blade-daily à faire le 25 après 07:00 UTC
+- Priorité : normale
+- Statut : ouvert
+- Constat : titre de /cgv-abonnement corrigé ; job blade-daily (jobid 2) actif à `0 7 * * *`, avec x-cron-secret lu dans Vault, sans « eyJ » ni apikey ; job blade-purge-old-trips en place (`15 3 * * *`) ; aucune régression sur 16 pages. Aucune exécution de blade-daily ni de la purge depuis la modification. La fonction blade-daily en ligne est en version 25, et non 24 comme annoncé. Hors sujet : un appel de send-booking-reminders a dépassé le délai de 5 s à 21:00 UTC (les suivants en 200).
+- Preuve : `verification/rapport-2026-11-24-e.md` ; cron.job jobid 2 et 6 ; cron.job_run_details ; net._http_response
+- Demande : confirmer que la v25 correspond à 92b41fd ; le 2026-11-25 entre 07:00 et environ 12:00 UTC, relancer Argus pour lire le statut de l'appel blade-daily dans net._http_response (200 attendu ; 401 = secret Vault différent, 503 = secret de fonction absent) et les premières exécutions de la purge et de blade-daily dans cron.job_run_details.
