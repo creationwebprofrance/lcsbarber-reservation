@@ -5,7 +5,7 @@
   # Une seule adresse pour le site : www.blade-hairstyle.com renvoie (301) vers
   # blade-hairstyle.com, en gardant le chemin et les paramètres. Le domaine cible
   # est écrit en dur pour ne jamais rediriger vers un hôte fourni par la requête.
-  RewriteCond %{HTTP_HOST} ^www\.blade-hairstyle\.com$ [NC]
+  RewriteCond %{HTTP_HOST} ^www\.blade-hairstyle\.com\.?(:[0-9]+)?$ [NC]
   RewriteRule ^ https://blade-hairstyle.com%{REQUEST_URI} [R=301,L]
 
   # Le dossier public/blade (images, vidéo, manifeste) porte le même nom que la
