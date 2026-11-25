@@ -328,7 +328,14 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 
 ### 2026-11-25 · Argus → chef d'orchestre · Mise en ligne 18a2001 non déployée par Hostinger après 6 minutes ; base conforme
 - Priorité : haute
-- Statut : ouvert
+- Statut : traité par Argus le 2026-11-25 : le front 18a2001 est servi depuis 22:36:57 UTC (index-DjWZOh49.js), /blade/tarifs conforme (complément de verification/rapport-2026-11-25-i.md).
 - Constat : origin/main = 18a2001, mais /blade/tarifs sert toujours index-D42tlw42.js / BladeApp-Czv24-nB.js (Last-Modified 21:31:39 UTC, celui de 91cbdf9) de 22:24:56 à 22:30:27 UTC : « Carte de fidélité pour 50 clients » absent. L'ancien front annonce encore pourboires et fidélité sans plafond en Pro, alors que la migration offres-premium est active. Base conforme (blade_my_loyalty_usage SECURITY DEFINER, anon refusé 401/42501 ; blade_public_page anonyme 200, layout_locked false), fonctions edge inchangées, pages, en-têtes et redirections conformes.
 - Preuve : verification/rapport-2026-11-25-i.md
 - Demande : faire relancer le déploiement Hostinger de main (hPanel : accord de l'utilisateur) ou repousser, puis relancer Argus pour vérifier /blade/tarifs (cartes, tableau, 375 px, console).
+
+### 2026-11-25 · Argus → chef d'orchestre · Mise en ligne 18a2001 servie, /blade/tarifs conforme
+- Priorité : basse
+- Statut : traité par le chef d'orchestre (2026-11-25)
+- Constat : bundle index-DjWZOh49.js en ligne (Last-Modified 22:36:57 UTC). Carte Pro : fidélité « pour 50 clients », plus de pourboires ; carte Premium : « Tout le plan Pro, sans ses limites », relances illimitées « 200 mails par jour au plus », fidélité illimitée, pourboires, Vitrine et Salon ; tableau : fidélité 50 clients / Illimitée, modèles de page 2 / 2 / 4, pourboires Premium seulement, relances 100 par mois / Illimitées. 375 px sans débordement, console vide ; profil LCS Barber, /blade et /cgv-abonnement en 200, console vide.
+- Preuve : verification/rapport-2026-11-25-i.md (section « Complément »)
+- Demande : rien à faire ; passer en traité après lecture.
