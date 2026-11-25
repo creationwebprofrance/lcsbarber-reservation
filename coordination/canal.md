@@ -125,14 +125,14 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 
 ### 2026-11-25 · Dédale → chef d'orchestre · commande d'application profil-modeles à faire valider
 - Priorité : normale
-- Statut : ouvert
+- Statut : ouvert (migration appliquée, constaté par Argus le 2026-11-25 : colonne layout NOT NULL défaut classique, page existante en classique, droits de blade_save_page inchangés ; à passer en traité par le chef d'orchestre)
 - Constat : migration prête, non appliquée. Le retour arrière renomme la colonne (layout_retire) au lieu de la supprimer, contrairement à la demande initiale : un DROP COLUMN définitif serait une décision séparée de l'utilisateur.
 - Preuve : `supabase/staged/profil-modeles/`
 - Demande : après la relecture de Cerbère et l'accord de l'utilisateur, relancer le contrôle préalable en tête du fichier (0 ligne attendu), puis `env -u SUPABASE_ACCESS_TOKEN node scripts/supabase-sql.mjs supabase/staged/profil-modeles/01_page_layout.sql` ; retour arrière : même commande avec `01_page_layout.rollback.sql`. La migration peut passer avant la mise en ligne du front (colonne additive, valeur par défaut classique).
 
 ### 2026-11-25 · Cerbère → chef d'orchestre · profil-modeles : OK à appliquer, une correction faible côté code
 - Priorité : normale
-- Statut : ouvert
+- Statut : ouvert (correction layoutOf en ligne dans 9819ffa, constaté par Argus le 2026-11-25 : ?modele=constructor, xyz et __proto__ retombent sur le classique ; reste la décision sur le partage de ?modele= par des tiers)
 - Constat : migration relue, aucune faille critique, élevée ou moyenne. En base (lecture seule) : md5 des 3 fonctions identiques au contrôle préalable, définitions vivantes identiques au retour arrière (au `;` final près), seules les 2 lignes annoncées ajoutées ; blade_save_page SECURITY DEFINER, EXECUTE postgres/authenticated/service_role seulement ; trigger BEFORE INSERT OR UPDATE ; RLS active, seule politique SELECT pour anon/authenticated. Côté code : pas de dangerouslySetInnerHTML ; liens de réservation identiques au profil classique (id UUID venant de la base, prix recalculé par blade-booking) ; lien carte encodé. Faille faible : `layoutOf` (src/blade/customization-model.ts:97) utilise `value in LAYOUTS`, vrai pour les clés héritées (`?modele=constructor`, `toString`, `__proto__`…) : la page affiche alors le modèle Salon avec la classe `blade-layout-constructor`. Pas d'injection possible (noms fixes du prototype, React échappe), mais la liste fixe n'est pas respectée.
 - Preuve : `src/blade/customization-model.ts` (layoutOf) ; `src/blade/brand.tsx:87` ; `src/blade/public-profile.tsx` (`params.get('modele')`)
 - Demande : remplacer par `Object.prototype.hasOwnProperty.call(LAYOUTS, value)` (ou `LAYOUT_KEYS.includes(value)`), ajouter un test `layoutOf('constructor') === 'classique'`. Pour info (faible) : `?modele=` permet à n'importe qui de partager le profil d'un pro dans un autre modèle que le sien ; données identiques et déjà publiques, à accepter ou à réserver à l'aperçu du propriétaire.
@@ -150,3 +150,10 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 - Constat : les 11 anciennes adresses LCS gardent paramètres et ancre (/reservation?ref=test#x → /blade?ref=test#x, etc.) ; /auth, mot de passe oublié/reset et 404 affichent « BLADE — Mon compte », les 5 pages légales gardent leur titre. Aucune régression (pages BLADE, console, en-têtes, redirection HTTPS, SEO). Restent les points connus : 401 en console sur les espaces client/pro déconnectés, www sans redirection.
 - Preuve : `verification/rapport-2026-11-25.md` (section « après 4a7b1b9 »)
 - Demande : aucune action nouvelle ; passer ce message en traité à la lecture.
+
+### 2026-11-25 · Argus → chef d'orchestre · Mise en ligne 9819ffa vérifiée ; titre « Espace professionnel » sur le profil public
+- Priorité : basse
+- Statut : ouvert
+- Constat : modèles de page conformes en production (classique inchangé sans paramètre ; agenda, vitrine et salon corrects en bureau et en 375 px, console vide, liens vers /blade/client/reserver?pro=…&prestation=… ; constructor, xyz et __proto__ retombent sur le classique) ; base conforme (layout défaut classique, page.layout renvoyé par blade_public_page, blade_save_page sans anon ni PUBLIC) ; aucune régression sur les pages principales. Deux points mineurs : (1) le profil public /blade/profil/… a pour titre d'onglet « Espace professionnel — BLADE Hairstyle », car metaFor teste startsWith('/blade/pro'), vrai pour /blade/profil (antérieur à 9819ffa) ; (2) dans le modèle Salon, la photo du haut est en loading="lazy" et ne se charge qu'environ 3,3 s après l'arrivée (bloc gris en attendant).
+- Preuve : `verification/rapport-2026-11-25-b.md` ; `src/blade/seo.ts:56` ; `src/blade/brand.tsx:230` ; `verification/2026-11-25-b-salon-375-photo-differee.jpg`
+- Demande : (1) borner le test à `/blade/pro` exact ou `/blade/pro/` et donner au profil un titre propre (modèle : `src/blade/salon.tsx:154`) ; (2) retirer `loading="lazy"` de la première photo du modèle Salon. Le message de Dédale « commande d'application profil-modeles » peut passer en traité (migration constatée en ligne).

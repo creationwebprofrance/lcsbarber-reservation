@@ -227,7 +227,7 @@ function SalonLayout(c: LayoutCtx) {
     <header className="blade-ls-head">
       <h1>{data.name}</h1>{data.is_premium && <VerifiedBadge />}
       <p className="blade-ls-line"><Rating c={c} />{address && <span>{address}</span>}{c.modes.includes('deplacement') && <span>Se déplace à domicile</span>}</p>
-      {photos.length > 0 && <div className={`blade-ls-photos n-${photos.length}`}>{photos.map(p => <figure key={p}><img src={urls[p]} alt="" loading="lazy" /></figure>)}</div>}
+      {photos.length > 0 && <div className={`blade-ls-photos n-${photos.length}`}>{photos.map(p => <figure key={p}><img src={urls[p]} alt="" loading={p === photos[0] ? "eager" : "lazy"} fetchPriority={p === photos[0] ? "high" : "auto"} /></figure>)}</div>}
     </header>
     <nav className="blade-ls-tabs" aria-label="Sections"><a href="#prestations">Prestations</a>{showReviews && <a href="#avis">Avis</a>}{extra.length > 0 && <a href="#a-propos">À propos</a>}</nav>
     <div className="blade-ls-grid">

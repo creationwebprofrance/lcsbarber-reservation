@@ -44,7 +44,17 @@ L'ancien domaine lcsbarber.com est abandonné : ne le contrôle pas et ne le sig
    Attendu : 301 vers https://blade-hairstyle.com avec le même chemin et les paramètres conservés
    (www sans redirection est un problème déjà connu).
 5. **SEO** : sitemap.xml et robots.txt pointent vers blade-hairstyle.com.
-6. **Liens de paiement affichés** (acompte) : uniquement https://revolut.me/… ou https://buy.stripe.com/….
+6. **Profil public et modèles de page** : ouvre le profil d'un prestataire actif
+   (`/blade/profil/<id>`, id lu par `blade_public_page` ou un lien de /blade/client) sans paramètre,
+   puis avec `?modele=agenda`, `?modele=vitrine` et `?modele=salon` (liste : `LAYOUTS` dans
+   `src/blade/customization-model.ts`), en bureau et en 375 px : classe `blade-layout-<modèle>` présente,
+   pas de débordement horizontal, console vide, liens « Réserver », « Choisir » ou « Voir les créneaux »
+   vers `/blade/client/reserver?pro=<id>&prestation=<uuid>` (lis le `href`, ne clique pas ; dans Agenda,
+   le lien n'apparaît qu'après le choix d'une prestation, un bouton local sans envoi). Avec
+   `?modele=constructor`, `?modele=xyz` ou `?modele=__proto__`, la page doit retomber sur le classique
+   (`.blade-brand-hero`, aucune classe `blade-layout`). `?modele=` n'est qu'un aperçu : il n'enregistre rien.
+   Vérifie aussi le titre d'onglet du profil (il ne doit pas être celui de l'espace professionnel).
+7. **Liens de paiement affichés** (acompte) : uniquement https://revolut.me/… ou https://buy.stripe.com/….
    Ne clique pas dessus.
 
 ## Ce que tu rends

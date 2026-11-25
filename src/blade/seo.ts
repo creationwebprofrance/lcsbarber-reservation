@@ -53,8 +53,8 @@ export function metaFor(pathname: string): PageMeta {
     '/blade/devenir-pro': { title: `Devenir barber sur BLADE — ${SITE}`, description: 'Crée ton profil de barber, reçois des réservations et fidélise tes clients.' },
   };
   if (table[p]) return table[p];
-  if (p.startsWith('/blade/pro')) return { title: `Espace professionnel — ${SITE}`, description: DEFAULT.description };
-  if (p.startsWith('/blade/client')) return { title: `Espace client — ${SITE}`, description: DEFAULT.description };
+  if (p === '/blade/pro' || p.startsWith('/blade/pro/')) return { title: `Espace professionnel — ${SITE}`, description: DEFAULT.description };
+  if (p === '/blade/client' || p.startsWith('/blade/client/')) return { title: `Espace client — ${SITE}`, description: DEFAULT.description };
   return DEFAULT;
 }
 
