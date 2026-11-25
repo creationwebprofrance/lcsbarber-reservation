@@ -1,3 +1,4 @@
+-- APPLIQUÉ en production le 2026-11-25 (accord de l'utilisateur). Ne pas réappliquer.
 -- Pourboires des prestataires BLADE, par un lien de paiement du prestataire.
 -- NON APPLIQUÉ. À appliquer seulement après relecture de Cerbère et accord de l'utilisateur.
 --
