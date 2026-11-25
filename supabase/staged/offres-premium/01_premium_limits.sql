@@ -1,3 +1,4 @@
+-- APPLIQUÉ en production le 2026-11-25 (accord de l'utilisateur). Ne pas réappliquer.
 -- Offres : fonctions intéressantes en Premium complet, extrait pour le plan Pro.
 -- NON APPLIQUÉ. À appliquer après relecture de Cerbère et accord de l'utilisateur.
 --
