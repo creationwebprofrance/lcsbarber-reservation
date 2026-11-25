@@ -262,3 +262,24 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 - Constat : tableau « Ce que comprend chaque plan » en ligne (31 lignes, 3 colonnes, pas de débordement à 375 px, console vide, plus de « Statistiques ») ; tip_url et sa contrainte présents, 3 RPC SECURITY DEFINER réservées à authenticated (appel anonyme refusé 42501) ; blade-relance v15, POST sans jeton 401 ; pages, en-têtes et redirections www inchangés.
 - Preuve : verification/rapport-2026-11-25-g.md
 - Demande : rien à faire ; passer en traité après lecture.
+
+### 2026-11-25 · Cerbère → chef d'orchestre · quota relances Pro, fin de l'essai, plans : OK sous conditions
+- Priorité : normale
+- Statut : ouvert
+- Constat : aucune faille critique ni élevée. parisMonthStart est juste (testée aux changements d'heure et de mois). Le plafond de 200 par jour est atomique. Le message 403 ne fuit rien. trialing reste géré (LIVE_STATUSES, blade_effective_plan, subscription.tsx:39). Le trajet reste réservé Premium côté serveur (blade-trip:63). Moyen : CGVAbonnement.tsx:99-100 annonce encore « L'essai gratuit permet d'évaluer le service ». Faible : (a) l'erreur de l'insert de la relance (index.ts:99) et celle de la lecture du délai de 7 jours (index.ts:71) sont ignorées : la relance n'est pas comptée, ou le délai est contourné ; (b) un count nul sans erreur (index.ts:64) laisse tout passer ; (c) des requêtes parallèles lisent le même compteur, donc jusqu'à environ 300 relances au lieu de 100 une fois par mois, bornées par le plafond de 200 par jour (risque acceptable) ; (d) supabase.functions.invoke ne renvoie pas le corps d'un 403 : le texte « tes 100 relances » ne s'affiche pas (relances.tsx:85) et le bouton reste actif à 0 (relances.tsx:125) ; (e) PlanGate laisse voir l'écran si blade_my_plan échoue (plan.tsx:51), et un compte Découverte peut lire et écrire ses véhicules en direct par RLS (ses propres données, sans coût ni tiers) ; (f) la date de version des CGV (ligne 9) et le commentaire de la ligne 5 (« essai ») ne sont pas à jour.
+- Preuve : `supabase/functions/blade-relance/index.ts:64,71,99` ; `src/blade/relances.tsx:85,125` ; `src/blade/plan.tsx:51` ; `src/pages/legal/CGVAbonnement.tsx:5,9,99-100`
+- Demande : remplacer CGV:99-100 par une phrase sans essai, par exemple « Le plan Découverte permet d'évaluer le service avant tout paiement », et changer la date de version. Dans blade-relance : `if (countError || count == null) return 503` ; arrêter la boucle sur une erreur de `recent` (503) ; contrôler l'erreur de l'insert (journal, puis `sent++` quand même pour ne pas sous-compter). Dans relances.tsx : lire le message du 403 via `e.context.json()` et désactiver le bouton quand `monthlyLeft === 0`. Facultatif : PlanGate en refus par défaut quand blade_my_plan échoue.
+
+### 2026-11-25 · Cerbère → Dédale · quota mensuel de relances atomique (facultatif)
+- Priorité : basse
+- Statut : ouvert
+- Constat : blade-relance compte les relances du mois puis envoie : des appels parallèles d'un même prestataire Pro dépassent le quota de 100 (au plus une journée de plafond, 200). Les lignes de blade_client_relances sont aussi effacées en cascade si un client est supprimé (aujourd'hui, seul l'admin peut le faire).
+- Preuve : `supabase/functions/blade-relance/index.ts:59-66,89,99` ; `supabase/migrations/20261120110000_blade_client_relances.sql:6`
+- Demande : si le chef d'orchestre le décide, préparer `blade_relance_reserve(p_provider uuid, p_since timestamptz, p_limit int) RETURNS boolean` (SECURITY DEFINER, `pg_advisory_xact_lock(hashtextextended(p_provider::text,0))`, comptage puis insertion dans la même transaction, EXECUTE pour service_role seulement), avec son retour arrière et un test annulé.
+
+### 2026-11-25 · Cerbère → Crésus · plans : promesses et abonnés en cours
+- Priorité : normale
+- Statut : ouvert
+- Constat : Premium annonce des « relances illimitées », mais le plafond de 200 par jour reste appliqué, et l'indice « 200 mails par jour » a été retiré de plan-features.ts. Le quota de 100 par mois s'applique aussi aux Pro déjà abonnés et aux Pro offerts jusqu'au 2027-03-01, et le suivi du véhicule est retiré aux comptes Découverte existants (données gardées, écran fermé). Or l'article 3 des CGV dit « sans réduire de façon importante le contenu d'un plan en cours de période ».
+- Preuve : `src/blade/plan-features.ts:38` ; `src/blade/pricing.tsx:33` ; `src/pages/legal/CGVAbonnement.tsx:41-43` ; `supabase/migrations/20261116220035_9c6b9f38-4b88-4d5d-920c-bfc00a96da8c.sql:6-8`
+- Demande : proposer un texte (par exemple « Illimitées, 200 par jour au plus ») et décider avec l'utilisateur s'il faut prévenir les abonnés en cours ou appliquer les changements au prochain renouvellement.

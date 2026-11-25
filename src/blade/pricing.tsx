@@ -27,11 +27,11 @@ const copy: Record<Language, PricingCopy> = {
     note: 'TVA non applicable, art. 293 B du CGI. Annuel : 10 % d’économie, payé en une fois. Résiliable à tout moment.',
     plans: [
       { id: 'free', name: 'Découverte', price: '0 €', tagline: 'Pour te lancer sur BLADE.', cta: 'Commencer gratuitement',
-        features: ['Profil visible dans la recherche', 'Jusqu’à 20 réservations par mois', 'Agenda, horaires et congés', 'Mails de confirmation et d’annulation', 'Suivi de ton véhicule', 'Aucune commission sur tes prestations'] },
-      { id: 'pro', name: 'Pro', price: '19,90 €', yearly: '214,90 €', yearlyMonth: '17,91 €', tagline: 'Pour remplir ton agenda sans rendez-vous perdus.', cta: 'Essayer 30 jours gratuits', badge: 'Le plus choisi',
-        features: ['Réservations illimitées', 'Acomptes en ligne contre les rendez-vous non honorés', 'Rappels automatiques aux clients', 'Relance par e-mail des clients qui ne reviennent plus', 'Pourboires en ligne par ton lien Stripe ou Revolut', 'Carte de fidélité incluse (cartes NFC compatibles)'] },
+        features: ['Profil visible dans la recherche', 'Jusqu’à 20 réservations par mois', 'Agenda, horaires et congés', 'Mails de confirmation et d’annulation', 'Aucune commission sur tes prestations'] },
+      { id: 'pro', name: 'Pro', price: '19,90 €', yearly: '214,90 €', yearlyMonth: '17,91 €', tagline: 'Pour remplir ton agenda sans rendez-vous perdus.', cta: 'Passer Pro', badge: 'Le plus choisi',
+        features: ['Tout le plan Découverte', 'Réservations illimitées', 'Acomptes en ligne contre les rendez-vous non honorés', 'Pourboires en ligne par ton lien Stripe ou Revolut', 'Rappel automatique la veille du rendez-vous', '100 relances clients par mois', 'Carte de fidélité incluse (cartes NFC compatibles)', 'Suivi de ton véhicule et de ses entretiens'] },
       { id: 'premium', name: 'Premium', price: '39,90 €', yearly: '430,90 €', yearlyMonth: '35,91 €', tagline: 'Pour être trouvé en premier en Île-de-France.', cta: 'Passer Premium',
-        features: ['Tout le plan Pro', 'Mise en avant dans les résultats de ta ville', 'Badge « Pro vérifié »', 'Suivi du trajet en direct à domicile'] },
+        features: ['Tout le plan Pro', 'Relances clients illimitées', 'Suivi du trajet en direct à domicile pour ton client', 'Mise en avant dans les résultats de ta ville', 'Badge « Pro vérifié »', 'Boutique en ligne pour vendre tes produits (bientôt)'] },
     ],
   },
   en: {
@@ -44,11 +44,11 @@ const copy: Record<Language, PricingCopy> = {
     note: 'VAT not applicable (French tax code, art. 293 B). Yearly: save 10%, paid once. Cancel anytime.',
     plans: [
       { id: 'free', name: 'Starter', price: '€0', tagline: 'To get started on BLADE.', cta: 'Start for free',
-        features: ['Profile visible in search', 'Up to 20 bookings per month', 'Calendar, hours and days off', 'Confirmation and cancellation emails', 'Vehicle tracking', 'No fee on your services'] },
-      { id: 'pro', name: 'Pro', price: '€19.90', yearly: '€214.90', yearlyMonth: '€17.91', tagline: 'To fill your calendar without lost appointments.', cta: 'Try 30 days free', badge: 'Most popular',
-        features: ['Unlimited bookings', 'Online deposits against no-shows', 'Automatic client reminders', 'Email follow-up for clients who stopped coming', 'Online tips through your Stripe or Revolut link', 'Loyalty card included (NFC cards supported)'] },
+        features: ['Profile visible in search', 'Up to 20 bookings per month', 'Calendar, hours and days off', 'Confirmation and cancellation emails', 'No fee on your services'] },
+      { id: 'pro', name: 'Pro', price: '€19.90', yearly: '€214.90', yearlyMonth: '€17.91', tagline: 'To fill your calendar without lost appointments.', cta: 'Go Pro', badge: 'Most popular',
+        features: ['Everything in Starter', 'Unlimited bookings', 'Online deposits against no-shows', 'Online tips through your Stripe or Revolut link', 'Automatic reminder the day before', '100 client follow-ups a month', 'Loyalty card included (NFC cards supported)', 'Vehicle and servicing tracking'] },
       { id: 'premium', name: 'Premium', price: '€39.90', yearly: '€430.90', yearlyMonth: '€35.91', tagline: 'To be found first in Île-de-France.', cta: 'Go Premium',
-        features: ['Everything in Pro', 'Featured in your city’s results', '“Verified pro” badge', 'Live travel tracking for home visits'] },
+        features: ['Everything in Pro', 'Unlimited client follow-ups', 'Live travel tracking for your client', 'Featured in your city’s results', '“Verified pro” badge', 'Online shop for your products (coming soon)'] },
     ],
   },
   es: {
@@ -61,11 +61,11 @@ const copy: Record<Language, PricingCopy> = {
     note: 'IVA no aplicable (código fiscal francés, art. 293 B). Anual: 10 % de ahorro, pago único. Cancela cuando quieras.',
     plans: [
       { id: 'free', name: 'Descubrimiento', price: '0 €', tagline: 'Para empezar en BLADE.', cta: 'Empezar gratis',
-        features: ['Perfil visible en la búsqueda', 'Hasta 20 reservas al mes', 'Agenda, horarios y vacaciones', 'E-mails de confirmación y cancelación', 'Seguimiento del vehículo', 'Sin comisión sobre tus servicios'] },
-      { id: 'pro', name: 'Pro', price: '19,90 €', yearly: '214,90 €', yearlyMonth: '17,91 €', tagline: 'Para llenar tu agenda sin citas perdidas.', cta: 'Probar 30 días gratis', badge: 'El más elegido',
-        features: ['Reservas ilimitadas', 'Anticipos online contra ausencias', 'Recordatorios automáticos', 'Recordatorio por e-mail a clientes que ya no vuelven', 'Propinas online con tu enlace Stripe o Revolut', 'Tarjeta de fidelidad incluida (compatible NFC)'] },
+        features: ['Perfil visible en la búsqueda', 'Hasta 20 reservas al mes', 'Agenda, horarios y vacaciones', 'E-mails de confirmación y cancelación', 'Sin comisión sobre tus servicios'] },
+      { id: 'pro', name: 'Pro', price: '19,90 €', yearly: '214,90 €', yearlyMonth: '17,91 €', tagline: 'Para llenar tu agenda sin citas perdidas.', cta: 'Pasar a Pro', badge: 'El más elegido',
+        features: ['Todo el plan Descubrimiento', 'Reservas ilimitadas', 'Anticipos online contra ausencias', 'Propinas online con tu enlace Stripe o Revolut', 'Recordatorio automático la víspera', '100 recordatorios a clientes al mes', 'Tarjeta de fidelidad incluida (compatible NFC)', 'Seguimiento del vehículo y su mantenimiento'] },
       { id: 'premium', name: 'Premium', price: '39,90 €', yearly: '430,90 €', yearlyMonth: '35,91 €', tagline: 'Para aparecer primero en Île-de-France.', cta: 'Pasar a Premium',
-        features: ['Todo el plan Pro', 'Destacado en los resultados de tu ciudad', 'Insignia «Pro verificado»', 'Seguimiento del trayecto en directo'] },
+        features: ['Todo el plan Pro', 'Recordatorios a clientes ilimitados', 'Seguimiento del trayecto en directo para tu cliente', 'Destacado en los resultados de tu ciudad', 'Insignia «Pro verificado»', 'Tienda online para tus productos (próximamente)'] },
     ],
   },
 };

@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { ProviderPage } from './provider';
 import { Section, BladeButton, EmptyState, Icon } from './common';
 import { fmtDate, isoDate, type ProviderBundle } from './data';
-import { PlanGate } from './plan';
+import { PlanGate, useMyPlan } from './plan';
+
+/** Relances du plan Pro par mois civil (même valeur que supabase/functions/blade-relance). */
+export const PRO_MONTHLY_RELANCES = 100;
 
 const TEMPLATES = [
   { label: 'Ça fait longtemps', subject: '{prenom}, ça fait un moment !', message: 'Bonjour {prenom},\n\nÇa fait un moment qu’on ne s’est pas vus. Il est peut-être temps de rafraîchir ta coupe ?\n\nJ’ai des créneaux disponibles cette semaine : réserve directement en cliquant sur le bouton ci-dessous.\n\nÀ très vite !' },
@@ -31,6 +35,7 @@ function RelancesBody({ data }: { data: ProviderBundle }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<Result | null>(null);
+  const { data: myPlan } = useMyPlan(refresh);
 
   useEffect(() => {
     (supabase as unknown as SupabaseClient).from('blade_client_relances').select('client_id,sent_at').eq('provider_id', data.provider_id).order('sent_at', { ascending: false }).limit(1000)
@@ -67,6 +72,10 @@ function RelancesBody({ data }: { data: ProviderBundle }) {
   const sample = list.find(r => selected.has(r.c.id))?.c.name ?? list[0]?.c.name ?? 'Client';
   const fill = (t: string) => t.replace(/\{\s*prenom\s*\}/gi, firstName(sample)).replace(/\{\s*nom\s*\}/gi, sample);
   const count = selected.size;
+  // Plan Pro : relances restantes ce mois-ci (indicatif ; le serveur fait foi).
+  const monthStart = today.slice(0, 7);
+  const usedThisMonth = history.filter(r => isoDate(new Date(r.sent_at)).slice(0, 7) === monthStart).length;
+  const monthlyLeft = myPlan?.plan === 'pro' ? Math.max(0, PRO_MONTHLY_RELANCES - usedThisMonth) : null;
 
   const send = async () => {
     if (!count || busy) return;
@@ -74,7 +83,12 @@ function RelancesBody({ data }: { data: ProviderBundle }) {
     setBusy(true); setError(''); setResult(null);
     try {
       const { data: r, error: e } = await supabase.functions.invoke('blade-relance', { body: { client_ids: [...selected].slice(0, 50), subject, message } });
-      if (e || r?.error) throw new Error(r?.error || 'Envoi impossible pour le moment.');
+      if (e) {
+        // Un refus du serveur (quota du mois atteint, plan) porte son message dans le corps de la réponse.
+        const details = e instanceof FunctionsHttpError ? await e.context.json().catch(() => null) : null;
+        throw new Error(typeof details?.error === 'string' ? details.error : 'Envoi impossible pour le moment.');
+      }
+      if (r?.error) throw new Error(r.error);
       setResult(r as Result); setSelected(new Set()); setRefresh(n => n + 1);
     } catch (e) { setError(e instanceof Error ? e.message : 'Envoi impossible pour le moment.'); }
     finally { setBusy(false); }
@@ -82,6 +96,7 @@ function RelancesBody({ data }: { data: ProviderBundle }) {
 
   return <>
     <p className="blade-note">Envoie un email à tes clients pour les faire revenir. Le bouton « Réserver » de l’email mène à ta fiche BLADE, et ils peuvent te répondre directement.</p>
+    {monthlyLeft !== null && <p className="blade-note" role="status"><strong>{monthlyLeft} relance{monthlyLeft > 1 ? 's' : ''} restante{monthlyLeft > 1 ? 's' : ''} ce mois-ci</strong> sur {PRO_MONTHLY_RELANCES} avec le plan Pro. Relances illimitées avec le plan Premium.</p>}
     <div className="blade-two-columns">
       <Section title="Clients à relancer">
         <div className="blade-fields">
@@ -113,7 +128,7 @@ function RelancesBody({ data }: { data: ProviderBundle }) {
           <span className="blade-relance-cta">Réserver mon prochain rendez-vous</span>
         </div>
         <div className="blade-inline">
-          <BladeButton variant="default" disabled={!count || busy || subject.trim().length < 3 || message.trim().length < 10} onClick={send}><Icon name="message" />{busy ? 'Envoi…' : count ? `Relancer ${count} client${count > 1 ? 's' : ''}` : 'Sélectionne des clients'}</BladeButton>
+          <BladeButton variant="default" disabled={!count || busy || monthlyLeft === 0 || subject.trim().length < 3 || message.trim().length < 10} onClick={send}><Icon name="message" />{busy ? 'Envoi…' : count ? `Relancer ${count} client${count > 1 ? 's' : ''}` : 'Sélectionne des clients'}</BladeButton>
         </div>
         {error && <p className="blade-form-error" role="alert">{error}</p>}
         {result && <div role="status" className="blade-note">

@@ -65,7 +65,6 @@ const KNOWN_STATUSES = [
   "trialing", "active", "past_due", "canceled", "incomplete",
   "incomplete_expired", "unpaid", "paused",
 ];
-const TRIAL_DAYS = 30;
 const RETURN_PATH = "/blade/pro/abonnement";
 
 const EXACT_ORIGINS = new Set([
@@ -264,7 +263,6 @@ serve(async (req) => {
       }
 
       const priceId = await ensurePrice(stripe, plan as PaidPlan, billing);
-      const withTrial = plan === "pro" && !row?.had_trial;
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         customer: customerId,
@@ -273,13 +271,12 @@ serve(async (req) => {
         line_items: [{ price: priceId, quantity: 1 }],
         subscription_data: {
           metadata: { provider_id: provider.id, plan, billing },
-          ...(withTrial ? { trial_period_days: TRIAL_DAYS } : {}),
         },
         metadata: { provider_id: provider.id, plan, billing },
         success_url: `${origin}${RETURN_PATH}?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}${RETURN_PATH}?annule=1`,
       });
-      log("Checkout session created", { session: session.id, plan, billing, withTrial });
+      log("Checkout session created", { session: session.id, plan, billing });
       return json({ url: session.url });
     }
 

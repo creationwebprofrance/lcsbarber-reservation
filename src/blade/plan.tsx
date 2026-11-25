@@ -48,7 +48,8 @@ export function PlanBanner() {
 export function PlanGate({ need, feature, children }: { need: Exclude<PlanId, 'free'>; feature: string; children: ReactNode }) {
   const { data, loading } = useMyPlan();
   if (loading && !data) return <p role="status">Chargement…</p>;
-  if (!data || RANK[data.plan] >= RANK[need]) return <>{children}</>;
+  if (!data) return <p className="blade-note" role="alert">Impossible de vérifier ton plan pour le moment. Recharge la page.</p>;
+  if (RANK[data.plan] >= RANK[need]) return <>{children}</>;
   return <div className="blade-plan-gate">
     <Lock size={22} aria-hidden="true" />
     <div><h2>{feature} est inclus dans le plan {PLAN_NAMES[need]}</h2>

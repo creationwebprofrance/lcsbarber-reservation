@@ -2,11 +2,11 @@ import LegalLayout from "./LegalLayout";
 
 // Projet à faire relire par un juriste avant de servir de base contractuelle.
 // Les règles décrites ici suivent le code : supabase/functions/blade-subscription/index.ts
-// (essai, codes promo, portail Stripe) et src/blade/pricing.tsx (plans et prix).
+// (pas d'essai, codes promo, portail Stripe) et src/blade/pricing.tsx (plans et prix).
 export default function CGVAbonnement() {
   return (
     <LegalLayout title="Conditions générales de l'abonnement BLADE">
-      <p>Version du 24 novembre 2026.</p>
+      <p>Version du 25 novembre 2026.</p>
 
       <section>
         <h2>1. Objet et parties</h2>
@@ -69,11 +69,11 @@ export default function CGVAbonnement() {
       </section>
 
       <section>
-        <h2>5. Essai gratuit</h2>
+        <h2>5. Pas d'essai gratuit</h2>
         <p>
-          Le plan Pro mensuel ou annuel comprend un essai gratuit de 30 jours, une seule fois par
-          Professionnel. Le moyen de paiement est demandé à la souscription. Sauf résiliation
-          avant la fin de l'essai, le premier paiement est prélevé automatiquement à son terme.
+          Les plans Pro et Premium ne comportent pas d'essai gratuit : le premier paiement est
+          prélevé à la souscription. Le plan Découverte, gratuit et sans limite de durée, permet
+          d'utiliser BLADE avant de souscrire.
         </p>
       </section>
 
@@ -96,8 +96,8 @@ export default function CGVAbonnement() {
         <h2>7. Absence de droit de rétractation</h2>
         <p>
           L'abonnement est souscrit par un professionnel pour les besoins de son activité : le
-          droit de rétractation prévu par le Code de la consommation ne s'applique pas. L'essai
-          gratuit permet d'évaluer le service avant tout paiement.
+          droit de rétractation prévu par le Code de la consommation ne s'applique pas. Le plan
+          Découverte, gratuit, permet d'évaluer le service avant tout paiement.
         </p>
       </section>
 

@@ -1,4 +1,5 @@
 import { PageHeading, Section, DisabledAction, Icon } from './common';
+import { PlanGate } from './plan';
 
 /**
  * Boutique en ligne des prestataires — EN DÉVELOPPEMENT.
@@ -20,7 +21,7 @@ const SAMPLE = [
   { name: 'Spray sel de mer', price: '12 €', stock: 'Rupture' },
 ];
 
-export function ProShop() {
+function ShopBody() {
   return <>
     <PageHeading pro title="Boutique" description="Vends tes produits en ligne à tes clients." action={<span className="blade-dev-badge" role="status">En développement</span>} />
     <div className="blade-dev-notice" role="note">
@@ -37,4 +38,8 @@ export function ProShop() {
       <p className="blade-note">Exemple fictif, pour illustrer la future boutique.</p>
     </Section>
   </>;
+}
+
+export function ProShop() {
+  return <PlanGate need="premium" feature="La boutique en ligne"><ShopBody /></PlanGate>;
 }

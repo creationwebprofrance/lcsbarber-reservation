@@ -3,7 +3,8 @@
 // - 20 réservations par mois en Découverte : blade-booking ;
 // - acompte et pourboire par lien : blade_booking_deposit_links, blade_my_tip_links (Pro) ;
 // - rappel la veille : blade-daily et send-booking-reminders (Pro) ;
-// - relances : blade-relance (Pro) ; fidélité : blade_loyalty_* (Pro) ;
+// - relances : blade-relance (100 par mois en Pro, illimitées en Premium) ; fidélité : blade_loyalty_* (Pro) ;
+// - véhicule (Pro) et boutique (Premium) : écrans réservés par PlanGate ;
 // - trajet estimé : blade-trip ; mise en avant et badge : blade_public_providers (Premium).
 import type { Language } from './preferences';
 
@@ -34,7 +35,7 @@ const fr: FeatureTable = {
       { label: 'Mails de confirmation et d’annulation, au client et à toi', hint: 'Mails automatiques activés par BLADE à la validation de ton compte', free: true, pro: true, premium: true },
       { label: 'Modèles de mails personnalisables', free: true, pro: true, premium: true },
       { label: 'Rappel automatique la veille du rendez-vous', hint: 'Avec les mails automatiques activés par BLADE', free: false, pro: true, premium: true },
-      { label: 'Relance des clients qui ne reviennent plus', hint: '1 relance par client tous les 7 jours, 200 mails par jour', free: false, pro: true, premium: true },
+      { label: 'Relance des clients qui ne reviennent plus', hint: '1 relance par client tous les 7 jours ; au plus 200 mails par jour', free: false, pro: '100 par mois', premium: 'Illimitées' },
     ] },
     { title: 'Clients et fidélité', rows: [
       { label: 'Fichier clients : coordonnées, historique, impayés, blocage', free: true, pro: true, premium: true },
@@ -49,12 +50,13 @@ const fr: FeatureTable = {
       { label: 'Badge « Pro vérifié »', free: false, pro: false, premium: true },
     ] },
     { title: 'Déplacements à domicile', rows: [
-      { label: 'Suivi de ton véhicule : kilométrage, entretiens et coûts', free: true, pro: true, premium: true },
-      { label: 'Trajet estimé envoyé au client quand tu pars (« Je pars »)', free: false, pro: false, premium: true },
+      { label: 'Suivi de ton véhicule : kilométrage, entretiens et coûts', free: false, pro: true, premium: true },
+      { label: 'Suivi du trajet en direct à domicile', hint: 'Ton client reçoit un lien pour suivre ton arrivée quand tu pars', free: false, pro: false, premium: true },
     ] },
     { title: 'Outils', rows: [
       { label: 'Grille de prix et simulation de rentabilité', free: true, pro: true, premium: true },
       { label: 'Messages privés et chat entre coiffeurs', hint: 'Bientôt disponible', free: true, pro: true, premium: true },
+      { label: 'Boutique en ligne pour vendre tes produits', hint: 'Bientôt disponible', free: false, pro: false, premium: true },
     ] },
   ],
 };
@@ -80,7 +82,7 @@ const en: FeatureTable = {
       { label: 'Confirmation and cancellation emails, to the client and to you', hint: 'Automatic emails enabled by BLADE when your account is approved', free: true, pro: true, premium: true },
       { label: 'Customisable email templates', free: true, pro: true, premium: true },
       { label: 'Automatic reminder the day before', hint: 'With automatic emails enabled by BLADE', free: false, pro: true, premium: true },
-      { label: 'Follow-up emails for clients who stopped coming', hint: '1 per client every 7 days, 200 emails a day', free: false, pro: true, premium: true },
+      { label: 'Follow-up emails for clients who stopped coming', hint: '1 per client every 7 days; at most 200 emails a day', free: false, pro: '100 a month', premium: 'Unlimited' },
     ] },
     { title: 'Clients and loyalty', rows: [
       { label: 'Client file: contact details, history, unpaid amounts, blocking', free: true, pro: true, premium: true },
@@ -95,12 +97,13 @@ const en: FeatureTable = {
       { label: '“Verified pro” badge', free: false, pro: false, premium: true },
     ] },
     { title: 'Home visits', rows: [
-      { label: 'Vehicle tracking: mileage, servicing and costs', free: true, pro: true, premium: true },
-      { label: 'Estimated trip sent to the client when you leave', free: false, pro: false, premium: true },
+      { label: 'Vehicle tracking: mileage, servicing and costs', free: false, pro: true, premium: true },
+      { label: 'Live travel tracking for home visits', hint: 'Your client gets a link to follow your arrival when you leave', free: false, pro: false, premium: true },
     ] },
     { title: 'Tools', rows: [
       { label: 'Price list and profitability simulation', free: true, pro: true, premium: true },
       { label: 'Private messages and barbers’ chat', hint: 'Coming soon', free: true, pro: true, premium: true },
+      { label: 'Online shop to sell your products', hint: 'Coming soon', free: false, pro: false, premium: true },
     ] },
   ],
 };
@@ -126,7 +129,7 @@ const es: FeatureTable = {
       { label: 'E-mails de confirmación y cancelación, al cliente y a ti', hint: 'E-mails automáticos activados por BLADE al validar tu cuenta', free: true, pro: true, premium: true },
       { label: 'Plantillas de e-mail personalizables', free: true, pro: true, premium: true },
       { label: 'Recordatorio automático la víspera', hint: 'Con los e-mails automáticos activados por BLADE', free: false, pro: true, premium: true },
-      { label: 'Recordatorio a clientes que ya no vuelven', hint: '1 por cliente cada 7 días, 200 e-mails al día', free: false, pro: true, premium: true },
+      { label: 'Recordatorio a clientes que ya no vuelven', hint: '1 por cliente cada 7 días; como máximo 200 e-mails al día', free: false, pro: '100 al mes', premium: 'Ilimitados' },
     ] },
     { title: 'Clientes y fidelidad', rows: [
       { label: 'Fichero de clientes: datos, historial, impagos, bloqueo', free: true, pro: true, premium: true },
@@ -141,12 +144,13 @@ const es: FeatureTable = {
       { label: 'Insignia «Pro verificado»', free: false, pro: false, premium: true },
     ] },
     { title: 'Desplazamientos a domicilio', rows: [
-      { label: 'Seguimiento del vehículo: kilometraje, mantenimiento y costes', free: true, pro: true, premium: true },
-      { label: 'Trayecto estimado enviado al cliente al salir', free: false, pro: false, premium: true },
+      { label: 'Seguimiento del vehículo: kilometraje, mantenimiento y costes', free: false, pro: true, premium: true },
+      { label: 'Seguimiento del trayecto en directo a domicilio', hint: 'Tu cliente recibe un enlace para seguir tu llegada cuando sales', free: false, pro: false, premium: true },
     ] },
     { title: 'Herramientas', rows: [
       { label: 'Lista de precios y simulación de rentabilidad', free: true, pro: true, premium: true },
       { label: 'Mensajes privados y chat entre barberos', hint: 'Próximamente', free: true, pro: true, premium: true },
+      { label: 'Tienda online para vender tus productos', hint: 'Próximamente', free: false, pro: false, premium: true },
     ] },
   ],
 };

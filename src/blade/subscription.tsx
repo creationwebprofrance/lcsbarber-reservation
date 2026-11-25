@@ -17,8 +17,8 @@ type Subscription = {
 type Billing = 'month' | 'year';
 // Mêmes montants que supabase/functions/blade-subscription/index.ts (annuel = 12 mois - 10 %).
 const PLANS: { id: Exclude<Plan, 'free'>; name: string; price: Record<Billing, string>; points: string[] }[] = [
-  { id: 'pro', name: 'Pro', price: { month: '19,90 €/mois', year: '214,90 €/an (17,91 €/mois)' }, points: ['Réservations illimitées', 'Acomptes en ligne contre les no-shows', 'Carte de fidélité incluse', 'Rappels automatiques et relances clients'] },
-  { id: 'premium', name: 'Premium', price: { month: '39,90 €/mois', year: '430,90 €/an (35,91 €/mois)' }, points: ['Tout le plan Pro', 'Mise en avant dans ta ville', 'Badge « Pro vérifié »', 'Trajet estimé envoyé au client'] },
+  { id: 'pro', name: 'Pro', price: { month: '19,90 €/mois', year: '214,90 €/an (17,91 €/mois)' }, points: ['Réservations illimitées', 'Acomptes et pourboires en ligne', 'Rappel la veille et 100 relances clients par mois', 'Carte de fidélité et suivi du véhicule'] },
+  { id: 'premium', name: 'Premium', price: { month: '39,90 €/mois', year: '430,90 €/an (35,91 €/mois)' }, points: ['Tout le plan Pro', 'Relances clients illimitées', 'Suivi du trajet en direct pour ton client', 'Mise en avant dans ta ville et badge « Pro vérifié »', 'Boutique en ligne (bientôt)'] },
 ];
 const NAMES: Record<Plan, string> = { free: 'Découverte (gratuit)', pro: 'Pro', premium: 'Premium' };
 const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '');
@@ -104,14 +104,13 @@ function SubscriptionPanel() {
         {PLANS.map(p => {
           // Un plan offert reste « à souscrire » : le prestataire doit pouvoir s'abonner avant la fin de l'offre.
           const isCurrent = current === p.id && paying;
-          const trial = p.id === 'pro' && !sub?.had_trial && !paying;
           return <article key={p.id} className={`blade-sub-plan${isCurrent ? ' is-current' : ''}${wanted === p.id && !isCurrent ? ' is-wanted' : ''}`}>
             <header><h3>{p.name}</h3><strong>{p.price[billing]}</strong></header>
             <ul>{p.points.map(t => <li key={t}><Check size={16} aria-hidden="true" />{t}</li>)}</ul>
             {source === 'superadmin' ? <p className="blade-sub-badge">Inclus pour ton compte</p>
               : isCurrent ? <p className="blade-sub-badge">Ton plan actuel</p>
               : <BladeButton variant="default" disabled={!!busy || !sub} onClick={() => paying ? go({ action: 'portal' }, 'portal') : go({ action: 'checkout', plan: p.id, billing }, p.id)}>
-                {busy === p.id ? 'Redirection vers Stripe…' : paying ? `Passer au plan ${p.name}` : trial ? 'Essayer 30 jours gratuits' : `Choisir ${p.name}`}
+                {busy === p.id ? 'Redirection vers Stripe…' : paying ? `Passer au plan ${p.name}` : `Choisir ${p.name}`}
               </BladeButton>}
           </article>;
         })}

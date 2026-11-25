@@ -1,7 +1,8 @@
 // BLADE : un prestataire relance par email des clients de son propre fichier.
 // Contrôles : prestataire actif, clients lui appartenant, non bloqués, avec email ;
 // au plus une relance par client tous les 7 jours et 200 emails par jour et par prestataire.
-// Fonction des plans Pro et Premium : le plan est relu côté serveur (blade_effective_plan).
+// Fonction des plans Pro (100 relances par mois civil, heure de Paris) et Premium (illimitées) :
+// le plan est relu côté serveur (blade_effective_plan).
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@4';
@@ -14,6 +15,17 @@ const Body = z.object({
 });
 const COOLDOWN_DAYS = 7;
 const DAILY_LIMIT = 200;
+const PRO_MONTHLY_LIMIT = 100;
+
+/** Début du mois civil en cours, heure de Paris, en ISO UTC. */
+function parisMonthStart(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit' }).formatToParts(now);
+  const y = Number(parts.find(p => p.type === 'year')!.value), m = Number(parts.find(p => p.type === 'month')!.value);
+  const utcMidnight = Date.UTC(y, m - 1, 1);
+  // Décalage de Paris au 1er du mois (1 h en hiver, 2 h en été).
+  const offsetH = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Paris', hour: 'numeric', hourCycle: 'h23' }).format(new Date(utcMidnight)));
+  return new Date(utcMidnight - offsetH * 3600000).toISOString();
+}
 
 const res = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
@@ -44,11 +56,20 @@ Deno.serve(async req => {
     const { data: plan, error: planError } = await db.rpc('blade_effective_plan', { p_provider: provider.id });
     if (planError) { console.error('blade-relance plan', planError.message); return res({ error: 'Service indisponible' }, 503); }
     if (plan !== 'pro' && plan !== 'premium') return res({ error: 'La relance des clients est incluse dans le plan Pro.' }, 403);
+    let monthlyLeft = Infinity;
+    if (plan === 'pro') {
+      const { count, error: countError } = await db.from('blade_client_relances').select('client_id', { count: 'exact', head: true })
+        .eq('provider_id', provider.id).gte('sent_at', parisMonthStart());
+      if (countError || count == null) { console.error('blade-relance quota', countError?.message ?? 'count null'); return res({ error: 'Service indisponible' }, 503); }
+      monthlyLeft = Math.max(0, PRO_MONTHLY_LIMIT - count);
+      if (monthlyLeft === 0) return res({ error: `Tu as utilisé tes ${PRO_MONTHLY_LIMIT} relances du mois. Passe au plan Premium pour des relances illimitées.` }, 403);
+    }
 
     const ids = [...new Set(input.client_ids)];
     const { data: clients } = await db.from('clients').select('id,name,email,is_blacklisted').eq('provider_id', provider.id).in('id', ids);
     const since = new Date(Date.now() - COOLDOWN_DAYS * 86400000).toISOString();
-    const { data: recent } = await db.from('blade_client_relances').select('client_id').eq('provider_id', provider.id).in('client_id', ids).gte('sent_at', since);
+    const { data: recent, error: recentError } = await db.from('blade_client_relances').select('client_id').eq('provider_id', provider.id).in('client_id', ids).gte('sent_at', since);
+    if (recentError) { console.error('blade-relance recent', recentError.message); return res({ error: 'Service indisponible' }, 503); }
     const recentSet = new Set((recent ?? []).map(r => r.client_id));
 
     const { data: salon } = await db.from('blade_salons').select('slug,name,status').eq('provider_id', provider.id).maybeSingle();
@@ -66,6 +87,7 @@ Deno.serve(async req => {
       if (c.is_blacklisted) { skipped.push({ id, name: c.name, reason: 'Client bloqué' }); continue; }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { skipped.push({ id, name: c.name, reason: 'Pas d’email valide' }); continue; }
       if (recentSet.has(id)) { skipped.push({ id, name: c.name, reason: `Déjà relancé il y a moins de ${COOLDOWN_DAYS} jours` }); continue; }
+      if (sent >= monthlyLeft) { skipped.push({ id, name: c.name, reason: `Limite de ${PRO_MONTHLY_LIMIT} relances par mois atteinte (plan Pro)` }); continue; }
       const { data: allowed } = await db.rpc('blade_community_limit', { p_actor: `relance:${provider.id}`, p_scope: 'relance', p_limit: DAILY_LIMIT, p_seconds: 86400 });
       if (!allowed) { skipped.push({ id, name: c.name, reason: 'Limite de 200 relances par jour atteinte' }); continue; }
 
@@ -75,7 +97,8 @@ Deno.serve(async req => {
       const html = layout(`Un message de ${proName}`, `<p>${body}</p>${contact}`, { label: 'Réserver mon prochain rendez-vous', url: bookUrl });
       const ok = await sendEmail([email], subject, html, `relance-${provider.id}-${id}-${new Date().toISOString().slice(0, 10)}`, replyTo);
       if (!ok) { skipped.push({ id, name: c.name, reason: 'Envoi refusé par le service email' }); continue; }
-      await db.from('blade_client_relances').insert({ provider_id: provider.id, client_id: id, subject });
+      const { error: logError } = await db.from('blade_client_relances').insert({ provider_id: provider.id, client_id: id, subject });
+      if (logError) console.error('blade-relance log', logError.message);
       sent++;
     }
     return res({ sent, skipped });
