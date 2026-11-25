@@ -30,6 +30,10 @@ Uniquement dans `supabase/staged/<sujet>/`. Pour chaque changement :
   `supabase/staged/blade-daily-secret/`. Pour changer la commande d'un job existant, préfère
   `cron.alter_job` (même jobid, nom et horaire). Relis l'état réel avec `cron.job`, en masquant les
   JWT (`regexp_replace(command, 'eyJ[A-Za-z0-9_\-\.]+', '<JWT masque>', 'g')`).
+  Donne à `net.http_post` un `timeout_milliseconds := 30000` (5 s par défaut : blade-daily répond en
+  ~6 s et `net._http_response` noterait « timeout »). Garde md5 sur la commande attendue dans la
+  migration ET dans le retour arrière ; si une commande d'origine a des fins de ligne CRLF, recrée-les
+  avec `replace(replace(…, E'\r\n', E'\n'), E'\n', E'\r\n')`. Modèle : `supabase/staged/cron-timeout/`.
 - Quand une fonction edge se met à exiger un en-tête, la migration du job s'applique AVANT le
   déploiement de la fonction (écris-le en tête du fichier), et le retour arrière après le retour
   à l'ancienne fonction.

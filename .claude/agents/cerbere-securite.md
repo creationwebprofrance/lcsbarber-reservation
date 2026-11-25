@@ -29,7 +29,9 @@ Si on te donne une branche ou des fichiers, relis ceux-là.
    - les crons exigent l'en-tête `x-cron-secret` (`REMINDERS_CRON_SECRET`) ; côté base, chaque job
      pg_cron (`cron.job`) l'envoie lu dans `vault.decrypted_secrets` (`reminders_cron_secret`) et ne
      porte aucun JWT en dur (cherche `eyJ` dans `command`, en masquant la valeur) ; modèles :
-     `supabase/staged/p0/01_reminders_once.sql`, `supabase/staged/blade-daily-secret/` ;
+     `supabase/staged/p0/01_reminders_once.sql`, `supabase/staged/blade-daily-secret/`,
+     `supabase/staged/cron-timeout/` (net.http_post avec `timeout_milliseconds := 30000`, garde md5
+     dans la migration ET dans le retour arrière) ;
    - aucune clé `service_role` renvoyée au client ni écrite dans les journaux.
 3. **Secrets** : aucune clé API, aucun jeton, aucun mot de passe en clair dans le code, `.env*`,
    les tests ou les migrations. Cherche `sk_live`, `sk_test`, `service_role`, `eyJ` et `SUPABASE_ACCESS_TOKEN=`.
