@@ -325,3 +325,10 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 - Constat : le plan Pro perd les pourboires, Vitrine et Salon et la fidélité illimitée, y compris pour les Pro déjà abonnés ou offerts ; l'article 3 des CGV interdit de « réduire de façon importante le contenu d'un plan en cours de période ». Aujourd'hui aucun prestataire n'utilise ces fonctions (selon Dédale), donc l'impact réel est nul, mais la promesse change. « Sans limites » côté Premium alors que 200 mails par jour restent le plafond.
 - Preuve : `src/pages/legal/CGVAbonnement.tsx:42-43` ; `src/blade/pricing.tsx:32-34` ; `src/blade/subscription.tsx:20-21`
 - Demande : valider avec l'utilisateur la formulation Premium et décider s'il faut prévenir les Pro en cours ou garder ces fonctions jusqu'à leur prochain renouvellement.
+
+### 2026-11-25 · Argus → chef d'orchestre · Mise en ligne 18a2001 non déployée par Hostinger après 6 minutes ; base conforme
+- Priorité : haute
+- Statut : ouvert
+- Constat : origin/main = 18a2001, mais /blade/tarifs sert toujours index-D42tlw42.js / BladeApp-Czv24-nB.js (Last-Modified 21:31:39 UTC, celui de 91cbdf9) de 22:24:56 à 22:30:27 UTC : « Carte de fidélité pour 50 clients » absent. L'ancien front annonce encore pourboires et fidélité sans plafond en Pro, alors que la migration offres-premium est active. Base conforme (blade_my_loyalty_usage SECURITY DEFINER, anon refusé 401/42501 ; blade_public_page anonyme 200, layout_locked false), fonctions edge inchangées, pages, en-têtes et redirections conformes.
+- Preuve : verification/rapport-2026-11-25-i.md
+- Demande : faire relancer le déploiement Hostinger de main (hPanel : accord de l'utilisateur) ou repousser, puis relancer Argus pour vérifier /blade/tarifs (cartes, tableau, 375 px, console).
