@@ -51,6 +51,13 @@ Si on te donne une branche ou des fichiers, relis ceux-là.
    est contrôlée par le trigger `blade_validate_page`. Une nouvelle colonne écrite par
    `blade_save_page` sans contrôle dans ce trigger est un point élevé. Tout ce qui est dans cette
    table est public (`blade_public_page` renvoie `to_jsonb(p)`) : aucune donnée personnelle n'y va.
+10. **Horaires** (`blade_provider_hours`, `blade_provider_date_overrides`) : lecture RLS limitée au
+   propriétaire (`EXISTS … blade_providers.user_id = auth.uid()`), aucune écriture directe ; écritures
+   seulement par `blade_save_hours`, `blade_add_date_override`, `blade_delete_date_override`
+   (SECURITY DEFINER, `blade_my_provider_id()`, EXECUTE refusé à anon et PUBLIC). Les clients ne
+   lisent jamais ces tables : `blade-booking` (actions `days` et `slots`) calcule les créneaux. Une
+   politique qui appelle `blade_my_provider_id()` est un point élevé : authenticated ne peut pas
+   l'exécuter, la lecture échouerait. LCS Barber (superadmin) garde `calendar_settings` et `date_overrides`.
 
 ## Ce que tu rends
 

@@ -4,7 +4,8 @@ import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@4';
 import { BLADE_SITE, detailRows, esc, frDate, layout, sendEmail } from '../_shared/blade-email.ts';
-import { DEFAULT_PRICING, DOMICILE_ADDRESS, DOMICILE_OFFERS, PHONE_OK, allowedModes, bookableSlots, checkAnswers, depositFor, initialStatus, modeLabel, quote, slotsForDate, type BookingModes, type Mode, type Pricing, type Question } from '../_shared/blade-booking-rules.ts';
+import { allowRequest } from '../_shared/rate-limit.ts';
+import { DEFAULT_PRICING, DOMICILE_ADDRESS, DOMICILE_OFFERS, PHONE_OK, allowedModes, bookableSlots, checkAnswers, depositFor, initialStatus, modeLabel, quote, slotsForDate, type BookingModes, type Mode, type Override, type Pricing, type Question, type Rule } from '../_shared/blade-booking-rules.ts';
 
 // Public Mapbox token already shipped to browsers (domain-restricted).
 const MAPBOX = 'pk.eyJ1IjoibGNoaXBhbiIsImEiOiJjbWZtOHc1dG4wZDdzMmlzN3hmeDRldnhzIn0.lK1A8wh63mIkudWk8h7f6Q';
@@ -14,6 +15,7 @@ const Iso = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const Time = z.string().regex(/^\d{2}:\d{2}$/);
 const ModeS = z.enum(['domicile', 'deplacement']);
 const Body = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('days'), provider_id: z.uuid(), mode: ModeS }),
   z.object({ action: z.literal('slots'), service_id: z.uuid().optional(), provider_id: z.uuid().optional(), mode: ModeS, date: Iso }),
   z.object({ action: z.literal('quote'), service_id: z.uuid(), mode: ModeS, date: Iso, time: Time, address: z.string().max(300).optional() }),
   z.object({ action: z.literal('create'), service_id: z.uuid(), mode: ModeS, date: Iso, time: Time, address: z.string().max(300).optional(),
@@ -53,6 +55,7 @@ Deno.serve(async req => {
   if (!token) return res({ error: 'Connecte-toi pour réserver' }, 401);
   const { data: { user } } = await db.auth.getUser(token);
   if (!user?.email) return res({ error: 'Connecte-toi pour réserver' }, 401);
+  if (!(await allowRequest(req, 'blade-booking-read', 120, 600))) return res({ error: 'Trop de requêtes. Réessaie plus tard.' }, 429);
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return res({ error: 'Informations invalides' }, 400);
   const input = parsed.data;
@@ -65,7 +68,7 @@ Deno.serve(async req => {
       if (!data?.is_active || !data.provider_id) return res({ error: 'Prestation indisponible' }, 404);
       service = data;
     }
-    const providerId = service?.provider_id ?? (input.action === 'slots' ? input.provider_id : undefined);
+    const providerId = service?.provider_id ?? (input.action === 'slots' || input.action === 'days' ? input.provider_id : undefined);
     if (!providerId || (input.action === 'slots' && input.provider_id && service && input.provider_id !== service.provider_id)) return res({ error: 'Professionnel introuvable' }, 404);
     const { data: provider } = await db.from('blade_providers').select('id,user_id,status,display_name,email,opt_auto_emails,opt_payment_links,revolut_url,stripe_link_url').eq('id', providerId).maybeSingle();
     if (!provider || provider.status !== 'active') return res({ error: 'Ce professionnel ne prend pas de rendez-vous pour le moment' }, 409);
@@ -73,18 +76,43 @@ Deno.serve(async req => {
     const { data: page } = await db.from('blade_provider_pages').select('booking_modes,custom_questions,booking_rules,salon_address').eq('provider_id', provider.id).maybeSingle();
     if (!allowedModes(page?.booking_modes as BookingModes | undefined).includes(mode)) return res({ error: 'Ce lieu n’est pas proposé par ce professionnel' }, 400);
     const proName = provider.display_name ?? 'Le professionnel';
-    // Opening hours live in the LCS Barber calendar; other providers have no online calendar yet.
+    // LCS Barber (superadmin) keeps its historic calendar (calendar_settings + date_overrides, no provider column);
+    // every other provider uses its own hours (blade_provider_hours + blade_provider_date_overrides).
     const { data: superadmins } = await db.from('user_roles').select('user_id').eq('role', 'superadmin');
     const hasCalendar = (superadmins ?? []).some(r => r.user_id === provider.user_id);
-
     const { today, minutes } = parisNow();
+    const loadHours = async (from: string, to: string): Promise<{ rules: Rule[]; overrides: Override[] }> => {
+      const [{ data: rules, error: e1 }, { data: overrides, error: e2 }] = await Promise.all(hasCalendar ? [
+        db.from('calendar_settings').select('day_of_week,start_time,end_time,is_available,mode'),
+        db.from('date_overrides').select('date,start_time,end_time,is_available,mode').gte('date', from).lte('date', to),
+      ] : [
+        db.from('blade_provider_hours').select('day_of_week,start_time,end_time,mode').eq('provider_id', provider.id),
+        db.from('blade_provider_date_overrides').select('date,start_time,end_time,is_available,mode').eq('provider_id', provider.id).gte('date', from).lte('date', to),
+      ]);
+      // Hours tables missing (migration not applied or rolled back): no slot rather than a server error.
+      const missing = (e: { code?: string } | null) => e?.code === '42P01' || e?.code === 'PGRST205';
+      if (!hasCalendar && (missing(e1) || missing(e2))) return { rules: [], overrides: [] };
+      if (e1 || e2) throw e1 ?? e2;
+      const hhmm = (t: unknown) => t == null ? null : String(t).slice(0, 5);
+      return {
+        rules: (rules ?? []).map(r => ({ ...r, start_time: hhmm(r.start_time)!, end_time: hhmm(r.end_time)!, is_available: r.is_available ?? true })) as Rule[],
+        overrides: (overrides ?? []).map(o => ({ ...o, start_time: hhmm(o.start_time), end_time: hhmm(o.end_time) })) as Override[],
+      };
+    };
+    if (input.action === 'days') {
+      const last = addDays(today, 92);
+      const { rules, overrides } = await loadHours(today, last);
+      const days: string[] = [];
+      for (let d = today; d <= last; d = addDays(d, 1)) if (slotsForDate(rules, overrides, mode, d).length) days.push(d);
+      return res({ days });
+    }
+
     if (input.date < today || input.date > addDays(today, 92)) return res({ error: 'Date hors des disponibilités' }, 400);
-    const [{ data: rules }, { data: overrides }, { data: taken }] = await Promise.all([
-      db.from('calendar_settings').select('day_of_week,start_time,end_time,is_available,mode'),
-      db.from('date_overrides').select('date,start_time,end_time,is_available,mode').eq('date', input.date),
+    const [{ rules, overrides }, { data: taken }] = await Promise.all([
+      loadHours(input.date, input.date),
       db.from('bookings').select('appointment_time,client_email').eq('provider_id', provider.id).eq('appointment_date', input.date).in('status', ['pending', 'confirmed']),
     ]);
-    const open = hasCalendar ? slotsForDate(rules ?? [], overrides ?? [], mode, input.date) : [];
+    const open = slotsForDate(rules, overrides, mode, input.date);
     const takenByOthers = (taken ?? []).filter(b => String(b.client_email).toLowerCase() !== user.email!.toLowerCase()).map(b => String(b.appointment_time));
     const slots = bookableSlots(open, takenByOthers, input.date, today, minutes);
     if (input.action === 'slots') return res({ slots });
