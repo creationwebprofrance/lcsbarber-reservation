@@ -89,7 +89,8 @@ const accountCache = new Map<string, Promise<Account>>();
 function loadAccount(userId: string): Promise<Account> {
   let p = accountCache.get(userId);
   if (!p) {
-    p = Promise.resolve((supabase as SupabaseClient).rpc('blade_my_provider')).then(({ data, error }) => error || !data ? noAccount : data as Account).catch(() => noAccount);
+    // Une erreur (réseau) n'est pas gardée en mémoire : le prochain appel réessaie au lieu de traiter un pro comme un client.
+    p = Promise.resolve((supabase as SupabaseClient).rpc('blade_my_provider')).then(({ data, error }) => { if (error) { accountCache.delete(userId); return noAccount; } return data ? data as Account : noAccount; }).catch(() => { accountCache.delete(userId); return noAccount; });
     accountCache.set(userId, p);
   }
   return p;

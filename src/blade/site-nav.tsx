@@ -5,10 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from './data';
 import { PreferenceControls, useBladePreferences, type Language } from './preferences';
 
-const extra: Record<Language, { pricing: string; menu: string; close: string; nav: string }> = {
-  fr: { pricing: 'Tarifs', menu: 'Ouvrir le menu', close: 'Fermer le menu', nav: 'Navigation principale' },
-  en: { pricing: 'Pricing', menu: 'Open menu', close: 'Close menu', nav: 'Main navigation' },
-  es: { pricing: 'Precios', menu: 'Abrir menú', close: 'Cerrar menú', nav: 'Navegación principal' },
+const extra: Record<Language, { pricing: string; menu: string; close: string; nav: string; proSpace: string; clientSpace: string }> = {
+  fr: { pricing: 'Tarifs', menu: 'Ouvrir le menu', close: 'Fermer le menu', nav: 'Navigation principale', proSpace: 'Mon espace pro', clientSpace: 'Mon espace' },
+  en: { pricing: 'Pricing', menu: 'Open menu', close: 'Close menu', nav: 'Main navigation', proSpace: 'My pro space', clientSpace: 'My space' },
+  es: { pricing: 'Precios', menu: 'Abrir menú', close: 'Cerrar menú', nav: 'Navegación principal', proSpace: 'Mi espacio pro', clientSpace: 'Mi espacio' },
 };
 
 function Logo() {
@@ -25,7 +25,7 @@ function Logo() {
 export function SiteNav() {
   const { t, language } = useBladePreferences();
   const x = extra[language] ?? extra.fr;
-  const { session } = useSession();
+  const { session, isPro, ready } = useSession();
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -44,8 +44,11 @@ export function SiteNav() {
     <NavLink to="/blade/client" className="bl3-link">{t('explore')}</NavLink>
     <NavLink to="/blade/tarifs" className="bl3-link">{x.pricing}</NavLink>
   </>;
-  // Connecté (client ou pro) : un seul bouton, se déconnecter.
-  const actions = session ? <button type="button" className="bl3-btn bl3-btn-solid" onClick={() => { void supabase.auth.signOut(); }}><LogOut size={17} aria-hidden="true" />{t('logout')}</button> : <>
+  // Connecté : accès direct à son espace (pro ou client), puis se déconnecter.
+  const actions = session ? <>
+    <button type="button" className="bl3-btn bl3-btn-ghost" onClick={() => { void supabase.auth.signOut(); }}><LogOut size={17} aria-hidden="true" />{t('logout')}</button>
+    {ready && <Link to={isPro ? '/blade/pro' : '/blade/client'} className="bl3-btn bl3-btn-solid"><UserRound size={17} aria-hidden="true" />{isPro ? x.proSpace : x.clientSpace}<ArrowRight size={17} aria-hidden="true" /></Link>}
+  </> : <>
     <Link to="/blade/connexion?espace=client" className="bl3-btn bl3-btn-ghost"><UserRound size={17} aria-hidden="true" />{t('personal')}</Link>
     <Link to="/blade/connexion?espace=pro" className="bl3-btn bl3-btn-solid">{t('professional')}<ArrowRight size={17} aria-hidden="true" /></Link>
   </>;

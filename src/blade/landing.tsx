@@ -118,17 +118,18 @@ export function DemoLogin() {
   const { session, isPro, ready } = useSession();
   const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false); const [msg, setMsg] = useState('');
-  // Un compte = un espace : un compte prestataire ne se connecte pas côté client, et un compte client pas côté pro.
+  // Un compte = un espace : chacun arrive dans le sien, quelle que soit la page de connexion utilisée.
+  // Seul un client qui crée un compte depuis la connexion pro part vers « Devenir prestataire ».
   useEffect(() => {
     if (!ready || !session) return;
-    if (pro && !isPro && !signup) { void supabase.auth.signOut(); setMsg('Ce compte est un compte client : il ne peut pas se connecter à l’espace professionnel. Utilise la connexion client.'); return; }
-    if (!pro && isPro) { void supabase.auth.signOut(); setMsg('Ce compte est un compte professionnel : il ne peut pas se connecter à l’espace client. Utilise la connexion professionnelle.'); return; }
-    navigate(isPro ? '/blade/pro' : pro ? '/blade/devenir-pro' : '/blade/client', { replace: true });
-  }, [ready, session, isPro, pro, signup, navigate]);
+    // « next » n'est suivi que pour cette seule valeur fixe (jamais de redirection vers une adresse libre).
+    const becomePro = pro && (signup || params.get('next') === '/blade/devenir-pro');
+    navigate(isPro ? '/blade/pro' : becomePro ? '/blade/devenir-pro' : '/blade/client', { replace: true });
+  }, [ready, session, isPro, pro, signup, params, navigate]);
   const title = signup ? (pro ? 'Créer un compte professionnel' : 'Créer un compte') : (pro ? 'Connexion professionnelle' : 'Connexion client');
   const google = async () => { setBusy(true); setMsg(''); const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/blade/connexion?espace=${pro ? 'pro' : 'client'}${signup ? '&mode=inscription' : ''}` } }); if (error) { setMsg(error.message); setBusy(false); } };
   const submit = async (e: React.FormEvent) => { e.preventDefault(); setBusy(true); setMsg('');
-    const { data, error } = signup ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}${target}` } }) : await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = signup ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: pro ? `${window.location.origin}/blade/connexion?espace=pro&mode=inscription` : `${window.location.origin}${target}` } }) : await supabase.auth.signInWithPassword({ email, password });
     setBusy(false); if (error) setMsg(error.message); else if (signup && !data.session) setMsg('Vérifiez vos e-mails pour confirmer votre compte.'); };
   return <div className="bl-landing blade-app">
     <header className="bl-header"><Link to="/blade" className="bl-logo" aria-label="BLADE Hairstyle — accueil"><span className="blade-lockup"><img src="/blade/logo-black.png" alt="BLADE" width="1920" height="402" /><span className="blade-hairstyle" aria-hidden="true">Hairstyle</span><span className="blade-tagline" aria-hidden="true">For men &amp; women</span></span></Link></header>

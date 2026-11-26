@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { ShoppingBag, Search, CalendarDays, MessageSquare, UserRound, House, UsersRound, ChartNoAxesColumnIncreasing, MapPin, Car, Bell, Scissors, Coins, CreditCard, MoreHorizontal, ChevronDown, ChevronRight, ArrowRight, X, Plus, SlidersHorizontal, ArrowLeft, LoaderCircle, CircleAlert, Check, Menu, Image, Calculator, Settings, Gift, Palette, type LucideIcon } from 'lucide-react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { useSession } from './data';
@@ -35,7 +35,8 @@ function SpaceGuard({ pro, children }: { pro: boolean; children: ReactNode }) {
   const { session, isPro, ready } = useSession();
   if (!ready) return null;
   if (!session || isPro === pro) return <>{children}</>;
-  return <div className="blade-app"><main className="blade-main"><EmptyState icon={pro ? 'user' : 'scissors'} title={pro ? 'Vous êtes connecté en tant que client' : 'Vous êtes connecté en tant que prestataire'} description={pro ? 'L’espace professionnel est réservé aux comptes prestataires. Déconnectez-vous pour utiliser un compte professionnel.' : 'Un compte prestataire ne peut pas être utilisé comme client. Déconnectez-vous pour utiliser un compte client.'} action={<div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'center'}}><BladeButton variant="default" asChild><Link to={pro ? '/blade/client' : '/blade/pro'}>Aller à mon espace {pro ? 'client' : 'professionnel'}</Link></BladeButton>{pro && <BladeButton asChild><Link to="/blade/devenir-pro">Devenir prestataire</Link></BladeButton>}<BladeButton onClick={() => supabase.auth.signOut()}>Se déconnecter</BladeButton></div>}/></main></div>;
+  // Connecté dans l'autre espace : on mène directement le compte vers le sien.
+  return <Navigate to={isPro ? '/blade/pro' : '/blade/client'} replace />;
 }
 export function ClientLayout() { return <SpaceGuard pro={false}><div className="blade-app blade-client"><a href="#blade-content" className="blade-skip">Aller au contenu</a><AccountHeader /><main id="blade-content" className="blade-main" tabIndex={-1}><Outlet /></main><nav className="blade-bottom blade-client-bottom" aria-label="Navigation client">{clientLinks.map(l => <NavItem key={l.path} item={l} />)}</nav></div></SpaceGuard>; }
 function ProNavGroup({ item }: { item: ProNavItem }) {
