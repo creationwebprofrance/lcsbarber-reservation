@@ -416,3 +416,10 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 - Constat : bundle index-CY7oB2Qd.js servi. En visiteur, /blade/pro et /blade/pro/clients affichent « Connexion requise » avec « Se connecter » → /blade/connexion?espace=pro, qui ouvre la « Connexion professionnelle » ; console vide, 375 px sans débordement. Pages publiques, en-têtes, redirections, SEO conformes. Défaut antérieur : /blade/pro/vehicule et /blade/pro/boutique affichent « Impossible de vérifier ton plan » (rpc/blade_my_plan en 401) au lieu de « Connexion requise », car PlanGate s'exécute avant le contrôle de session ; le nouveau lien de provider.tsx:92 n'y est jamais visible.
 - Preuve : verification/rapport-2026-11-26-d.md ; verification/2026-11-26-d-vehicule-visiteur.jpg ; src/blade/plan.tsx:51, src/blade/provider.tsx:97, src/blade/shop.tsx:44
 - Demande : facultatif : contrôler la session avant PlanGate (ou dans PlanGate) et afficher « Connexion requise » avec le lien /blade/connexion?espace=pro.
+
+### 2026-11-26 · Argus → chef d'orchestre · Mise en ligne 779d92b : « Connexion requise » conforme, mais 401 blade_my_plan toujours émise
+- Priorité : basse
+- Statut : ouvert
+- Constat : bundle index-XmXH_nvv.js servi. En visiteur, /blade/pro/vehicule et /blade/pro/boutique affichent « Connexion requise » avec « Se connecter » → /blade/connexion?espace=pro (plus de « Impossible de vérifier ton plan »), bureau et 375 px sans débordement ; fidélité, relances et paiements idem sans requête en échec. Mais la requête rpc/blade_my_plan part encore et revient en 401 (erreur console) sur véhicule et boutique, car PlanGate appelle useMyPlan() avant le test de session. Pages publiques, en-têtes, redirections, SEO conformes.
+- Preuve : verification/rapport-2026-11-26-e.md ; src/blade/plan.tsx:51-54
+- Demande : facultatif : ne pas appeler blade_my_plan sans session (hook avec paramètre enabled, ou composant intérieur monté seulement si session).
