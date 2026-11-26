@@ -4,7 +4,8 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BadgeCheck, Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { BladeButton } from './common';
+import { BladeButton, EmptyState } from './common';
+import { useSession } from './data';
 import { useAsync } from './customization-data';
 
 export type PlanId = 'free' | 'pro' | 'premium';
@@ -47,6 +48,10 @@ export function PlanBanner() {
 /** Affiche le contenu si le plan suffit, sinon une invitation à passer au plan requis. */
 export function PlanGate({ need, feature, children }: { need: Exclude<PlanId, 'free'>; feature: string; children: ReactNode }) {
   const { data, loading } = useMyPlan();
+  const { session, ready } = useSession();
+  if (!ready) return <p role="status">Chargement…</p>;
+  // Visiteur non connecté : invitation à se connecter plutôt qu'une erreur de lecture du plan.
+  if (!session) return <EmptyState icon="user" title="Connexion requise" description={`${feature} fait partie de l’espace professionnel.`} action={<BladeButton asChild variant="default"><Link to="/blade/connexion?espace=pro">Se connecter</Link></BladeButton>} compact />;
   if (loading && !data) return <p role="status">Chargement…</p>;
   if (!data) return <p className="blade-note" role="alert">Impossible de vérifier ton plan pour le moment. Recharge la page.</p>;
   if (RANK[data.plan] >= RANK[need]) return <>{children}</>;
