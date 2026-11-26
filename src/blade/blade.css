@@ -1337,3 +1337,8 @@ html[data-blade-theme=dark] .bl2 .bl2-trust svg{color:#f2c98f}
 .blade-tier-dot.is-a_relancer,.blade-tier-tag.is-a_relancer{--tier:#d9573b;--tier-ink:#b23e25}
 .blade-tier-dot.is-jamais,.blade-tier-tag.is-jamais{--tier:#9a9a9a;--tier-ink:#666}
 [data-blade-theme=dark] .blade-tier-tag.is-regulier{--tier-ink:#6fd096}[data-blade-theme=dark] .blade-tier-tag.is-nouveau{--tier-ink:#8db7f0}[data-blade-theme=dark] .blade-tier-tag.is-occasionnel{--tier-ink:#e9c164}[data-blade-theme=dark] .blade-tier-tag.is-a_relancer{--tier-ink:#f0907a}[data-blade-theme=dark] .blade-tier-tag.is-jamais{--tier-ink:#bbb}
+/* Superadmin : coordonnées d'inscription d'un prestataire. */
+.blade-provider-contact{display:flex;flex-wrap:wrap;gap:4px 12px}
+/* Devenir prestataire : réseaux sociaux facultatifs. */
+.blade-socials{border:0;padding:0;margin:0}
+.blade-socials legend{font-size:14px;font-weight:500;margin-bottom:8px}

@@ -5,6 +5,25 @@ import { BladeButton, EmptyState, Icon, PageHeading, Section, Tabs, ArrowRight }
 import { adminSetProvider, fmtDate, useAdminOverview, useLcsTotals, useSession, type AdminProvider } from './data';
 import { isInactive, providerStatusLabel } from './provider-admin-model';
 
+/** Coordonnées données à l'inscription (superadmin seulement). Les pseudos sont validés par le serveur (lettres, chiffres, . et _). */
+function ProviderContact({ p }: { p: AdminProvider }) {
+  const name = [p.first_name, p.last_name].filter(Boolean).join(' ');
+  // Défense en profondeur : on revérifie le format avant de construire un lien.
+  const ok = (h?: string | null): h is string => !!h && /^[A-Za-z0-9._]{1,30}$/.test(h);
+  const tel = p.phone?.replace(/[ .-]/g, '') ?? '';
+  const socials = [
+    ok(p.instagram) && { label: 'Instagram', href: `https://www.instagram.com/${p.instagram}/`, handle: p.instagram },
+    ok(p.snapchat) && { label: 'Snapchat', href: `https://www.snapchat.com/add/${p.snapchat}`, handle: p.snapchat },
+    ok(p.tiktok) && { label: 'TikTok', href: `https://www.tiktok.com/@${p.tiktok}`, handle: p.tiktok },
+  ].filter(Boolean) as { label: string; href: string; handle: string }[];
+  if (!name && !p.phone && !socials.length) return null;
+  return <p className="blade-note blade-provider-contact">
+    {name && <span>{name}</span>}
+    {p.phone && (/^\+?[0-9]{8,15}$/.test(tel) ? <a className="blade-text-link" href={`tel:${tel}`}>{p.phone}</a> : <span>{p.phone}</span>)}
+    {socials.map(s => <a key={s.label} className="blade-text-link" href={s.href} target="_blank" rel="noopener noreferrer">{s.label} @{s.handle}</a>)}
+  </p>;
+}
+
 const OPTIONS: { key: 'opt_payment_links' | 'opt_auto_emails' | 'opt_searchable'; label: string }[] = [
   { key: 'opt_payment_links', label: 'Acompte par lien (Revolut / Stripe)' },
   { key: 'opt_auto_emails', label: 'Emails automatiques' },
@@ -25,6 +44,7 @@ function ProviderRow({ p, onSaved }: { p: AdminProvider; onSaved: () => void }) 
     <div>
       <h3>{p.display_name || p.email || 'Sans nom'}{p.is_self ? ' (toi)' : ''}</h3>
       <p>{p.email ?? '—'}</p>
+      <ProviderContact p={p} />
       <p className="blade-note">Inscrit le {day(p.created_at)} · {p.clients} clients · {p.bookings} rendez-vous · <strong>{p.honored} prestation{p.honored > 1 ? 's' : ''} honorée{p.honored > 1 ? 's' : ''}</strong> · dernière activité {day(p.last_active_at)}{inactive ? ' · inactif depuis plus d’un mois' : ''}</p>
       <p className="blade-note">Liens enregistrés : {p.has_revolut ? 'Revolut' : ''}{p.has_revolut && p.has_stripe_link ? ' + ' : ''}{p.has_stripe_link ? 'Stripe' : ''}{!p.has_revolut && !p.has_stripe_link ? 'aucun' : ''}</p>
     </div>
@@ -50,7 +70,7 @@ function RequestCard({ p, onSaved }: { p: AdminProvider; onSaved: () => void }) 
   }
   return <article className="blade-request-card" aria-busy={!!busy}>
     <span className="blade-request-avatar" aria-hidden="true">{(p.display_name || p.email || '?').trim().slice(0, 1).toUpperCase()}</span>
-    <div><h3>{p.display_name || 'Sans nom'}</h3><p>{p.email ?? '—'}</p><small>Demande du {day(p.created_at)}</small></div>
+    <div><h3>{p.display_name || 'Sans nom'}</h3><p>{p.email ?? '—'}</p><ProviderContact p={p} /><small>Demande du {day(p.created_at)}</small></div>
     <div className="blade-request-actions">
       <BladeButton variant="default" disabled={!!busy} onClick={() => decide('active')}>{busy === 'active' ? 'Validation…' : 'Valider l’accès'}</BladeButton>
       <BladeButton disabled={!!busy} onClick={() => decide('suspended')}>Refuser</BladeButton>

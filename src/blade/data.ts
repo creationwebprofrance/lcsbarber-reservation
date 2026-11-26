@@ -219,8 +219,11 @@ export async function notifyBlade(body: Record<string, unknown>): Promise<boolea
   const { data, error } = await supabase.functions.invoke('blade-notify', { body });
   return !error && data?.email_sent === true;
 }
-export async function registerProvider(displayName: string) {
-  await rpc('blade_register_provider', { p_display_name: displayName });
+/** Informations demandées à l'inscription d'un prestataire (lisibles par lui et par le superadmin seulement). */
+export type ProviderSignup = { displayName: string; firstName: string; lastName: string; phone: string; instagram: string; snapchat: string; tiktok: string };
+export async function registerProvider(v: ProviderSignup) {
+  const handle = (x: string) => x.trim().replace(/^@+/, '') || null;
+  await rpc('blade_register_provider', { p_display_name: v.displayName.trim(), p_first_name: v.firstName.trim(), p_last_name: v.lastName.trim(), p_phone: v.phone.trim(), p_instagram: handle(v.instagram), p_snapchat: handle(v.snapchat), p_tiktok: handle(v.tiktok) });
   await notifyBlade({ event: 'provider_registered' });
   refreshAccount();
 }
@@ -228,7 +231,7 @@ export async function updateOwnProvider(displayName: string, revolut: string, st
   await rpc('blade_update_own_provider', { p_display_name: displayName, p_revolut_url: revolut.trim() || null, p_stripe_link_url: stripe.trim() || null });
   refreshAccount();
 }
-export type AdminProvider = { id: string; display_name: string | null; email: string | null; status: 'pending' | 'active' | 'suspended'; created_at: string; validated_at: string | null; last_active_at: string; opt_payment_links: boolean; opt_auto_emails: boolean; opt_searchable: boolean; has_revolut: boolean; has_stripe_link: boolean; is_self: boolean; clients: number; bookings: number; honored: number };
+export type AdminProvider = { id: string; display_name: string | null; email: string | null; status: 'pending' | 'active' | 'suspended'; created_at: string; validated_at: string | null; last_active_at: string; opt_payment_links: boolean; opt_auto_emails: boolean; opt_searchable: boolean; has_revolut: boolean; has_stripe_link: boolean; is_self: boolean; clients: number; bookings: number; honored: number; first_name?: string | null; last_name?: string | null; phone?: string | null; instagram?: string | null; snapchat?: string | null; tiktok?: string | null };
 export type AdminClient = { id: string; name: string; email: string; phone: string | null; created_at: string; provider_id: string | null; provider_name: string | null; honored: number };
 export type AdminOverview = { providers: AdminProvider[]; clients: AdminClient[]; unattributed_clients: number; unattributed_bookings: number; honored_total: number; honored_clients: number };
 export const useAdminOverview = (enabled: boolean, refresh = 0) => useRead(async () => enabled ? rpc<AdminOverview>('blade_admin_overview') : null, [enabled, refresh]);

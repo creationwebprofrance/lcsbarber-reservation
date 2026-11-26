@@ -26,6 +26,12 @@ export default function Confidentialite() {
           prestation, historique des rendez-vous, montants et statut de paiement.
         </p>
         <p>
+          Professionnels : à l'inscription, prénom, nom, téléphone, nom affiché et, s'ils le
+          souhaitent, pseudos Instagram, Snapchat et TikTok. Ces informations ne sont visibles que
+          par le professionnel lui-même et par l'éditeur de BLADE ; elles ne figurent pas sur la
+          page publique du professionnel.
+        </p>
+        <p>
           Suivi de trajet (prestations à domicile) : le professionnel partage sa position une seule
           fois, au départ. Nous calculons un itinéraire estimé jusqu'au lieu du rendez-vous et
           enregistrons cet itinéraire (sans ses 500 premiers mètres), les coordonnées du lieu de la
@@ -40,7 +46,9 @@ export default function Confidentialite() {
         <p>
           Gestion des rendez-vous et exécution de la prestation (exécution du contrat), envoi des
           courriels de confirmation, rappel et suivi (exécution du contrat), abonnements des
-          professionnels (exécution du contrat), obligations comptables (obligation légale),
+          professionnels (exécution du contrat), étude des demandes d'inscription des
+          professionnels et prise de contact (mesures précontractuelles), obligations comptables
+          (obligation légale),
           amélioration du service et avis clients (intérêt légitime).
         </p>
       </section>
@@ -72,7 +80,9 @@ export default function Confidentialite() {
       <section>
         <h2>Durée de conservation</h2>
         <p>
-          Compte : jusqu'à la demande de suppression. Historique des rendez-vous et pièces
+          Compte : jusqu'à la demande de suppression. Coordonnées d'inscription d'un
+          professionnel : tant que son compte prestataire existe ; en cas de refus de la demande,
+          supprimées sur simple demande. Historique des rendez-vous et pièces
           comptables : 10 ans conformément aux obligations légales. Trajet estimé : supprimé
           automatiquement 7 jours après le rendez-vous.
         </p>
