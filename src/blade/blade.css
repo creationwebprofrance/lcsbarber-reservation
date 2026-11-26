@@ -98,7 +98,7 @@
 .blade-live-pro-head{display:flex;gap:14px;align-items:center}
 .blade-live-pro-head .blade-brand-logo{width:56px;height:56px;border-width:0;flex:none;font-size:22px}
 /* Leaflet force width:auto et max-width:none sur les images du repère : le logo reprend la taille du cercle. */
-.leaflet-container .leaflet-marker-pane .blade-logo-pin img{position:absolute;inset:0;width:100%!important;height:100%!important;max-width:100%!important}.blade-live-pro-head h3{margin:0;font-size:20px}.blade-live-pro-head p{margin:2px 0 0;color:hsl(var(--muted-foreground));font-size:14px}.blade-live-pro-head strong{margin-left:auto;white-space:nowrap;color:hsl(var(--primary))}
+.leaflet-container .leaflet-marker-pane .blade-logo-pin img{position:absolute;inset:0;width:100%!important;height:100%!important;max-width:100%!important}.blade-live-pro-head h3{margin:0;font-size:20px}.blade-live-pro-head p{margin:2px 0 0;color:hsl(var(--muted-foreground));font-size:14px}.blade-live-pro-head strong{margin-left:auto;white-space:nowrap;flex:none;color:hsl(var(--primary))}
 .blade-live-pro h4{margin:0;font-size:14px}
 .blade-live-reviews{list-style:none;margin:0;padding:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
 .blade-live-reviews li{padding:14px;border:1px solid hsl(var(--border));border-radius:14px;background:hsl(var(--card))}
