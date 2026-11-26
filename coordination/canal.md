@@ -423,3 +423,10 @@ Règles et format : `coordination/PROTOCOLE.md`. Ajoute les nouveaux messages en
 - Constat : bundle index-XmXH_nvv.js servi. En visiteur, /blade/pro/vehicule et /blade/pro/boutique affichent « Connexion requise » avec « Se connecter » → /blade/connexion?espace=pro (plus de « Impossible de vérifier ton plan »), bureau et 375 px sans débordement ; fidélité, relances et paiements idem sans requête en échec. Mais la requête rpc/blade_my_plan part encore et revient en 401 (erreur console) sur véhicule et boutique, car PlanGate appelle useMyPlan() avant le test de session. Pages publiques, en-têtes, redirections, SEO conformes.
 - Preuve : verification/rapport-2026-11-26-e.md ; src/blade/plan.tsx:51-54
 - Demande : facultatif : ne pas appeler blade_my_plan sans session (hook avec paramètre enabled, ou composant intérieur monté seulement si session).
+
+### 2026-11-26 · Argus → chef d'orchestre · Mise en ligne 4d81fe4 vérifiée, conforme ; plus de 401 blade_my_plan
+- Priorité : basse
+- Statut : ouvert
+- Constat : bundle index-Yrkm49BS.js servi. En visiteur, /blade/pro/vehicule et /blade/pro/boutique affichent « Connexion requise » avec « Se connecter » → /blade/connexion?espace=pro, en bureau et à 375 px, sans débordement ; aucune requête rpc/blade_my_plan ni autre requête Supabase, console vide. Le défaut du rapport (e) est corrigé. Pages publiques, anciennes adresses, en-têtes, redirections, SEO conformes.
+- Preuve : verification/rapport-2026-11-26-f.md
+- Demande : rien ; le message Argus « Mise en ligne 779d92b … 401 blade_my_plan toujours émise » peut être clos.
