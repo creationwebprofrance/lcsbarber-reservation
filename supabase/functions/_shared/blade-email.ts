@@ -29,6 +29,19 @@ export function detailRows(rows: [string, string][]) {
   return `<table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;margin:16px 0;border-collapse:collapse">${rows.map(([k, v]) => `<tr><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;color:#737373;width:40%">${esc(k)}</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-weight:600">${esc(v)}</td></tr>`).join('')}</table>`;
 }
 
+/** Version texte brut d'un email HTML : les messageries pénalisent les emails sans partie texte. */
+export function htmlToText(html: string) {
+  return html
+    .replace(/<(style|script|head)[^>]*>[\s\S]*?<\/\1>/gi, '')
+    .replace(/<img[^>]*alt="([^"]*)"[^>]*>/gi, '$1')
+    .replace(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (_m, href, label) => `${label.replace(/<[^>]+>/g, '').trim()} : ${href}`)
+    .replace(/<\/td>\s*<td[^>]*>/gi, ' : ')
+    .replace(/<br\s*\/?>|<\/(p|h1|h2|h3|tr|div|li)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&')
+    .split('\n').map(l => l.replace(/[ \t]+/g, ' ').trim()).filter((l, i, a) => l || (i > 0 && a[i - 1])).join('\n').trim();
+}
+
 export async function sendEmail(to: string[], subject: string, html: string, idempotencyKey?: string, replyTo?: string): Promise<boolean> {
   const key = Deno.env.get('RESEND_API_KEY');
   const recipients = [...new Set(to.filter(Boolean).map(e => e.toLowerCase()))];
@@ -37,7 +50,7 @@ export async function sendEmail(to: string[], subject: string, html: string, ide
   if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey.slice(0, 256);
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST', headers,
-    body: JSON.stringify({ from: BLADE_SENDER, to: recipients, subject: subject.slice(0, 150), html, ...(replyTo ? { reply_to: replyTo } : {}),
+    body: JSON.stringify({ from: BLADE_SENDER, to: recipients, subject: subject.slice(0, 150), html, text: htmlToText(html), ...(replyTo ? { reply_to: replyTo } : {}),
       ...(html.includes(`cid:${BLADE_LOGO_CID}`) ? { attachments: [{ filename: 'blade-logo.png', content: BLADE_LOGO_PNG_BASE64, content_id: BLADE_LOGO_CID }] } : {}) }),
   }).catch(() => null);
   if (!r?.ok) { console.error('Resend failed', r?.status, await r?.text().catch(() => '')); return false; }

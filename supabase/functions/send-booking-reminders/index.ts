@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
-import { Resend } from "npm:resend@2.0.0";
+import { BLADE_SITE, detailRows, esc, frDate, layout, sendEmail } from "../_shared/blade-email.ts";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -13,6 +12,8 @@ const corsHeaders = {
 
 // Appelée uniquement par la tâche planifiée pg_cron, qui envoie l'en-tête x-cron-secret
 // (lu dans Supabase Vault). Sans secret configuré, la fonction refuse tout appel.
+// Compte prestataire de LCS Barber (même valeur que create-slot-request).
+const LCS_PROVIDER_USER = 'da0b2f45-1ee1-441e-a06d-3bd046615ca8';
 const CRON_SECRET = Deno.env.get("REMINDERS_CRON_SECRET") ?? "";
 
 const safeEqual = (a: string, b: string) => {
@@ -22,7 +23,6 @@ const safeEqual = (a: string, b: string) => {
   return diff === 0;
 };
 
-const esc = (v: unknown) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 
 interface Booking {
   id: string;
@@ -63,6 +63,10 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log("Checking for reminders...", { now, tomorrow, twoHoursLater });
 
+    // Ces rappels (et la copie à BARBER_EMAIL) ne concernent que LCS Barber : jamais les clients d'un autre prestataire.
+    const { data: lcs } = await supabase.from('blade_providers').select('id').eq('user_id', LCS_PROVIDER_USER).maybeSingle();
+    const providerFilter = lcs?.id ? `provider_id.is.null,provider_id.eq.${lcs.id}` : 'provider_id.is.null';
+
     // Récupérer les rendez-vous qui nécessitent un rappel
     const { data: bookings, error } = await supabase
       .from('bookings')
@@ -79,6 +83,7 @@ serve(async (req: Request): Promise<Response> => {
         services (name)
       `)
       .eq('status', 'pending')
+      .or(providerFilter)
       .gte('appointment_date', now.toISOString().split('T')[0])
       .order('appointment_date')
       .order('appointment_time');
@@ -141,22 +146,12 @@ serve(async (req: Request): Promise<Response> => {
             return { success: false, bookingId: booking.id, type, error: claimError ? 'claim failed' : 'already sent' };
           }
 
-          const appointmentDateTime = new Date(`${booking.appointment_date}T${booking.appointment_time}`);
-          const formattedDate = appointmentDateTime.toLocaleDateString('fr-FR', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          });
-          const formattedTime = booking.appointment_time;
-
-          const subject = type === 'tomorrow' 
-            ? '📅 Rappel : Votre rendez-vous demain chez LCS Barber ⭐'
-            : '⏰ Rappel : Votre rendez-vous dans 2 heures chez LCS Barber ⭐';
-
-          const message = type === 'tomorrow'
-            ? `Bonjour ${booking.client_name},\n\nNous vous rappelons votre rendez-vous demain chez LCS Barber ⭐`
-            : `Bonjour ${booking.client_name},\n\nVotre rendez-vous approche ! Dans 2 heures chez LCS Barber ⭐`;
+          // Même modèle que les autres emails BLADE (layout partagé, expéditeur BLADE, version texte).
+          const when = type === 'tomorrow' ? 'demain' : 'dans 2 heures';
+          const time = String(booking.appointment_time).slice(0, 5);
+          const service = booking.services?.name ?? 'Prestation';
+          const price = booking.total_price != null ? `${booking.total_price} €` : '';
+          const rows: [string, string][] = [['Prestation', service], ['Date', frDate(booking.appointment_date)], ['Heure', time], ...(price ? [['Prix', price] as [string, string]] : [])];
 
           // Email au barbier (toujours envoyé)
           const barberEmail = Deno.env.get("BARBER_EMAIL");
@@ -164,57 +159,19 @@ serve(async (req: Request): Promise<Response> => {
             console.error("BARBER_EMAIL secret missing, skipping reminder");
             return { success: false, bookingId: booking.id, type, error: "BARBER_EMAIL missing" };
           }
-          await resend.emails.send({
-            from: "LCS Barber <noreply@blade-hairstyle.com>",
-            to: [barberEmail],
-            subject: `${type === 'tomorrow' ? 'Demain' : 'Dans 2h'} : RDV avec ${booking.client_name}`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">Rappel de rendez-vous</h2>
-                <p><strong>${type === 'tomorrow' ? 'Demain' : 'Dans 2 heures'}</strong>, vous avez un rendez-vous :</p>
-                
-                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <p><strong>Client :</strong> ${esc(booking.client_name)}</p>
-                  <p><strong>Email :</strong> ${esc(booking.client_email)}</p>
-                  <p><strong>Date :</strong> ${formattedDate}</p>
-                  <p><strong>Heure :</strong> ${esc(formattedTime)}</p>
-                  <p><strong>Service :</strong> ${esc(booking.services.name)}</p>
-                  <p><strong>Prix :</strong> ${esc(booking.total_price)}€</p>
-                </div>
-              </div>
-            `,
-          });
+          const barberOk = await sendEmail([barberEmail], `BLADE — Rendez-vous ${when} avec ${String(booking.client_name).replace(/[\r\n\t]+/g, ' ')}`,
+            layout(`Rendez-vous ${when}`, `<p>Tu as un rendez-vous ${when}.</p>${detailRows([['Client', booking.client_name], ['Email', booking.client_email], ...rows])}`,
+              { label: 'Mon agenda', url: `${BLADE_SITE}/pro/agenda` }), `lcs-reminder-${type}-pro-${booking.id}`);
+          if (!barberOk) console.warn(`Barber reminder failed for booking ${booking.id}`);
 
-          // Tenter d'envoyer au client (peut échouer en mode test)
-          try {
-            await resend.emails.send({
-              from: "LCS Barber <noreply@blade-hairstyle.com>",
-              to: [booking.client_email],
-              subject: subject,
-              html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2 style="color: #333;">${subject}</h2>
-                  <p>${esc(message).replace(/\n/g, "<br>")}</p>
-                  
-                  <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                    <h3 style="margin-top: 0;">Détails du rendez-vous</h3>
-                    <p><strong>Date :</strong> ${formattedDate}</p>
-                    <p><strong>Heure :</strong> ${esc(formattedTime)}</p>
-                    <p><strong>Service :</strong> ${esc(booking.services.name)}</p>
-                    <p><strong>Prix :</strong> ${esc(booking.total_price)}€</p>
-                  </div>
+          const clientOk = await sendEmail([booking.client_email], `BLADE — Rappel : ton rendez-vous ${when === 'demain' ? 'est demain' : 'approche'}`,
+            layout(type === 'tomorrow' ? 'Rappel : rendez-vous demain' : 'Rappel : rendez-vous dans 2 heures',
+              `<p>Bonjour ${esc(booking.client_name)},</p><p>Petit rappel pour ton rendez-vous ${when} chez LCS Barber.</p>${detailRows([['Professionnel', 'LCS Barber'], ...rows])}<p>En cas d'empêchement, préviens ton professionnel au moins 1 heure avant.</p>`,
+              { label: 'Mes rendez-vous', url: `${BLADE_SITE}/client/rendez-vous` }), `lcs-reminder-${type}-client-${booking.id}`);
+          if (!clientOk) console.warn(`Client reminder failed for booking ${booking.id}`);
 
-                  <p>À très bientôt !</p>
-                  <p style="color: #666; font-size: 14px;">LCS Barber ⭐</p>
-                </div>
-              `,
-            });
-          } catch (clientError: any) {
-            console.warn(`Client email failed for booking ${booking.id}:`, clientError.message);
-          }
-
-          console.log(`Reminder sent for booking ${booking.id} (${type})`);
-          return { success: true, bookingId: booking.id, type };
+          console.log(`Reminder processed for booking ${booking.id} (${type})`);
+          return { success: barberOk || clientOk, bookingId: booking.id, type };
         } catch (error) {
           console.error(`Error sending reminder for booking ${booking.id}:`, error);
           return { success: false, bookingId: booking.id, type, error };
